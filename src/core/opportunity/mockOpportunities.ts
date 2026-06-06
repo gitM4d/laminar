@@ -8,6 +8,9 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     asset: "USDC",
     chain: "Base",
     apy: 0.071,
+    isExperimental: false,
+    protocolRiskLevel: "low",
+    auditCount: 2,
   },
   {
     id: "aave-usdc-base",
@@ -16,6 +19,9 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     asset: "USDC",
     chain: "Base",
     apy: 0.052,
+    isExperimental: false,
+    protocolRiskLevel: "low",
+    auditCount: 2,
   },
   {
     id: "moonwell-usdc-base",
@@ -24,6 +30,9 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     asset: "USDC",
     chain: "Base",
     apy: 0.048,
+    isExperimental: false,
+    protocolRiskLevel: "medium",
+    auditCount: 2,
   },
   {
     id: "aave-eurc-base",
@@ -32,6 +41,9 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     asset: "EURC",
     chain: "Base",
     apy: 0.041,
+    isExperimental: false,
+    protocolRiskLevel: "low",
+    auditCount: 2,
   },
   {
     id: "moonwell-dai-base",
@@ -40,6 +52,9 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     asset: "DAI",
     chain: "Base",
     apy: 0.039,
+    isExperimental: false,
+    protocolRiskLevel: "medium",
+    auditCount: 2,
   },
   {
     id: "experimental-usdc-base",
@@ -48,5 +63,8 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     asset: "USDC",
     chain: "Base",
     apy: 0.112,
+    isExperimental: true,
+    protocolRiskLevel: "high",
+    auditCount: 1,
   },
 ] as const;

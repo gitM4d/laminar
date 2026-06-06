@@ -64,6 +64,9 @@ describe("scoreOpportunityTrust", () => {
         asset: "USDC",
         chain: "Base",
         apy: 0.05,
+        isExperimental: false,
+        protocolRiskLevel: "low",
+        auditCount: 0,
       }),
     ).toThrow(UnknownProtocolTrustProfileError);
   });

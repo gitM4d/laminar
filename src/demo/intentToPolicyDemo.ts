@@ -4,6 +4,7 @@ import { scoreOpportunitiesLiquidity } from "../core/liquidity/scoreOpportunityL
 import { normalizeIntent } from "../core/normalization/normalizeIntent.js";
 import { generatePolicy } from "../core/policy/generatePolicy.js";
 import { selectProfile } from "../core/profile/selectProfile.js";
+import { assessOpportunitiesRisk } from "../core/risk/assessOpportunitiesRisk.js";
 import { scoreOpportunitiesTrust } from "../core/trust/scoreOpportunityTrust.js";
 
 const asOf = new Date("2026-06-01T00:00:00.000Z");
@@ -21,6 +22,12 @@ const policy = generatePolicy(profileClassification.selectedProfile);
 const discovery = discoverOpportunities();
 const trustScores = scoreOpportunitiesTrust(discovery.opportunities, { asOf });
 const liquidityScores = scoreOpportunitiesLiquidity(discovery.opportunities);
+const riskAssessments = assessOpportunitiesRisk(
+  discovery.opportunities,
+  policy,
+  trustScores,
+  liquidityScores,
+);
 
 const output = {
   intent: validatedIntent,
@@ -50,6 +57,19 @@ const output = {
     ineligibilityReasons: entry.liquidity.ineligibilityReasons,
     breakdown: entry.liquidity.breakdown,
     explanations: entry.liquidity.explanations,
+  })),
+  riskAssessments: riskAssessments.map((entry) => ({
+    opportunityId: entry.opportunityId,
+    protocolId: entry.protocolId,
+    protocolName: entry.protocolName,
+    asset: entry.asset,
+    decision: entry.assessment.decision,
+    totalRiskPenalty: entry.assessment.totalRiskPenalty,
+    consumedTrustScore: entry.assessment.consumedTrustScore,
+    consumedLiquidityScore: entry.assessment.consumedLiquidityScore,
+    penalties: entry.assessment.penalties,
+    rejectionReasons: entry.assessment.rejectionReasons,
+    explanations: entry.assessment.explanations,
   })),
 };
 
