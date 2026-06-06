@@ -1,0 +1,995 @@
+# Cursor Implementation Prompts
+
+Version: Draft 1
+
+Status: Development Execution Guide
+
+---
+
+# Purpose
+
+This document defines the exact sequence of prompts that should be used to develop Laminar V1.
+
+The objective is to:
+
+* maximize implementation quality
+* minimize architectural drift
+* reduce AI hallucinations
+* keep development aligned with project documentation
+
+---
+
+# Global Rule
+
+Before executing any implementation prompt, Cursor must load and read all documents under:
+
+```text
+/docs
+```
+
+Documentation is authoritative.
+
+Generated code must conform to documentation.
+
+If generated code conflicts with documentation:
+
+Documentation wins.
+
+---
+
+# Prompt 0
+
+Project Context Initialization
+
+Use this prompt at the beginning of every new chat.
+
+---
+
+Prompt
+
+```text
+You are the principal software architect for Laminar.
+
+Read the entire /docs directory before making any implementation decisions.
+
+Laminar is an intent-based stablecoin portfolio manager on Base.
+
+Important principles:
+
+- deterministic-first
+- explainability-first
+- policy-driven
+- portfolio-centric
+- auditability-first
+
+Never introduce features outside the V1 scope defined in:
+
+20-mvp-scope-boundaries.md
+
+Never introduce AI decision-making.
+
+Never introduce multi-chain functionality.
+
+Never introduce token functionality.
+
+Never redesign architecture.
+
+Documentation is authoritative.
+
+Before proposing implementation changes, identify the relevant documents and explain which sections are affected.
+```
+
+---
+
+# Prompt 1
+
+Monorepo Bootstrap
+
+Goal
+
+Create project foundation.
+
+---
+
+Prompt
+
+```text
+Read all project documentation.
+
+Create the initial Laminar monorepo structure.
+
+Requirements:
+
+- pnpm workspace
+- apps/
+- packages/
+
+Technology:
+
+Backend:
+- NestJS
+- PostgreSQL
+- Prisma
+- Redis
+- BullMQ
+
+Frontend:
+- Next.js
+- TypeScript
+- Tailwind
+- shadcn/ui
+
+Shared package:
+- types
+- constants
+- contracts
+
+Do not implement business logic.
+
+Only generate project structure and configuration.
+```
+
+---
+
+# Prompt 2
+
+Database Schema
+
+Goal
+
+Implement persistence layer.
+
+---
+
+Prompt
+
+```text
+Read:
+
+15-portfolio-lifecycle.md
+16-database-schema.md
+
+Generate Prisma schema.
+
+Requirements:
+
+- all entities
+- all enums
+- relationships
+- indexes
+
+Do not invent additional tables.
+
+Do not remove any documented fields.
+
+Output:
+
+- schema.prisma
+- migration plan
+- entity relationship explanation
+```
+
+---
+
+# Prompt 3
+
+Domain Models
+
+Goal
+
+Create business entities.
+
+---
+
+Prompt
+
+```text
+Read:
+
+15-portfolio-lifecycle.md
+16-database-schema.md
+22-cursor-development-guide.md
+
+Implement domain entities.
+
+Requirements:
+
+- Portfolio
+- Policy
+- Execution
+- RiskEvent
+
+Portfolio must enforce lifecycle transitions.
+
+Policies must be immutable.
+
+Generate:
+
+- entities
+- value objects
+- domain services
+
+No API controllers.
+No database repositories.
+```
+
+---
+
+# Prompt 4
+
+Portfolio Lifecycle Engine
+
+Goal
+
+Implement state machine.
+
+---
+
+Prompt
+
+```text
+Read:
+
+15-portfolio-lifecycle.md
+
+Implement portfolio lifecycle engine.
+
+Requirements:
+
+Valid transitions only.
+
+Generate:
+
+- state machine
+- transition validator
+- lifecycle tests
+
+Every transition must generate PortfolioEvent.
+```
+
+---
+
+# Prompt 5
+
+Policy Engine
+
+Goal
+
+Transform intent into policy.
+
+---
+
+Prompt
+
+```text
+Read:
+
+04-intent-engine.md
+30-normalization-and-mapping.md
+31-policy-model.md
+11-smart-account-model.md
+
+Implement policy engine.
+
+Required pipeline:
+
+intent
+→ normalization
+→ selected profile
+→ versioned policy
+
+Output:
+
+Portfolio Policy
+
+Policy must be versioned and immutable.
+
+Generate:
+
+- policy generator
+- policy validator
+- policy serializer
+```
+
+---
+
+# Prompt 6
+
+Opportunity Scoring
+
+Goal
+
+Rank opportunities.
+
+---
+
+Prompt
+
+```text
+Read:
+
+05-scoring-engine.md
+
+28-trust-scoring.md
+
+29-liquidity-scoring.md
+
+Implement opportunity scoring.
+
+Requirements:
+
+Deterministic.
+
+Consume precomputed Trust Score outputs from Trust Scoring.
+
+Consume precomputed Liquidity Score outputs from Liquidity Scoring.
+
+Do not implement Trust Scoring logic inside Opportunity Scoring.
+
+Do not implement Liquidity Scoring logic inside Opportunity Scoring.
+
+Opportunity Scoring produces opportunity rankings.
+
+Opportunity Scoring does not produce Portfolio Allocation.
+
+Formula:
+
+score =
+(APY * normalizedLiquidityScore * normalizedTrustScore)
+-
+(risk_penalty + gas_penalty)
+
+Generate:
+
+- opportunity scoring engine
+- unit tests
+- explanation output
+
+No AI.
+No ML.
+No randomness.
+```
+
+---
+
+# Prompt 7
+
+Risk Engine
+
+Goal
+
+Risk detection.
+
+---
+
+Prompt
+
+```text
+Read:
+
+06-risk-engine.md
+
+28-trust-scoring.md
+
+29-liquidity-scoring.md
+
+Implement risk engine.
+
+Risk Engine consumes Trust Scores generated by Trust Scoring.
+
+Risk Engine consumes Liquidity Scores generated by Liquidity Scoring.
+
+Risk Engine may generate risk penalties and risk events.
+
+Risk Engine must not calculate Trust Scores.
+
+Risk Engine must not calculate Liquidity Scores.
+
+Generate:
+
+- protocol risk evaluator
+- stablecoin evaluator
+- risk penalty generator
+
+Generate:
+
+RiskEvent
+
+Severity levels:
+
+LOW
+MEDIUM
+HIGH
+CRITICAL
+
+Implement tests.
+```
+
+---
+
+# Prompt 8
+
+Protocol Adapter Framework
+
+Goal
+
+Adapter architecture.
+
+---
+
+Prompt
+
+```text
+Read:
+
+10-protocol-adapters.md
+
+Create protocol adapter framework.
+
+Generate:
+
+ProtocolAdapter interface
+
+Methods:
+
+- getOpportunities()
+- getPositions()
+- allocate()
+- withdraw()
+- rebalance()
+
+No protocol-specific implementation yet.
+```
+
+---
+
+# Prompt 9
+
+Morpho Adapter
+
+Goal
+
+First execution protocol.
+
+---
+
+Prompt
+
+```text
+Implement Morpho adapter.
+
+Requirements:
+
+Conform to ProtocolAdapter.
+
+Capabilities:
+
+- read opportunities
+- allocate capital
+- withdraw capital
+
+Generate:
+
+adapter
+tests
+integration layer
+
+No shortcuts.
+No special cases.
+```
+
+---
+
+# Prompt 10
+
+Aave Adapter
+
+Goal
+
+Second execution protocol.
+
+---
+
+Prompt
+
+```text
+Implement Aave adapter.
+
+Requirements:
+
+Conform to ProtocolAdapter.
+
+Generate:
+
+adapter
+tests
+integration layer
+```
+
+---
+
+# Prompt 11
+
+Moonwell Adapter
+
+Goal
+
+Third execution protocol.
+
+---
+
+Prompt
+
+```text
+Implement Moonwell adapter.
+
+Requirements:
+
+Conform to ProtocolAdapter.
+
+Generate:
+
+adapter
+tests
+integration layer
+```
+
+---
+
+# Prompt 12
+
+Aerodrome Adapter
+
+Goal
+
+Fourth execution protocol.
+
+---
+
+Prompt
+
+```text
+Implement Aerodrome adapter.
+
+Requirements:
+
+Conform to ProtocolAdapter.
+
+Generate:
+
+adapter
+tests
+integration layer
+```
+
+---
+
+# Prompt 13
+
+Execution Engine
+
+Goal
+
+Execute portfolio decisions.
+
+---
+
+Prompt
+
+```text
+Read:
+
+08-execution-engine.md
+
+Implement execution engine.
+
+Requirements:
+
+Input:
+
+Portfolio
+Policy
+Scored Opportunities
+
+Output:
+
+ExecutionPlan
+
+Execution
+
+Generate:
+
+decision trace
+reasoning output
+audit events
+
+Every execution must be explainable.
+```
+
+---
+
+# Prompt 14
+
+Scheduler
+
+Goal
+
+Scheduled reviews.
+
+---
+
+Prompt
+
+```text
+Read:
+
+13-backend-architecture.md
+
+Implement scheduler.
+
+Schedules:
+
+00:00 UTC
+08:00 UTC
+16:00 UTC
+
+Supported frequencies:
+
+8h
+24h
+48h
+72h
+
+Scheduler triggers reviews.
+
+Scheduler never makes decisions.
+```
+
+---
+
+# Prompt 15
+
+Safe Integration
+
+Goal
+
+Portfolio smart accounts.
+
+---
+
+Prompt
+
+```text
+Read:
+
+11-smart-account-model.md
+
+Implement Safe integration.
+
+Requirements:
+
+One Safe per Portfolio.
+
+Generate:
+
+Safe creation
+ownership validation
+portfolio linkage
+
+Do not implement custom account abstraction.
+```
+
+---
+
+# Prompt 16
+
+REST API
+
+Goal
+
+Backend API.
+
+---
+
+Prompt
+
+```text
+Read:
+
+17-api-specification.md
+
+Implement API.
+
+Requirements:
+
+NestJS
+
+Generate:
+
+controllers
+DTOs
+validation
+auth middleware
+
+Conform exactly to API specification.
+```
+
+---
+
+# Prompt 17
+
+Authentication
+
+Goal
+
+Wallet login.
+
+---
+
+Prompt
+
+```text
+Implement authentication.
+
+Requirements:
+
+Wallet signature challenge
+
+JWT
+
+Generate:
+
+challenge endpoint
+verify endpoint
+guards
+middleware
+```
+
+---
+
+# Prompt 18
+
+Frontend Foundation
+
+Goal
+
+UI skeleton.
+
+---
+
+Prompt
+
+```text
+Read:
+
+18-frontend-specification.md
+
+Create frontend structure.
+
+Generate:
+
+routing
+layouts
+shared components
+theme
+
+Do not connect backend yet.
+```
+
+---
+
+# Prompt 19
+
+Intent Wizard
+
+Goal
+
+Onboarding experience.
+
+---
+
+Prompt
+
+```text
+Read:
+
+19-user-onboarding-flow.md
+
+Implement:
+
+intent wizard
+
+Requirements:
+
+3 sliders
+
+Risk
+Liquidity
+Return Preference
+
+Live profile preview.
+
+Responsive.
+
+Accessible.
+```
+
+---
+
+# Prompt 20
+
+Portfolio Dashboard
+
+Goal
+
+Main user experience.
+
+---
+
+Prompt
+
+```text
+Read:
+
+18-frontend-specification.md
+
+Implement:
+
+dashboard
+
+overview
+
+allocations
+
+activity
+
+policy
+
+why tab
+
+Use mock data initially.
+```
+
+---
+
+# Prompt 21
+
+API Integration
+
+Goal
+
+Connect frontend.
+
+---
+
+Prompt
+
+```text
+Replace mock data.
+
+Integrate backend API.
+
+Implement:
+
+queries
+mutations
+error handling
+loading states
+
+Use typed clients.
+```
+
+---
+
+# Prompt 22
+
+Explainability Layer
+
+Goal
+
+Strategic differentiator.
+
+---
+
+Prompt
+
+```text
+Implement:
+
+GET /why
+
+GET /executions/:id/why
+
+Generate:
+
+human-readable reasoning
+
+decision trace
+
+allocation explanation
+
+Execution reasoning must be understandable by non-technical users.
+```
+
+---
+
+# Prompt 23
+
+Production Hardening
+
+Goal
+
+Pre-launch review.
+
+---
+
+Prompt
+
+```text
+Audit entire codebase.
+
+Verify:
+
+documentation compliance
+
+state machine correctness
+
+policy immutability
+
+auditability
+
+security assumptions
+
+Produce:
+
+risk report
+technical debt report
+launch readiness report
+```
+
+---
+
+# Final Rule
+
+Never skip steps.
+
+Never parallelize unrelated components.
+
+Always complete:
+
+```text
+Domain
+ ↓
+Business Logic
+ ↓
+Execution
+ ↓
+API
+ ↓
+Frontend
+```
+
+in that order.
+
+---
+
+# Success Criteria
+
+Laminar V1 implementation succeeds when:
+
+* users create portfolios
+* users define intent
+* policies are generated
+* allocations are explainable
+* execution is auditable
+* risk is monitored
+
+without exposing protocol complexity.
+
+---
+
+# Architectural Principle
+
+Build the smallest possible system that proves:
+
+Users prefer intent-based portfolio management over manual protocol selection.
