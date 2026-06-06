@@ -1,0 +1,71 @@
+export type IncidentSeverity =
+  | "minor"
+  | "moderate"
+  | "major"
+  | "critical"
+  | "catastrophic";
+
+export type AuditorTier = 1 | 2 | 3;
+
+export type ProtocolAudit = {
+  auditor: string;
+  tier: AuditorTier;
+  completedAt: string;
+};
+
+export type SecurityIncident = {
+  severity: IncidentSeverity;
+  occurredAt: string;
+  description: string;
+};
+
+export type ProtocolTrustProfile = {
+  protocolId: string;
+  protocolName: string;
+  protocolAgeYears: number;
+  tvlUsd: number;
+  audits: readonly ProtocolAudit[];
+  incidents: readonly SecurityIncident[];
+  chainAdjustment: number;
+};
+
+export type TrustComponentScores = {
+  securityIncidents: number;
+  audits: number;
+  protocolAge: number;
+  tvl: number;
+};
+
+export type TrustScoreBreakdown = {
+  componentScores: TrustComponentScores;
+  weightedContributions: {
+    securityIncidents: number;
+    audits: number;
+    protocolAge: number;
+    tvl: number;
+  };
+  incidentPenalties: readonly {
+    severity: IncidentSeverity;
+    basePenalty: number;
+    decayedPenalty: number;
+    occurredAt: string;
+    description: string;
+  }[];
+  chainAdjustment: number;
+  protocolTrustScore: number;
+};
+
+export type TrustScoreResult = {
+  protocolId: string;
+  protocolName: string;
+  trustScore: number;
+  breakdown: TrustScoreBreakdown;
+  explanations: readonly string[];
+};
+
+export type ScoredOpportunityTrust = {
+  opportunityId: string;
+  protocolId: string;
+  protocolName: string;
+  trust: TrustScoreResult;
+};
