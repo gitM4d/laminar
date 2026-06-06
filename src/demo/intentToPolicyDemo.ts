@@ -1,5 +1,6 @@
 import { discoverOpportunities } from "../core/opportunity/discoverOpportunities.js";
 import { assertValidIntent } from "../core/intent/validateIntent.js";
+import { scoreOpportunitiesLiquidity } from "../core/liquidity/scoreOpportunityLiquidity.js";
 import { normalizeIntent } from "../core/normalization/normalizeIntent.js";
 import { generatePolicy } from "../core/policy/generatePolicy.js";
 import { selectProfile } from "../core/profile/selectProfile.js";
@@ -19,6 +20,7 @@ const profileClassification = selectProfile(validatedIntent);
 const policy = generatePolicy(profileClassification.selectedProfile);
 const discovery = discoverOpportunities();
 const trustScores = scoreOpportunitiesTrust(discovery.opportunities, { asOf });
+const liquidityScores = scoreOpportunitiesLiquidity(discovery.opportunities);
 
 const output = {
   intent: validatedIntent,
@@ -36,6 +38,18 @@ const output = {
     trustScore: entry.trust.trustScore,
     breakdown: entry.trust.breakdown,
     explanations: entry.trust.explanations,
+  })),
+  liquidityScores: liquidityScores.map((entry) => ({
+    opportunityId: entry.opportunityId,
+    protocolId: entry.protocolId,
+    protocolName: entry.protocolName,
+    asset: entry.asset,
+    weightedScoreBeforeCaps: entry.liquidity.weightedScoreBeforeCaps,
+    liquidityScore: entry.liquidity.liquidityScore,
+    eligible: entry.liquidity.eligible,
+    ineligibilityReasons: entry.liquidity.ineligibilityReasons,
+    breakdown: entry.liquidity.breakdown,
+    explanations: entry.liquidity.explanations,
   })),
 };
 
