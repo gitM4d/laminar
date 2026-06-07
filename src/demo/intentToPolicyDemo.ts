@@ -1,10 +1,8 @@
-import { createMockExecutionPlan } from "../core/execution/createMockExecutionPlan.js";
-import { generatePortfolioRecommendation } from "../core/recommendation/generatePortfolioRecommendation.js";
-import { createRecommendationSnapshot } from "../core/snapshot/createRecommendationSnapshot.js";
+import { createLaminarRecommendation } from "../core/index.js";
 
 const asOf = new Date("2026-06-01T00:00:00.000Z");
 
-const recommendation = generatePortfolioRecommendation({
+const { recommendation, snapshot, executionPlan } = createLaminarRecommendation({
   intent: {
     risk: 3,
     liquidity: 8,
@@ -13,8 +11,6 @@ const recommendation = generatePortfolioRecommendation({
   portfolioValueUsd: 10_000,
   asOf,
 });
-const snapshot = createRecommendationSnapshot(recommendation);
-const mockExecutionPlan = createMockExecutionPlan({ recommendation, snapshot });
 
 const output = {
   intent: recommendation.intent,
@@ -93,7 +89,7 @@ const output = {
   },
   diagnostics: recommendation.diagnostics,
   snapshot,
-  mockExecutionPlan,
+  mockExecutionPlan: executionPlan,
 };
 
 console.log(JSON.stringify(output, null, 2));
