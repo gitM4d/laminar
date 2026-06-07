@@ -88,6 +88,7 @@ const morphoOpportunity: Opportunity = {
   isExperimental: false,
   protocolRiskLevel: "low",
   auditCount: 2,
+  exposureCategory: "lending" as const,
 };
 
 function buildInput(

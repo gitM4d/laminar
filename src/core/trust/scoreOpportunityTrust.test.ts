@@ -67,6 +67,7 @@ describe("scoreOpportunityTrust", () => {
         isExperimental: false,
         protocolRiskLevel: "low",
         auditCount: 0,
+        exposureCategory: "lending",
       }),
     ).toThrow(UnknownProtocolTrustProfileError);
   });

@@ -22,6 +22,7 @@ const baseOpportunity = {
   isExperimental: false,
   protocolRiskLevel: "low" as const,
   auditCount: 2,
+  exposureCategory: "lending" as const,
 };
 
 const baseInput: CalculateOpportunityScoreInput = {

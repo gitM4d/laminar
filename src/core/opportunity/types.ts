@@ -4,6 +4,8 @@ export type SupportedChain = "Base";
 
 export type ProtocolRiskLevel = "low" | "medium" | "high";
 
+export type ExposureCategory = "lending" | "yieldEnhancement";
+
 export type Opportunity = {
   id: string;
   protocolId: string;
@@ -14,6 +16,7 @@ export type Opportunity = {
   isExperimental: boolean;
   protocolRiskLevel: ProtocolRiskLevel;
   auditCount: number;
+  exposureCategory: ExposureCategory;
 };
 
 export type OpportunityDiscoveryResult = {

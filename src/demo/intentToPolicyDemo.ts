@@ -5,8 +5,11 @@ import { normalizeIntent } from "../core/normalization/normalizeIntent.js";
 import { generatePolicy } from "../core/policy/generatePolicy.js";
 import { selectProfile } from "../core/profile/selectProfile.js";
 import { assessOpportunitiesRisk } from "../core/risk/assessOpportunitiesRisk.js";
+import { constructPortfolio } from "../core/construction/constructPortfolio.js";
 import { rankOpportunities } from "../core/scoring/rankOpportunities.js";
 import { scoreOpportunitiesTrust } from "../core/trust/scoreOpportunityTrust.js";
+
+const portfolioValueUsd = 10_000;
 
 const asOf = new Date("2026-06-01T00:00:00.000Z");
 
@@ -35,6 +38,12 @@ const opportunityRanking = rankOpportunities({
   trustScores,
   liquidityScores,
   riskAssessments,
+});
+const portfolioConstruction = constructPortfolio({
+  policy,
+  ranking: opportunityRanking,
+  opportunities: discovery.opportunities,
+  portfolioValueUsd,
 });
 
 const output = {
@@ -106,6 +115,13 @@ const output = {
     rejectionReasons: entry.rejectionReasons,
     explanations: entry.explanations,
   })),
+  portfolioConstruction: {
+    positions: portfolioConstruction.positions,
+    rejectedOpportunities: portfolioConstruction.rejectedOpportunities,
+    constructionSteps: portfolioConstruction.constructionSteps,
+    explanations: portfolioConstruction.explanations,
+    metadata: portfolioConstruction.metadata,
+  },
 };
 
 console.log(JSON.stringify(output, null, 2));

@@ -11,6 +11,7 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     isExperimental: false,
     protocolRiskLevel: "low",
     auditCount: 2,
+    exposureCategory: "lending",
   },
   {
     id: "aave-usdc-base",
@@ -22,6 +23,7 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     isExperimental: false,
     protocolRiskLevel: "low",
     auditCount: 2,
+    exposureCategory: "lending",
   },
   {
     id: "moonwell-usdc-base",
@@ -33,6 +35,7 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     isExperimental: false,
     protocolRiskLevel: "medium",
     auditCount: 2,
+    exposureCategory: "lending",
   },
   {
     id: "aave-eurc-base",
@@ -44,6 +47,7 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     isExperimental: false,
     protocolRiskLevel: "low",
     auditCount: 2,
+    exposureCategory: "lending",
   },
   {
     id: "moonwell-dai-base",
@@ -55,6 +59,7 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     isExperimental: false,
     protocolRiskLevel: "medium",
     auditCount: 2,
+    exposureCategory: "lending",
   },
   {
     id: "experimental-usdc-base",
@@ -66,5 +71,6 @@ export const MOCK_OPPORTUNITIES: readonly Opportunity[] = [
     isExperimental: true,
     protocolRiskLevel: "high",
     auditCount: 1,
+    exposureCategory: "lending",
   },
 ] as const;

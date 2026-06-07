@@ -67,6 +67,7 @@ describe("scoreOpportunityLiquidity", () => {
         isExperimental: false,
         protocolRiskLevel: "low",
         auditCount: 0,
+        exposureCategory: "lending",
       }),
     ).toThrow(UnknownOpportunityLiquidityProfileError);
   });
