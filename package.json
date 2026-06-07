@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "api": "tsx src/api/server.ts",
+    "api:contract": "tsx src/api/validateContract.ts",
     "demo": "tsx src/demo/intentToPolicyDemo.ts",
     "test": "vitest run"
   },

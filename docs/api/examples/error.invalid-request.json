@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Request body validation failed",
+    "details": [
+      {
+        "instancePath": "/intent",
+        "message": "must be object"
+      }
+    ]
+  }
+}

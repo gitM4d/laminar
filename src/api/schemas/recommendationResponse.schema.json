@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RecommendationResponse",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["recommendation", "snapshot", "executionPlan"],
+  "properties": {
+    "recommendation": {
+      "type": "object"
+    },
+    "snapshot": {
+      "type": "object"
+    },
+    "executionPlan": {
+      "type": "object"
+    }
+  }
+}

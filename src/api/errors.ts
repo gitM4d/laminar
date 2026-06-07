@@ -1,23 +1,12 @@
-export type ApiErrorCode =
-  | "INVALID_REQUEST"
-  | "INVALID_INTENT"
-  | "INVALID_PORTFOLIO_VALUE"
-  | "DATA_CONSISTENCY_ERROR"
-  | "INTERNAL_ERROR";
+import type { ApiErrorCode, ApiErrorResponse } from "./contracts/types.js";
 
-export type ApiErrorBody = {
-  error: {
-    code: ApiErrorCode;
-    message: string;
-    details?: unknown;
-  };
-};
+export type { ApiErrorCode, ApiErrorResponse } from "./contracts/types.js";
 
 export function createApiError(
   code: ApiErrorCode,
   message: string,
   details?: unknown,
-): ApiErrorBody {
+): ApiErrorResponse {
   if (details === undefined) {
     return {
       error: {

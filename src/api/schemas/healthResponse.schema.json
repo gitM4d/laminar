@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "HealthResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "service", "version"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "const": "ok"
+    },
+    "service": {
+      "type": "string",
+      "const": "laminar-api"
+    },
+    "version": {
+      "type": "string"
+    }
+  }
+}

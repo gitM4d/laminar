@@ -1,0 +1,215 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Laminar Local API",
+    "version": "0.1.0",
+    "description": "Local MVP HTTP API for Laminar portfolio recommendations. Mock execution only; no blockchain transactions."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:3000",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "status": "ok",
+                      "service": "laminar-api",
+                      "version": "0.1.0"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recommendation": {
+      "post": {
+        "summary": "Generate portfolio recommendation",
+        "operationId": "createRecommendation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendationRequest"
+              },
+              "examples": {
+                "balanced": {
+                  "value": {
+                    "intent": {
+                      "risk": 3,
+                      "liquidity": 8,
+                      "returnPreference": 4
+                    },
+                    "portfolioValueUsd": 10000,
+                    "asOf": "2026-06-01T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recommendation generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or data consistency error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["status", "service", "version"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok"
+          },
+          "service": {
+            "type": "string",
+            "const": "laminar-api"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "RecommendationRequestIntent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["risk", "liquidity", "returnPreference"],
+        "properties": {
+          "risk": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "liquidity": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "returnPreference": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10
+          }
+        }
+      },
+      "RecommendationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["intent", "portfolioValueUsd"],
+        "properties": {
+          "intent": {
+            "$ref": "#/components/schemas/RecommendationRequestIntent"
+          },
+          "portfolioValueUsd": {
+            "type": "number"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RecommendationResponse": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["recommendation", "snapshot", "executionPlan"],
+        "properties": {
+          "recommendation": {
+            "type": "object",
+            "description": "Full developer-facing recommendation pipeline result"
+          },
+          "snapshot": {
+            "type": "object",
+            "description": "Compact user-facing recommendation summary"
+          },
+          "executionPlan": {
+            "type": "object",
+            "description": "Mock execution plan only; no blockchain transactions are created"
+          }
+        }
+      },
+      "ApiErrorCode": {
+        "type": "string",
+        "enum": [
+          "INVALID_REQUEST",
+          "INVALID_INTENT",
+          "INVALID_PORTFOLIO_VALUE",
+          "DATA_CONSISTENCY_ERROR",
+          "INTERNAL_ERROR"
+        ]
+      },
+      "ApiErrorResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": {
+                "$ref": "#/components/schemas/ApiErrorCode"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}

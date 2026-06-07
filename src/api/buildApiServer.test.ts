@@ -65,6 +65,7 @@ describe("buildApiServer", () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.json().error.code).toBe("INVALID_REQUEST");
+    expect(response.json().error.message).toContain("validation");
   });
 
   it("returns 400 when intent is missing", async () => {
@@ -77,7 +78,6 @@ describe("buildApiServer", () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.json().error.code).toBe("INVALID_REQUEST");
-    expect(response.json().error.message).toContain("intent");
   });
 
   it("returns 400 when portfolioValueUsd is missing", async () => {
@@ -90,7 +90,6 @@ describe("buildApiServer", () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.json().error.code).toBe("INVALID_REQUEST");
-    expect(response.json().error.message).toContain("portfolioValueUsd");
   });
 
   it("returns 400 when portfolioValueUsd is invalid", async () => {
@@ -114,7 +113,7 @@ describe("buildApiServer", () => {
       method: "POST",
       url: "/recommendation",
       payload: {
-        intent: { risk: 0, liquidity: 8, returnPreference: 4 },
+        intent: { risk: 3.5, liquidity: 8, returnPreference: 4 },
         portfolioValueUsd: 10_000,
       },
     });
@@ -137,7 +136,6 @@ describe("buildApiServer", () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.json().error.code).toBe("INVALID_REQUEST");
-    expect(response.json().error.message).toContain("asOf");
   });
 
   it("returns 500 for data consistency errors", async () => {

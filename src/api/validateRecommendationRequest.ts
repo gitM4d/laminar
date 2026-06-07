@@ -1,22 +1,15 @@
+import type { RecommendationRequest } from "./contracts/types.js";
 import { createApiError } from "./errors.js";
 
 export type ValidRecommendationRequest = {
-  intent: unknown;
+  intent: RecommendationRequest["intent"];
   portfolioValueUsd: number;
   asOf?: Date;
 };
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function parseAsOf(value: unknown):
+function parseAsOf(value: string):
   | { valid: true; asOf: Date }
   | { valid: false; message: string } {
-  if (typeof value !== "string" || value.trim().length === 0) {
-    return { valid: false, message: "asOf must be a valid ISO date string" };
-  }
-
   const parsed = new Date(value);
 
   if (Number.isNaN(parsed.getTime())) {
@@ -27,35 +20,11 @@ function parseAsOf(value: unknown):
 }
 
 export function validateRecommendationRequest(
-  body: unknown,
+  body: RecommendationRequest,
 ):
   | { valid: true; value: ValidRecommendationRequest }
   | { valid: false; statusCode: number; body: ReturnType<typeof createApiError> } {
-  if (!isPlainObject(body)) {
-    return {
-      valid: false,
-      statusCode: 400,
-      body: createApiError("INVALID_REQUEST", "Request body must be a JSON object"),
-    };
-  }
-
-  if (body.intent === undefined || body.intent === null) {
-    return {
-      valid: false,
-      statusCode: 400,
-      body: createApiError("INVALID_REQUEST", "intent is required"),
-    };
-  }
-
-  if (body.portfolioValueUsd === undefined || body.portfolioValueUsd === null) {
-    return {
-      valid: false,
-      statusCode: 400,
-      body: createApiError("INVALID_REQUEST", "portfolioValueUsd is required"),
-    };
-  }
-
-  if (typeof body.portfolioValueUsd !== "number" || !Number.isFinite(body.portfolioValueUsd)) {
+  if (!Number.isFinite(body.portfolioValueUsd)) {
     return {
       valid: false,
       statusCode: 400,
@@ -68,7 +37,7 @@ export function validateRecommendationRequest(
 
   let asOf: Date | undefined;
 
-  if (body.asOf !== undefined && body.asOf !== null) {
+  if (body.asOf !== undefined) {
     const parsedAsOf = parseAsOf(body.asOf);
 
     if (!parsedAsOf.valid) {

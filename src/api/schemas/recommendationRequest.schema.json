@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RecommendationRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["intent", "portfolioValueUsd"],
+  "properties": {
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["risk", "liquidity", "returnPreference"],
+      "properties": {
+        "risk": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "liquidity": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "returnPreference": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10
+        }
+      }
+    },
+    "portfolioValueUsd": {
+      "type": "number"
+    },
+    "asOf": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

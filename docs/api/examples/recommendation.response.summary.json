@@ -1,0 +1,52 @@
+{
+  "recommendation": {
+    "selectedProfile": "Balanced",
+    "diagnostics": {
+      "portfolioValueUsd": 10000,
+      "generatedAt": "2026-06-01T00:00:00.000Z"
+    }
+  },
+  "snapshot": {
+    "profile": "Balanced",
+    "portfolioValueUsd": 10000,
+    "positions": [
+      {
+        "type": "strategy",
+        "label": "Morpho USDC",
+        "asset": "USDC",
+        "allocationPercent": 39.6,
+        "allocationUsd": 3960
+      },
+      {
+        "type": "liquidityBuffer",
+        "label": "Liquidity Buffer",
+        "asset": "USDC",
+        "allocationPercent": 19.8,
+        "allocationUsd": 1980
+      },
+      {
+        "type": "gasReserve",
+        "label": "Gas Reserve",
+        "asset": "USDC",
+        "allocationPercent": 1,
+        "allocationUsd": 100
+      }
+    ],
+    "metrics": [
+      { "key": "expectedApy", "label": "Expected APY", "value": 6.07 },
+      { "key": "numberOfStrategyPositions", "label": "Strategy Positions", "value": 3 }
+    ]
+  },
+  "executionPlan": {
+    "summary": {
+      "totalAmountUsd": 10000,
+      "numberOfDeposits": 3,
+      "numberOfHolds": 1,
+      "numberOfReserves": 1
+    },
+    "diagnostics": {
+      "source": "mock",
+      "selectedProfile": "Balanced"
+    }
+  }
+}
