@@ -1,3 +1,4 @@
+import { createMockExecutionPlan } from "../core/execution/createMockExecutionPlan.js";
 import { generatePortfolioRecommendation } from "../core/recommendation/generatePortfolioRecommendation.js";
 import { createRecommendationSnapshot } from "../core/snapshot/createRecommendationSnapshot.js";
 
@@ -12,6 +13,8 @@ const recommendation = generatePortfolioRecommendation({
   portfolioValueUsd: 10_000,
   asOf,
 });
+const snapshot = createRecommendationSnapshot(recommendation);
+const mockExecutionPlan = createMockExecutionPlan({ recommendation, snapshot });
 
 const output = {
   intent: recommendation.intent,
@@ -89,7 +92,8 @@ const output = {
     metadata: recommendation.portfolioConstruction.metadata,
   },
   diagnostics: recommendation.diagnostics,
-  snapshot: createRecommendationSnapshot(recommendation),
+  snapshot,
+  mockExecutionPlan,
 };
 
 console.log(JSON.stringify(output, null, 2));

@@ -1,0 +1,84 @@
+import type { ProfileName } from "../profile/types.js";
+import type { PortfolioRecommendationResult } from "../recommendation/types.js";
+import type { RecommendationSnapshot } from "../snapshot/types.js";
+
+export type ExecutionActionType = "deposit" | "hold" | "reserve";
+
+export type MockExecutionStepStatus = "planned";
+
+type MockExecutionStepBase = {
+  stepId: number;
+  weight: number;
+  amountUsd: number;
+  status: MockExecutionStepStatus;
+};
+
+export type DepositExecutionStep = MockExecutionStepBase & {
+  type: "deposit";
+  protocolId: string;
+  protocolName: string;
+  asset: string;
+  opportunityId: string;
+};
+
+export type HoldExecutionStep = MockExecutionStepBase & {
+  type: "hold";
+  asset: string;
+  reason: "liquidityBuffer";
+};
+
+export type ReserveExecutionStep = MockExecutionStepBase & {
+  type: "reserve";
+  asset: string;
+  reason: "gasReserve";
+};
+
+export type MockExecutionStep =
+  | DepositExecutionStep
+  | HoldExecutionStep
+  | ReserveExecutionStep;
+
+export type ExecutionPlanSummary = {
+  totalAmountUsd: number;
+  strategyAmountUsd: number;
+  liquidityBufferAmountUsd: number;
+  gasReserveAmountUsd: number;
+  numberOfSteps: number;
+  numberOfDeposits: number;
+  numberOfHolds: number;
+  numberOfReserves: number;
+};
+
+export type ExecutionPlanWarningSeverity = "info" | "warning";
+
+export type ExecutionPlanWarning = {
+  code: string;
+  severity: ExecutionPlanWarningSeverity;
+  message: string;
+};
+
+export type ExecutionPlanExplanation = {
+  topic: string;
+  summary: string;
+};
+
+export type ExecutionPlanDiagnostics = {
+  generatedAt: string;
+  policyVersion: number;
+  selectedProfile: ProfileName;
+  portfolioValueUsd: number;
+  source: "mock";
+};
+
+export type MockExecutionPlan = {
+  steps: MockExecutionStep[];
+  summary: ExecutionPlanSummary;
+  warnings: ExecutionPlanWarning[];
+  explanations: ExecutionPlanExplanation[];
+  diagnostics: ExecutionPlanDiagnostics;
+};
+
+export type ExecutionPlanInput = {
+  recommendation: PortfolioRecommendationResult;
+  snapshot?: RecommendationSnapshot;
+};
