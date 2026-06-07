@@ -1,4 +1,5 @@
 import { generatePortfolioRecommendation } from "../core/recommendation/generatePortfolioRecommendation.js";
+import { createRecommendationSnapshot } from "../core/snapshot/createRecommendationSnapshot.js";
 
 const asOf = new Date("2026-06-01T00:00:00.000Z");
 
@@ -88,6 +89,7 @@ const output = {
     metadata: recommendation.portfolioConstruction.metadata,
   },
   diagnostics: recommendation.diagnostics,
+  snapshot: createRecommendationSnapshot(recommendation),
 };
 
 console.log(JSON.stringify(output, null, 2));
