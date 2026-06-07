@@ -1,13 +1,22 @@
-import { constructPortfolio, InvalidPortfolioValueError } from "../construction/constructPortfolio.js";
+import {
+  constructPortfolio,
+  InvalidPortfolioValueError,
+} from "../construction/constructPortfolio.js";
 import { assertValidIntent } from "../intent/validateIntent.js";
-import { scoreOpportunitiesLiquidity, UnknownOpportunityLiquidityProfileError } from "../liquidity/scoreOpportunityLiquidity.js";
+import {
+  scoreOpportunitiesLiquidity,
+  UnknownOpportunityLiquidityProfileError,
+} from "../liquidity/scoreOpportunityLiquidity.js";
 import { normalizeIntent } from "../normalization/normalizeIntent.js";
 import { discoverOpportunities } from "../opportunity/discoverOpportunities.js";
 import { generatePolicy } from "../policy/generatePolicy.js";
 import { selectProfile } from "../profile/selectProfile.js";
 import { assessOpportunitiesRisk } from "../risk/assessOpportunitiesRisk.js";
 import { rankOpportunities } from "../scoring/rankOpportunities.js";
-import { scoreOpportunitiesTrust, UnknownProtocolTrustProfileError } from "../trust/scoreOpportunityTrust.js";
+import {
+  scoreOpportunitiesTrust,
+  UnknownProtocolTrustProfileError,
+} from "../trust/scoreOpportunityTrust.js";
 import type {
   GeneratePortfolioRecommendationInput,
   PortfolioRecommendationResult,
@@ -41,7 +50,9 @@ function completeStep(
   steps: RecommendationPipelineStep[],
   stepId: (typeof PIPELINE_STEP_DEFINITIONS)[number]["id"],
 ): void {
-  const definition = PIPELINE_STEP_DEFINITIONS.find((step) => step.id === stepId);
+  const definition = PIPELINE_STEP_DEFINITIONS.find(
+    (step) => step.id === stepId,
+  );
 
   if (definition === undefined) {
     return;
@@ -119,7 +130,9 @@ export function generatePortfolioRecommendation(
   );
   completeStep(pipelineSteps, "scoreTrust");
 
-  const liquidityScores = scoreLiquidityWithConsistencyCheck(discovery.opportunities);
+  const liquidityScores = scoreLiquidityWithConsistencyCheck(
+    discovery.opportunities,
+  );
   completeStep(pipelineSteps, "scoreLiquidity");
 
   const riskAssessments = assessOpportunitiesRisk(

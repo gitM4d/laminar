@@ -63,10 +63,10 @@ How strong is your return preference?
 
 At the end of onboarding, users should understand:
 
-* what Laminar will do
-* what Laminar will not do
-* what permissions are granted
-* how their portfolio will behave
+- what Laminar will do
+- what Laminar will not do
+- what permissions are granted
+- how their portfolio will behave
 
 ---
 
@@ -948,10 +948,10 @@ Portfolio Simulation
 
 The onboarding succeeds when:
 
-* users understand automation
-* users understand permissions
-* users understand ownership
-* portfolio creation feels simple
+- users understand automation
+- users understand permissions
+- users understand ownership
+- portfolio creation feels simple
 
 ---
 
@@ -959,10 +959,10 @@ The onboarding succeeds when:
 
 The onboarding fails when:
 
-* users are forced to understand protocols
-* permissions feel unclear
-* automation feels risky
-* users abandon due to complexity
+- users are forced to understand protocols
+- permissions feel unclear
+- automation feels risky
+- users abandon due to complexity
 
 ---
 

@@ -62,19 +62,19 @@ A Portfolio Policy is the construction contract defined by the Policy Model.
 
 It defines:
 
-* selected profile
-* risk limits
-* liquidity requirements
-* target exposure
-* allocation constraints
+- selected profile
+- risk limits
+- liquidity requirements
+- target exposure
+- allocation constraints
 
 Execution Permissions are separate.
 
 They define:
 
-* what actions are permitted
-* when actions are permitted
-* under which execution conditions actions are permitted
+- what actions are permitted
+- when actions are permitted
+- under which execution conditions actions are permitted
 
 ---
 
@@ -106,10 +106,10 @@ Policies belong to the user.
 
 Users may:
 
-* create policies
-* modify policies
-* deactivate policies
-* revoke policies
+- create policies
+- modify policies
+- deactivate policies
+- revoke policies
 
 at any time.
 
@@ -119,18 +119,18 @@ at any time.
 
 Portfolio Policies govern:
 
-* allocations
-* risk limits
-* liquidity requirements
-* target exposure
+- allocations
+- risk limits
+- liquidity requirements
+- target exposure
 
 Execution Permissions govern:
 
-* assets
-* protocols
-* automation
-* emergency behavior
-* execution constraints
+- assets
+- protocols
+- automation
+- emergency behavior
+- execution constraints
 
 ---
 
@@ -354,9 +354,9 @@ Automation Enabled
 
 Allowed:
 
-* rebalances
-* allocation updates
-* maintenance operations
+- rebalances
+- allocation updates
+- maintenance operations
 
 within policy limits.
 
@@ -372,11 +372,11 @@ Automation Disabled
 
 Allowed:
 
-* recommendations only
+- recommendations only
 
 Not allowed:
 
-* execution
+- execution
 
 ---
 
@@ -436,9 +436,9 @@ Meaning:
 
 Expected benefit must exceed:
 
-* gas cost
-* execution cost
-* configured threshold
+- gas cost
+- execution cost
+- configured threshold
 
 before execution.
 
@@ -612,9 +612,9 @@ Every Portfolio Policy modification creates a new version.
 
 Benefits:
 
-* auditability
-* transparency
-* rollback capability
+- auditability
+- transparency
+- rollback capability
 
 ---
 
@@ -666,11 +666,11 @@ Revocation takes effect immediately.
 
 Users should be able to inspect:
 
-* current policy
-* current policy version
-* policy history
-* active permissions
-* execution history
+- current policy
+- current policy version
+- policy history
+- active permissions
+- execution history
 
 ---
 
@@ -749,19 +749,19 @@ These principles are mandatory.
 
 Potential V2:
 
-* emergency migrations
-* advanced constraints
-* protocol-specific permissions
-* dynamic thresholds
+- emergency migrations
+- advanced constraints
+- protocol-specific permissions
+- dynamic thresholds
 
 ---
 
 Potential V3:
 
-* programmable policies
-* delegated managers
-* policy marketplaces
-* AI-assisted policy generation
+- programmable policies
+- delegated managers
+- policy marketplaces
+- AI-assisted policy generation
 
 ---
 
@@ -769,10 +769,10 @@ Potential V3:
 
 The Permission Model does not:
 
-* score opportunities
-* evaluate risk
-* construct portfolios
-* execute transactions
+- score opportunities
+- evaluate risk
+- construct portfolios
+- execute transactions
 
 ---
 
@@ -784,11 +784,11 @@ It only defines what execution is allowed.
 
 The Permission Model succeeds when:
 
-* users understand approvals
-* permissions remain transparent
-* automation remains useful
-* execution remains constrained
-* security remains enforceable
+- users understand approvals
+- permissions remain transparent
+- automation remains useful
+- execution remains constrained
+- security remains enforceable
 
 ---
 
@@ -796,10 +796,10 @@ The Permission Model succeeds when:
 
 The Permission Model fails when:
 
-* permissions become confusing
-* execution exceeds approved boundaries
-* policy changes are not auditable
-* users lose visibility into automation
+- permissions become confusing
+- execution exceeds approved boundaries
+- policy changes are not auditable
+- users lose visibility into automation
 
 ---
 

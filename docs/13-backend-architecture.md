@@ -10,13 +10,13 @@ This document defines the backend architecture of Laminar V1.
 
 The backend exists to coordinate:
 
-* data collection
-* scoring
-* risk evaluation
-* portfolio construction
-* scheduling
-* execution planning
-* execution monitoring
+- data collection
+- scoring
+- risk evaluation
+- portfolio construction
+- scheduling
+- execution planning
+- execution monitoring
 
 while remaining scalable, observable, and cost-efficient.
 
@@ -30,9 +30,9 @@ Laminar is a collection of specialized services.
 
 Each service should have:
 
-* a clear responsibility
-* minimal coupling
-* explicit interfaces
+- a clear responsibility
+- minimal coupling
+- explicit interfaces
 
 ---
 
@@ -40,12 +40,12 @@ Each service should have:
 
 The backend should be:
 
-* modular
-* deterministic
-* observable
-* scalable
-* inexpensive to operate
-* protocol-agnostic
+- modular
+- deterministic
+- observable
+- scalable
+- inexpensive to operate
+- protocol-agnostic
 
 ---
 
@@ -218,20 +218,20 @@ Serve frontend requests.
 
 Responsibilities:
 
-* authentication
-* portfolio queries
-* policy management
-* dashboard data
-* execution history
-* analytics
+- authentication
+- portfolio queries
+- policy management
+- dashboard data
+- execution history
+- analytics
 
 ---
 
 Responsibilities NOT Included:
 
-* scoring
-* risk calculations
-* execution
+- scoring
+- risk calculations
+- execution
 
 ---
 
@@ -257,10 +257,10 @@ NestJS
 
 Reasons:
 
-* strong typing
-* modularity
-* mature ecosystem
-* familiar tooling
+- strong typing
+- modularity
+- mature ecosystem
+- familiar tooling
 
 ---
 
@@ -564,9 +564,9 @@ Notification Queue
 
 Benefits:
 
-* retries
-* isolation
-* scalability
+- retries
+- isolation
+- scalability
 
 ---
 
@@ -582,10 +582,10 @@ PostgreSQL
 
 Reasons:
 
-* maturity
-* reliability
-* analytics support
-* transactional integrity
+- maturity
+- reliability
+- analytics support
+- transactional integrity
 
 ---
 
@@ -647,10 +647,10 @@ Redis
 
 Purpose:
 
-* protocol metrics
-* APY data
-* TVL data
-* temporary state
+- protocol metrics
+- APY data
+- TVL data
+- temporary state
 
 ---
 
@@ -760,9 +760,9 @@ Aerodrome Adapter
 
 Benefits:
 
-* isolation
-* independent testing
-* easier upgrades
+- isolation
+- independent testing
+- easier upgrades
 
 ---
 
@@ -788,9 +788,9 @@ Fallback RPC
 
 Purpose:
 
-* resilience
-* uptime
-* reliability
+- resilience
+- uptime
+- reliability
 
 ---
 
@@ -926,9 +926,9 @@ Cross-Chain Infrastructure
 
 The backend does not:
 
-* hold user funds
-* become a custodian
-* bypass policy restrictions
+- hold user funds
+- become a custodian
+- bypass policy restrictions
 
 ---
 
@@ -936,11 +936,11 @@ The backend does not:
 
 The backend succeeds when:
 
-* decisions remain deterministic
-* services remain modular
-* infrastructure costs remain low
-* scaling remains straightforward
-* execution remains reliable
+- decisions remain deterministic
+- services remain modular
+- infrastructure costs remain low
+- scaling remains straightforward
+- execution remains reliable
 
 ---
 
@@ -948,10 +948,10 @@ The backend succeeds when:
 
 The backend fails when:
 
-* services become tightly coupled
-* execution becomes opaque
-* protocol integrations require large refactors
-* infrastructure costs scale faster than user growth
+- services become tightly coupled
+- execution becomes opaque
+- protocol integrations require large refactors
+- infrastructure costs scale faster than user growth
 
 ---
 

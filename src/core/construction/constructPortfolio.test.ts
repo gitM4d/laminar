@@ -7,7 +7,10 @@ import { rankOpportunities } from "../scoring/rankOpportunities.js";
 import { scoreOpportunitiesTrust } from "../trust/scoreOpportunityTrust.js";
 import type { Opportunity } from "../opportunity/types.js";
 import type { PortfolioPolicy } from "../policy/types.js";
-import type { OpportunityRanking, ScoredOpportunity } from "../scoring/types.js";
+import type {
+  OpportunityRanking,
+  ScoredOpportunity,
+} from "../scoring/types.js";
 import {
   constructPortfolio,
   InvalidPortfolioValueError,
@@ -51,7 +54,10 @@ function makeScoredOpportunity(
   };
 }
 
-function buildRanking(opportunities: Opportunity[], scores: number[]): OpportunityRanking {
+function buildRanking(
+  opportunities: Opportunity[],
+  scores: number[],
+): OpportunityRanking {
   const ranked = opportunities.map((opportunity, index) =>
     makeScoredOpportunity(opportunity, index + 1, scores[index] ?? 0),
   );
@@ -107,7 +113,9 @@ describe("constructPortfolio", () => {
     const atMinimum = constructPortfolio({
       policy,
       ranking,
-      opportunities: [MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>],
+      opportunities: [
+        MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>,
+      ],
       portfolioValueUsd: 10_000,
     });
     expect(atMinimum.metadata.gasReserveWeight).toBe(0.01);
@@ -115,7 +123,9 @@ describe("constructPortfolio", () => {
     const atMaxClamp = constructPortfolio({
       policy,
       ranking,
-      opportunities: [MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>],
+      opportunities: [
+        MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>,
+      ],
       portfolioValueUsd: 20_000,
     });
     expect(atMaxClamp.metadata.gasReserveWeight).toBe(0.005);
@@ -123,7 +133,9 @@ describe("constructPortfolio", () => {
     const atMinClamp = constructPortfolio({
       policy,
       ranking,
-      opportunities: [MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>],
+      opportunities: [
+        MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>,
+      ],
       portfolioValueUsd: 400,
     });
     expect(atMinClamp.metadata.gasReserveWeight).toBe(0.0125);
@@ -139,11 +151,15 @@ describe("constructPortfolio", () => {
     const result = constructPortfolio({
       policy,
       ranking,
-      opportunities: [MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>],
+      opportunities: [
+        MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>,
+      ],
       portfolioValueUsd: 10_000,
     });
 
-    const buffer = result.positions.find((position) => position.type === "liquidityBuffer");
+    const buffer = result.positions.find(
+      (position) => position.type === "liquidityBuffer",
+    );
 
     expect(buffer).toBeDefined();
     expect(buffer?.weight).toBeGreaterThanOrEqual(0.1);
@@ -166,7 +182,9 @@ describe("constructPortfolio", () => {
     const result = constructPortfolio({
       policy,
       ranking,
-      opportunities: [MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>],
+      opportunities: [
+        MOCK_OPPORTUNITIES[0] as NonNullable<(typeof MOCK_OPPORTUNITIES)[0]>,
+      ],
       portfolioValueUsd: 10_000,
     });
 
@@ -193,12 +211,12 @@ describe("constructPortfolio", () => {
     );
 
     expect(strategyPositions).toHaveLength(3);
-    expect(new Set(strategyPositions.map((position) => position.protocolId)).size).toBe(3);
-    expect(strategyPositions.map((position) => position.opportunityId)).toEqual([
-      "morpho-usdc-base",
-      "aave-usdc-base",
-      "moonwell-usdc-base",
-    ]);
+    expect(
+      new Set(strategyPositions.map((position) => position.protocolId)).size,
+    ).toBe(3);
+    expect(strategyPositions.map((position) => position.opportunityId)).toEqual(
+      ["morpho-usdc-base", "aave-usdc-base", "moonwell-usdc-base"],
+    );
   });
 
   it("applies score-proportional allocation", () => {
@@ -219,11 +237,13 @@ describe("constructPortfolio", () => {
 
     const morpho = result.positions.find(
       (position) =>
-        position.type === "strategy" && position.opportunityId === "morpho-usdc-base",
+        position.type === "strategy" &&
+        position.opportunityId === "morpho-usdc-base",
     );
     const aave = result.positions.find(
       (position) =>
-        position.type === "strategy" && position.opportunityId === "aave-usdc-base",
+        position.type === "strategy" &&
+        position.opportunityId === "aave-usdc-base",
     );
 
     expect(morpho?.weight).toBeGreaterThan(aave?.weight ?? 0);
@@ -249,7 +269,10 @@ describe("constructPortfolio", () => {
     );
 
     expect(strategyPositions).toHaveLength(2);
-    expect(strategyPositions[0]?.weight).toBeCloseTo(strategyPositions[1]?.weight ?? 0, 1);
+    expect(strategyPositions[0]?.weight).toBeCloseTo(
+      strategyPositions[1]?.weight ?? 0,
+      1,
+    );
   });
 
   it("applies maxProtocolExposure and redistributes overflow", () => {
@@ -276,7 +299,8 @@ describe("constructPortfolio", () => {
 
     const morpho = result.positions.find(
       (position) =>
-        position.type === "strategy" && position.opportunityId === "morpho-usdc-base",
+        position.type === "strategy" &&
+        position.opportunityId === "morpho-usdc-base",
     );
 
     expect(morpho?.weight).toBeLessThanOrEqual(0.5);
@@ -304,7 +328,9 @@ describe("constructPortfolio", () => {
       ),
     ).toBe(true);
 
-    const buffer = result.positions.find((position) => position.type === "liquidityBuffer");
+    const buffer = result.positions.find(
+      (position) => position.type === "liquidityBuffer",
+    );
     expect(buffer?.weight).toBeGreaterThan(0);
   });
 
@@ -332,10 +358,14 @@ describe("constructPortfolio", () => {
     });
 
     expect(
-      result.constructionSteps.some((step) => step.id === "minAllocationSizeDrop"),
+      result.constructionSteps.some(
+        (step) => step.id === "minAllocationSizeDrop",
+      ),
     ).toBe(true);
     expect(
-      result.constructionSteps.some((step) => step.id === "minAllocationSizePromote"),
+      result.constructionSteps.some(
+        (step) => step.id === "minAllocationSizePromote",
+      ),
     ).toBe(true);
   });
 
@@ -367,7 +397,9 @@ describe("constructPortfolio", () => {
 
     expect(strategyPositions.length).toBeLessThan(2);
     expect(
-      result.constructionSteps.some((step) => step.id === "minAllocationSizeDrop"),
+      result.constructionSteps.some(
+        (step) => step.id === "minAllocationSizeDrop",
+      ),
     ).toBe(true);
   });
 
@@ -382,7 +414,9 @@ describe("constructPortfolio", () => {
       portfolioValueUsd: 10_000,
     });
 
-    expect(result.rejectedOpportunities.map((entry) => entry.opportunityId)).toEqual(
+    expect(
+      result.rejectedOpportunities.map((entry) => entry.opportunityId),
+    ).toEqual(
       expect.arrayContaining(["moonwell-dai-base", "experimental-usdc-base"]),
     );
   });
@@ -398,11 +432,19 @@ describe("constructPortfolio", () => {
     });
 
     expect(result.positions).toHaveLength(2);
-    expect(result.positions.find((position) => position.type === "strategy")).toBeUndefined();
-    expect(result.positions.find((position) => position.type === "liquidityBuffer")).toBeDefined();
-    expect(result.positions.find((position) => position.type === "gasReserve")).toBeDefined();
     expect(
-      result.constructionSteps.some((step) => step.id === "emptyCandidateUniverse"),
+      result.positions.find((position) => position.type === "strategy"),
+    ).toBeUndefined();
+    expect(
+      result.positions.find((position) => position.type === "liquidityBuffer"),
+    ).toBeDefined();
+    expect(
+      result.positions.find((position) => position.type === "gasReserve"),
+    ).toBeDefined();
+    expect(
+      result.constructionSteps.some(
+        (step) => step.id === "emptyCandidateUniverse",
+      ),
     ).toBe(true);
     expect(result.explanations[0]?.summary).toBe(
       "No opportunities were allocated to strategy positions.",
@@ -421,10 +463,16 @@ describe("constructPortfolio", () => {
       portfolioValueUsd: 10_000,
     });
 
-    expect(result.rejectedOpportunities).toHaveLength(fullRanking.rejected.length);
-    expect(result.positions.every((position) => position.type !== "strategy")).toBe(true);
+    expect(result.rejectedOpportunities).toHaveLength(
+      fullRanking.rejected.length,
+    );
     expect(
-      result.constructionSteps.some((step) => step.id === "emptyCandidateUniverse"),
+      result.positions.every((position) => position.type !== "strategy"),
+    ).toBe(true);
+    expect(
+      result.constructionSteps.some(
+        (step) => step.id === "emptyCandidateUniverse",
+      ),
     ).toBe(true);
   });
 
@@ -438,7 +486,10 @@ describe("constructPortfolio", () => {
       portfolioValueUsd: 10_000,
     });
 
-    const total = result.positions.reduce((sum, position) => sum + position.weight, 0);
+    const total = result.positions.reduce(
+      (sum, position) => sum + position.weight,
+      0,
+    );
     const factor = 10 ** ROUNDING_DECIMALS;
 
     expect(Math.round(total * factor) / factor).toBe(1);
@@ -478,7 +529,10 @@ describe("constructPortfolio", () => {
       portfolioValueUsd: 10_000,
     });
 
-    const total = result.positions.reduce((sum, position) => sum + position.weight, 0);
+    const total = result.positions.reduce(
+      (sum, position) => sum + position.weight,
+      0,
+    );
     const factor = 10 ** ROUNDING_DECIMALS;
 
     expect(Math.round(total * factor) / factor).toBe(1);

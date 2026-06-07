@@ -30,10 +30,10 @@ Traditional DeFi products force users to think in terms of protocols.
 
 Examples:
 
-* Deposit into Aave
-* Deposit into Morpho
-* Provide liquidity on Aerodrome
-* Use Moonwell
+- Deposit into Aave
+- Deposit into Morpho
+- Provide liquidity on Aerodrome
+- Use Moonwell
 
 This creates a protocol-centric user experience.
 
@@ -63,21 +63,21 @@ Examples:
 
 User A:
 
-* Preserve capital
-* High liquidity
-* Stable returns
+- Preserve capital
+- High liquidity
+- Stable returns
 
 User B:
 
-* Moderate risk
-* Moderate liquidity
-* Higher return preference
+- Moderate risk
+- Moderate liquidity
+- Higher return preference
 
 User C:
 
-* Expected return maximization
-* Lower liquidity requirements
-* Higher protocol risk tolerance
+- Expected return maximization
+- Lower liquidity requirements
+- Higher protocol risk tolerance
 
 Each user may receive a different allocation.
 
@@ -89,11 +89,11 @@ Laminar assumes that no two users are identical.
 
 Users may differ in:
 
-* risk tolerance
-* liquidity requirements
-* investment horizon
-* return preferences
-* automation preferences
+- risk tolerance
+- liquidity requirements
+- investment horizon
+- return preferences
+- automation preferences
 
 The system should support individualized portfolio construction whenever possible.
 
@@ -107,11 +107,11 @@ Automation must remain understandable.
 
 Users should always be able to inspect:
 
-* selected protocols
-* allocation percentages
-* expected yield
-* risk assumptions
-* rebalance decisions
+- selected protocols
+- allocation percentages
+- expected yield
+- risk assumptions
+- rebalance decisions
 
 Laminar should avoid becoming a black box.
 
@@ -143,10 +143,10 @@ The onboarding experience should guide users through simple questions.
 
 Examples:
 
-* What matters most to you?
-* How important is liquidity?
-* How much risk are you comfortable taking?
-* What is your investment horizon?
+- What matters most to you?
+- How important is liquidity?
+- How much risk are you comfortable taking?
+- What is your investment horizon?
 
 The system translates answers into portfolio parameters.
 
@@ -160,9 +160,9 @@ Users retain final control.
 
 The system should recommend:
 
-* risk settings
-* liquidity settings
-* return preference settings
+- risk settings
+- liquidity settings
+- return preference settings
 
 Users may adjust those recommendations before portfolio creation.
 
@@ -174,9 +174,9 @@ Laminar represents user preferences using canonical intent dimensions.
 
 Examples:
 
-* Risk
-* Liquidity
-* Return Preference
+- Risk
+- Liquidity
+- Return Preference
 
 Frontend experiences should not expose internal complexity unless beneficial.
 
@@ -188,15 +188,15 @@ Whenever possible:
 
 Prefer:
 
-* simple explanations
-* understandable terminology
-* visual summaries
+- simple explanations
+- understandable terminology
+- visual summaries
 
 Avoid:
 
-* protocol-specific jargon
-* unnecessary complexity
-* technical overload
+- protocol-specific jargon
+- unnecessary complexity
+- technical overload
 
 ---
 
@@ -204,10 +204,10 @@ Avoid:
 
 Users should clearly understand:
 
-* what Laminar can do
-* what Laminar cannot do
-* which permissions have been granted
-* how automation operates
+- what Laminar can do
+- what Laminar cannot do
+- which permissions have been granted
+- how automation operates
 
 Permission visibility is a trust feature.
 
@@ -235,16 +235,16 @@ Examples:
 
 Portfolio A:
 
-* Treasury
-* Conservative
+- Treasury
+- Conservative
 
 Portfolio B:
 
-* Yield Focused
+- Yield Focused
 
 Portfolio C:
 
-* Stablecoin Savings
+- Stablecoin Savings
 
 Portfolio isolation should remain a first-class concept.
 
@@ -268,11 +268,11 @@ Every automated action should remain reversible whenever possible.
 
 A successful Laminar user should:
 
-* spend less time monitoring DeFi
-* maintain acceptable risk exposure
-* achieve competitive yield
-* understand where capital is allocated
-* feel in control of automation
+- spend less time monitoring DeFi
+- maintain acceptable risk exposure
+- achieve competitive yield
+- understand where capital is allocated
+- feel in control of automation
 
 ---
 
@@ -280,11 +280,11 @@ A successful Laminar user should:
 
 Laminar has failed if users:
 
-* cannot understand why actions occur
-* feel they have lost control
-* cannot inspect allocations
-* cannot understand permissions
-* must continuously monitor the system themselves
+- cannot understand why actions occur
+- feel they have lost control
+- cannot inspect allocations
+- cannot understand permissions
+- must continuously monitor the system themselves
 
 ---
 

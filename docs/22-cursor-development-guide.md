@@ -12,16 +12,16 @@ This document defines how Laminar should be developed.
 
 It exists to ensure:
 
-* architectural consistency
-* predictable implementation
-* maintainable code
-* AI-assisted development alignment
+- architectural consistency
+- predictable implementation
+- maintainable code
+- AI-assisted development alignment
 
 This document is intended for:
 
-* developers
-* AI coding assistants
-* future contributors
+- developers
+- AI coding assistants
+- future contributors
 
 ---
 
@@ -45,9 +45,9 @@ Laminar is a portfolio management platform.
 
 It is not:
 
-* a protocol-first application
-* a yield farm
-* a trading bot
+- a protocol-first application
+- a yield farm
+- a trading bot
 
 The architecture should reflect portfolio management concepts.
 
@@ -144,16 +144,16 @@ Infrastructure Layer
 
 Responsibilities:
 
-* validation
-* authentication
-* request parsing
-* response formatting
+- validation
+- authentication
+- request parsing
+- response formatting
 
 Must not contain:
 
-* portfolio logic
-* risk logic
-* scoring logic
+- portfolio logic
+- risk logic
+- scoring logic
 
 ---
 
@@ -161,9 +161,9 @@ Must not contain:
 
 Responsibilities:
 
-* orchestration
-* workflows
-* use cases
+- orchestration
+- workflows
+- use cases
 
 Examples:
 
@@ -237,17 +237,15 @@ Required interface:
 
 ```typescript
 interface ProtocolAdapter {
+  getOpportunities();
 
-  getOpportunities()
+  getPositions();
 
-  getPositions()
+  allocate();
 
-  allocate()
+  withdraw();
 
-  withdraw()
-
-  rebalance()
-
+  rebalance();
 }
 ```
 
@@ -266,7 +264,7 @@ inside business logic.
 Always:
 
 ```typescript
-adapter.allocate()
+adapter.allocate();
 ```
 
 ---
@@ -282,7 +280,7 @@ Portfolio states must be enforced.
 Forbidden:
 
 ```typescript
-portfolio.status = "ACTIVE"
+portfolio.status = "ACTIVE";
 ```
 
 from arbitrary code.
@@ -292,7 +290,7 @@ from arbitrary code.
 Required:
 
 ```typescript
-portfolio.activate()
+portfolio.activate();
 ```
 
 or equivalent domain transition.
@@ -889,10 +887,10 @@ Never build UI before business logic.
 
 The codebase succeeds when:
 
-* portfolio decisions are explainable
-* architecture remains deterministic
-* protocols remain interchangeable
-* history remains auditable
+- portfolio decisions are explainable
+- architecture remains deterministic
+- protocols remain interchangeable
+- history remains auditable
 
 ---
 
@@ -900,10 +898,10 @@ The codebase succeeds when:
 
 The codebase fails when:
 
-* protocol logic leaks everywhere
-* decisions become opaque
-* policies become mutable
-* state transitions become uncontrolled
+- protocol logic leaks everywhere
+- decisions become opaque
+- policies become mutable
+- state transitions become uncontrolled
 
 ---
 

@@ -28,10 +28,10 @@ Users express preferences.
 
 Users do not directly select:
 
-* protocols
-* allocations
-* strategies
-* vaults
+- protocols
+- allocations
+- strategies
+- vaults
 
 Laminar converts user intent into a Portfolio Policy.
 
@@ -141,10 +141,10 @@ Policy v2
 
 Generated after:
 
-* intent modification
-* profile change
-* policy rebuild
-* configuration change
+- intent modification
+- profile change
+- policy rebuild
+- configuration change
 
 ---
 
@@ -152,11 +152,11 @@ Generated after:
 
 Versioning enables:
 
-* explainability
-* auditability
-* historical reconstruction
-* debugging
-* rebalance transparency
+- explainability
+- auditability
+- historical reconstruction
+- debugging
+- rebalance transparency
 
 ---
 
@@ -238,7 +238,6 @@ Portfolio Construction uses Risk Limits to filter opportunities.
 
 ```yaml
 riskLimits:
-
   minTrustScore:
 
   maxProtocolRisk:
@@ -254,7 +253,6 @@ riskLimits:
 
 ```yaml
 riskLimits:
-
   minTrustScore: 85
 
   maxProtocolRisk: low
@@ -270,7 +268,6 @@ riskLimits:
 
 ```yaml
 riskLimits:
-
   minTrustScore: 75
 
   maxProtocolRisk: medium
@@ -286,7 +283,6 @@ riskLimits:
 
 ```yaml
 riskLimits:
-
   minTrustScore: 65
 
   maxProtocolRisk: medium
@@ -328,7 +324,6 @@ Portfolio Construction uses Liquidity Requirements to filter opportunities befor
 
 ```yaml
 liquidityRequirements:
-
   minLiquidityScore:
 
   maxWithdrawalDelay:
@@ -342,7 +337,6 @@ liquidityRequirements:
 
 ```yaml
 liquidityRequirements:
-
   minLiquidityScore: 85
 
   maxWithdrawalDelay: 1 day
@@ -356,7 +350,6 @@ liquidityRequirements:
 
 ```yaml
 liquidityRequirements:
-
   minLiquidityScore: 75
 
   maxWithdrawalDelay: 7 days
@@ -370,7 +363,6 @@ liquidityRequirements:
 
 ```yaml
 liquidityRequirements:
-
   minLiquidityScore: 65
 
   maxWithdrawalDelay: 30 days
@@ -416,7 +408,6 @@ Portfolio Construction remains responsible for selecting actual opportunities.
 
 ```yaml
 targetExposure:
-
   lending:
 
   yieldEnhancement:
@@ -430,7 +421,6 @@ targetExposure:
 
 ```yaml
 targetExposure:
-
   lending: 90%
 
   liquidityBuffer: 10%
@@ -444,7 +434,6 @@ targetExposure:
 
 ```yaml
 targetExposure:
-
   lending: 75%
 
   yieldEnhancement: 25%
@@ -458,7 +447,6 @@ targetExposure:
 
 ```yaml
 targetExposure:
-
   lending: 60%
 
   yieldEnhancement: 40%
@@ -488,10 +476,10 @@ Define hard limits that Portfolio Construction must respect.
 
 Allocation Constraints improve:
 
-* diversification
-* liquidity
-* operational efficiency
-* portfolio stability
+- diversification
+- liquidity
+- operational efficiency
+- portfolio stability
 
 ---
 
@@ -499,7 +487,6 @@ Allocation Constraints improve:
 
 ```yaml
 allocationConstraints:
-
   maxActiveAllocations:
 
   maxProtocolExposure:
@@ -519,7 +506,6 @@ allocationConstraints:
 
 ```yaml
 allocationConstraints:
-
   maxActiveAllocations: 3
 
   maxProtocolExposure: 50%
@@ -531,7 +517,6 @@ allocationConstraints:
   rebalanceThreshold: 10%
 
   gasReserve:
-
     min: 5 USD
 
     targetRate: 1%
@@ -679,7 +664,6 @@ policyVersion: 2
 selectedProfile: Balanced
 
 riskLimits:
-
   minTrustScore: 75
 
   maxProtocolRisk: medium
@@ -689,7 +673,6 @@ riskLimits:
   allowExperimentalProtocols: false
 
 liquidityRequirements:
-
   minLiquidityScore: 75
 
   maxWithdrawalDelay: 7 days
@@ -697,7 +680,6 @@ liquidityRequirements:
   allowLockups: false
 
 targetExposure:
-
   lending: 75%
 
   yieldEnhancement: 25%
@@ -705,7 +687,6 @@ targetExposure:
   liquidityBuffer: 0%
 
 allocationConstraints:
-
   maxActiveAllocations: 3
 
   maxProtocolExposure: 50%
@@ -717,7 +698,6 @@ allocationConstraints:
   rebalanceThreshold: 10%
 
   gasReserve:
-
     min: 5 USD
 
     targetRate: 1%
@@ -731,12 +711,12 @@ allocationConstraints:
 
 Policy Model V1 intentionally excludes:
 
-* AI-generated policies
-* adaptive policy evolution
-* policy optimization engines
-* personalized policy templates
-* behavioral learning systems
-* policy recommendation systems
+- AI-generated policies
+- adaptive policy evolution
+- policy optimization engines
+- personalized policy templates
+- behavioral learning systems
+- policy recommendation systems
 
 Laminar V1 uses deterministic policy generation.
 
@@ -746,10 +726,10 @@ Laminar V1 uses deterministic policy generation.
 
 Potential future enhancements include:
 
-* policy confidence scores
-* adaptive policies
-* dynamic policy updates
-* AI-assisted policy generation
-* behavioral policy tuning
+- policy confidence scores
+- adaptive policies
+- dynamic policy updates
+- AI-assisted policy generation
+- behavioral policy tuning
 
 These capabilities are explicitly outside the scope of Laminar V1.

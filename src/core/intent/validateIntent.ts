@@ -18,14 +18,14 @@ export type IntentValidationResult =
   | { valid: true; intent: UserIntent }
   | { valid: false; errors: string[] };
 
-const INTENT_FIELDS = ["risk", "liquidity", "returnPreference"] as const;
+type IntentField = "risk" | "liquidity" | "returnPreference";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function validateDimension(
-  field: (typeof INTENT_FIELDS)[number],
+  field: IntentField,
   value: unknown,
   errors: string[],
 ): number | undefined {
@@ -40,7 +40,9 @@ function validateDimension(
   }
 
   if (!Number.isInteger(value)) {
-    errors.push(`${field} must be an integer between ${INTENT_DIMENSION_MIN} and ${INTENT_DIMENSION_MAX}`);
+    errors.push(
+      `${field} must be an integer between ${INTENT_DIMENSION_MIN} and ${INTENT_DIMENSION_MAX}`,
+    );
     return undefined;
   }
 

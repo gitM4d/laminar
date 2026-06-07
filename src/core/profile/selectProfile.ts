@@ -31,7 +31,9 @@ export function resolveProfileTie(tiedProfiles: ProfileName[]): ProfileName {
   return tiedProfiles[0] as ProfileName;
 }
 
-export function selectProfile(intent: WeightedDistanceInput): ProfileClassification {
+export function selectProfile(
+  intent: WeightedDistanceInput,
+): ProfileClassification {
   const distances: ProfileDistance[] = PROFILE_DEFINITIONS.map((profile) => ({
     profile: profile.name,
     distance: calculateWeightedDistance(intent, profile),
@@ -44,7 +46,7 @@ export function selectProfile(intent: WeightedDistanceInput): ProfileClassificat
 
   const selectedProfile =
     tiedProfiles.length === 1
-      ? tiedProfiles[0] as ProfileName
+      ? (tiedProfiles[0] as ProfileName)
       : resolveProfileTie(tiedProfiles);
 
   return {

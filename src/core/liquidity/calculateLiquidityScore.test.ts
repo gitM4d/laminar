@@ -56,8 +56,12 @@ describe("calculateLiquidityScore", () => {
     expect(result.weightedScoreBeforeCaps).toBe(expected);
     expect(result.liquidityScore).toBe(expected);
     expect(result.breakdown.weightedContributions.withdrawalSpeed).toBe(26.25);
-    expect(result.breakdown.weightedContributions.withdrawalConstraints).toBe(18);
-    expect(result.breakdown.weightedContributions.redemptionReliability).toBe(13);
+    expect(result.breakdown.weightedContributions.withdrawalConstraints).toBe(
+      18,
+    );
+    expect(result.breakdown.weightedContributions.redemptionReliability).toBe(
+      13,
+    );
     expect(result.breakdown.weightedContributions.exitSlippage).toBe(15);
   });
 
@@ -113,7 +117,10 @@ describe("calculateLiquidityScore", () => {
     expect(result.liquidityScore).toBe(60);
     expect(result.breakdown.appliedCaps).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ ruleId: "thirtyToNinetyDaysCap", maxScore: 60 }),
+        expect.objectContaining({
+          ruleId: "thirtyToNinetyDaysCap",
+          maxScore: 60,
+        }),
       ]),
     );
   });

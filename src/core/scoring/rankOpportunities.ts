@@ -44,7 +44,9 @@ export function rankOpportunities(
     const risk = riskByOpportunityId.get(opportunity.id);
 
     if (trust === undefined) {
-      throw new Error(`No trust score found for opportunity: ${opportunity.id}`);
+      throw new Error(
+        `No trust score found for opportunity: ${opportunity.id}`,
+      );
     }
 
     if (liquidity === undefined) {
@@ -54,7 +56,9 @@ export function rankOpportunities(
     }
 
     if (risk === undefined) {
-      throw new Error(`No risk assessment found for opportunity: ${opportunity.id}`);
+      throw new Error(
+        `No risk assessment found for opportunity: ${opportunity.id}`,
+      );
     }
 
     if (risk.assessment.decision === "rejected") {
@@ -86,7 +90,9 @@ export function rankOpportunities(
     });
   }
 
-  scoredEligible.sort((left, right) => right.scoring.score - left.scoring.score);
+  scoredEligible.sort(
+    (left, right) => right.scoring.score - left.scoring.score,
+  );
 
   const ranked = scoredEligible.map((entry, index) => ({
     ...entry,

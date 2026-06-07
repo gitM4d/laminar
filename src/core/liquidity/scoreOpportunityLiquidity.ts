@@ -18,7 +18,10 @@ export class UnknownOpportunityLiquidityProfileError extends Error {
 
 export function getOpportunityLiquidityProfile(
   opportunityId: string,
-  profiles: Record<string, OpportunityLiquidityProfile> = MOCK_OPPORTUNITY_LIQUIDITY_PROFILES,
+  profiles: Record<
+    string,
+    OpportunityLiquidityProfile
+  > = MOCK_OPPORTUNITY_LIQUIDITY_PROFILES,
 ): OpportunityLiquidityProfile {
   const profile = profiles[opportunityId];
 

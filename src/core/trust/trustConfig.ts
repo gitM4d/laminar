@@ -55,9 +55,7 @@ export const PROTOCOL_AGE_THRESHOLDS_YEARS = [0.5, 1, 2, 4] as const;
 export const PROTOCOL_AGE_SCORES = [30, 55, 75, 90, 100] as const;
 
 export const TVL_THRESHOLDS_USD = [
-  10_000_000,
-  100_000_000,
-  1_000_000_000,
+  10_000_000, 100_000_000, 1_000_000_000,
 ] as const;
 
 export const TVL_SCORES = [50, 70, 85, 100] as const;

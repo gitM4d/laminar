@@ -15,7 +15,10 @@ export type GeneratePortfolioRecommendationInput = {
   asOf?: Date;
 };
 
-export type RecommendationPipelineStepStatus = "completed" | "skipped" | "failed";
+export type RecommendationPipelineStepStatus =
+  | "completed"
+  | "skipped"
+  | "failed";
 
 export type RecommendationPipelineStep = {
   id: string;

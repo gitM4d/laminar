@@ -24,9 +24,9 @@ Architecture should not.
 
 Laminar should be able to:
 
-* add protocols
-* remove protocols
-* upgrade integrations
+- add protocols
+- remove protocols
+- upgrade integrations
 
 without modifying core business logic.
 
@@ -92,11 +92,11 @@ All protocol-specific knowledge belongs inside adapters.
 
 Examples:
 
-* contract addresses
-* ABI definitions
-* transaction construction
-* protocol quirks
-* protocol-specific calculations
+- contract addresses
+- ABI definitions
+- transaction construction
+- protocol quirks
+- protocol-specific calculations
 
 These concerns must never leak into core engines.
 
@@ -106,11 +106,11 @@ These concerns must never leak into core engines.
 
 Adapter architecture provides:
 
-* modularity
-* extensibility
-* testability
-* protocol independence
-* simplified maintenance
+- modularity
+- extensibility
+- testability
+- protocol independence
+- simplified maintenance
 
 ---
 
@@ -142,21 +142,21 @@ Any protocol may be integrated as a read-only source through an adapter.
 
 Adapters are responsible for:
 
-* reading protocol state
-* normalizing protocol data
-* estimating execution costs
-* constructing transactions
-* validating protocol operations
-* exposing protocol metadata
+- reading protocol state
+- normalizing protocol data
+- estimating execution costs
+- constructing transactions
+- validating protocol operations
+- exposing protocol metadata
 
 ---
 
 Adapters are not responsible for:
 
-* scoring
-* portfolio construction
-* risk evaluation
-* execution scheduling
+- scoring
+- portfolio construction
+- risk evaluation
+- execution scheduling
 
 ---
 
@@ -170,23 +170,21 @@ Example:
 
 ```typescript id="j2pax8"
 interface ProtocolAdapter {
+  getProtocolMetadata();
 
-  getProtocolMetadata()
+  getSupportedAssets();
 
-  getSupportedAssets()
+  getMetrics();
 
-  getMetrics()
+  getPositions();
 
-  getPositions()
+  estimateDeposit();
 
-  estimateDeposit()
+  estimateWithdraw();
 
-  estimateWithdraw()
+  buildDepositTx();
 
-  buildDepositTx()
-
-  buildWithdrawTx()
-
+  buildWithdrawTx();
 }
 ```
 
@@ -208,10 +206,10 @@ Provides protocol data.
 
 Examples:
 
-* APY
-* TVL
-* utilization
-* liquidity
+- APY
+- TVL
+- utilization
+- liquidity
 
 ---
 
@@ -233,8 +231,8 @@ Supports on-chain actions.
 
 Examples:
 
-* deposit
-* withdraw
+- deposit
+- withdraw
 
 ---
 
@@ -409,9 +407,9 @@ They do not submit them.
 Example:
 
 ```typescript id="vq6yrg"
-buildDepositTx()
+buildDepositTx();
 
-buildWithdrawTx()
+buildWithdrawTx();
 ```
 
 ---
@@ -419,7 +417,7 @@ buildWithdrawTx()
 Output:
 
 ```typescript id="11ncyg"
-TransactionRequest
+TransactionRequest;
 ```
 
 ---
@@ -472,9 +470,9 @@ AdapterRegistry {
 
 Purpose:
 
-* discovery
-* routing
-* capability detection
+- discovery
+- routing
+- capability detection
 
 ---
 
@@ -503,13 +501,13 @@ Capabilities {
 Future:
 
 ```typescript id="8tmz7h"
-swap
+swap;
 
-bridge
+bridge;
 
-stake
+stake;
 
-unstake
+unstake;
 ```
 
 ---
@@ -732,11 +730,11 @@ Core architecture should not require changes.
 
 Adapters do not:
 
-* allocate capital
-* rank opportunities
-* evaluate risk
-* execute transactions
-* manage user permissions
+- allocate capital
+- rank opportunities
+- evaluate risk
+- execute transactions
+- manage user permissions
 
 ---
 
@@ -744,10 +742,10 @@ Adapters do not:
 
 The Adapter Layer succeeds when:
 
-* protocols are easy to add
-* protocols are easy to remove
-* protocol complexity remains isolated
-* core architecture remains unchanged
+- protocols are easy to add
+- protocols are easy to remove
+- protocol complexity remains isolated
+- core architecture remains unchanged
 
 ---
 
@@ -755,9 +753,9 @@ The Adapter Layer succeeds when:
 
 The Adapter Layer fails when:
 
-* protocol-specific logic leaks into core systems
-* adding a protocol requires modifying business logic
-* protocol upgrades require large refactors
+- protocol-specific logic leaks into core systems
+- adding a protocol requires modifying business logic
+- protocol upgrades require large refactors
 
 ---
 

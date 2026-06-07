@@ -12,11 +12,11 @@ The Smart Account Model is one of the most critical architectural components of 
 
 Its primary goals are:
 
-* preserve user ownership
-* enable automation
-* support future extensibility
-* minimize custodial risk
-* provide a foundation for permissioned execution
+- preserve user ownership
+- enable automation
+- support future extensibility
+- minimize custodial risk
+- provide a foundation for permissioned execution
 
 ---
 
@@ -38,10 +38,10 @@ Traditional EOAs (Externally Owned Accounts) are not well suited for automated p
 
 EOAs introduce limitations:
 
-* poor automation support
-* poor permission granularity
-* poor recoverability
-* weak account abstraction support
+- poor automation support
+- poor permission granularity
+- poor recoverability
+- weak account abstraction support
 
 Laminar therefore adopts a Smart Account architecture.
 
@@ -61,11 +61,11 @@ as its smart account infrastructure.
 
 Safe provides:
 
-* battle-tested infrastructure
-* account abstraction compatibility
-* granular permissions
-* execution flexibility
-* ecosystem adoption
+- battle-tested infrastructure
+- account abstraction compatibility
+- granular permissions
+- execution flexibility
+- ecosystem adoption
 
 ---
 
@@ -163,16 +163,16 @@ One Safe
 
 Benefits:
 
-* simplicity
-* isolation
-* transparency
+- simplicity
+- isolation
+- transparency
 
 ---
 
 Drawbacks:
 
-* additional account creation
-* more on-chain objects
+- additional account creation
+- more on-chain objects
 
 ---
 
@@ -204,9 +204,9 @@ Users transfer assets into the Safe.
 
 Examples:
 
-* USDC
-* EURC
-* DAI
+- USDC
+- EURC
+- DAI
 
 ---
 
@@ -263,9 +263,9 @@ Users may grant automation permissions.
 
 Examples:
 
-* rebalance portfolio
-* move capital between approved protocols
-* respond to approved risk events
+- rebalance portfolio
+- move capital between approved protocols
+- respond to approved risk events
 
 ---
 
@@ -375,9 +375,9 @@ Automation becomes ineffective.
 
 Users approve:
 
-* what may happen
-* when it may happen
-* under what conditions it may happen
+- what may happen
+- when it may happen
+- under what conditions it may happen
 
 ---
 
@@ -435,10 +435,10 @@ Illustrative only.
 
 Supports:
 
-* scheduled rebalances
-* emergency actions
-* retries
-* maintenance operations
+- scheduled rebalances
+- emergency actions
+- retries
+- maintenance operations
 
 ---
 
@@ -456,9 +456,9 @@ Certain approved actions may bypass normal schedules.
 
 Examples:
 
-* exploit
-* severe depeg
-* insolvency event
+- exploit
+- severe depeg
+- insolvency event
 
 ---
 
@@ -518,9 +518,9 @@ Recovery implementation depends on Safe capabilities.
 
 Potential Approaches:
 
-* recovery addresses
-* social recovery
-* recovery modules
+- recovery addresses
+- social recovery
+- recovery modules
 
 ---
 
@@ -560,11 +560,11 @@ These principles are mandatory.
 
 Users should be able to inspect:
 
-* current permissions
-* active automation
-* execution history
-* approved protocols
-* account status
+- current permissions
+- active automation
+- execution history
+- approved protocols
+- account status
 
 ---
 
@@ -582,10 +582,10 @@ Key Requirements
 
 Laminar:
 
-* does not hold user funds
-* does not pool user funds
-* does not take beneficial ownership
-* operates within user-approved boundaries
+- does not hold user funds
+- does not pool user funds
+- does not take beneficial ownership
+- operates within user-approved boundaries
 
 ---
 
@@ -597,18 +597,18 @@ Legal review will ultimately determine jurisdiction-specific treatment.
 
 Potential V2:
 
-* ERC-4337 enhancements
-* session keys
-* advanced permissions
-* batched execution
+- ERC-4337 enhancements
+- session keys
+- advanced permissions
+- batched execution
 
 ---
 
 Potential V3:
 
-* decentralized executor networks
-* autonomous execution markets
-* cross-chain smart accounts
+- decentralized executor networks
+- autonomous execution markets
+- cross-chain smart accounts
 
 ---
 
@@ -616,10 +616,10 @@ Potential V3:
 
 The Smart Account Model does not:
 
-* score opportunities
-* evaluate risk
-* construct portfolios
-* select protocols
+- score opportunities
+- evaluate risk
+- construct portfolios
+- select protocols
 
 ---
 
@@ -631,11 +631,11 @@ It exists to provide a secure execution environment.
 
 The Smart Account Model succeeds when:
 
-* users retain ownership
-* automation remains effective
-* permissions remain understandable
-* execution remains secure
-* custody risk remains minimized
+- users retain ownership
+- automation remains effective
+- permissions remain understandable
+- execution remains secure
+- custody risk remains minimized
 
 ---
 
@@ -643,10 +643,10 @@ The Smart Account Model succeeds when:
 
 The Smart Account Model fails when:
 
-* users lose visibility
-* permissions become confusing
-* automation becomes overly powerful
-* Laminar gains unnecessary control
+- users lose visibility
+- permissions become confusing
+- automation becomes overly powerful
+- Laminar gains unnecessary control
 
 ---
 

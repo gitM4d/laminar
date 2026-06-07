@@ -3,7 +3,9 @@ import healthResponseSchemaJson from "./healthResponse.schema.json" with { type:
 import recommendationRequestSchemaJson from "./recommendationRequest.schema.json" with { type: "json" };
 import recommendationResponseSchemaJson from "./recommendationResponse.schema.json" with { type: "json" };
 
-function withoutSchemaMeta<T extends Record<string, unknown>>(schema: T): Omit<T, "$schema"> {
+function withoutSchemaMeta<T extends Record<string, unknown>>(
+  schema: T,
+): Omit<T, "$schema"> {
   const { $schema: _schema, ...rest } = schema;
   return rest;
 }
@@ -15,4 +17,6 @@ export const recommendationRequestSchema = withoutSchemaMeta(
 export const recommendationResponseSchema = withoutSchemaMeta(
   recommendationResponseSchemaJson,
 );
-export const apiErrorResponseSchema = withoutSchemaMeta(apiErrorResponseSchemaJson);
+export const apiErrorResponseSchema = withoutSchemaMeta(
+  apiErrorResponseSchemaJson,
+);

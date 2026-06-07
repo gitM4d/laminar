@@ -14,11 +14,11 @@ A portfolio is a managed entity that transitions through well-defined states dur
 
 These states determine:
 
-* available actions
-* automation eligibility
-* execution permissions
-* user experience
-* system behavior
+- available actions
+- automation eligibility
+- execution permissions
+- user experience
+- system behavior
 
 ---
 
@@ -28,9 +28,9 @@ Portfolio behavior should be deterministic.
 
 At any moment:
 
-* a portfolio must have exactly one state
-* the current state must be observable
-* valid transitions must be explicit
+- a portfolio must have exactly one state
+- the current state must be observable
+- valid transitions must be explicit
 
 Undefined states are forbidden.
 
@@ -82,9 +82,9 @@ Portfolio has been created but not activated.
 
 User has:
 
-* completed onboarding
-* configured intent
-* generated policy
+- completed onboarding
+- configured intent
+- generated policy
 
 User has not yet funded the portfolio.
 
@@ -256,10 +256,10 @@ Portfolio entered protective mode.
 
 Triggered by:
 
-* exploit
-* protocol insolvency
-* severe depeg
-* critical risk event
+- exploit
+- protocol insolvency
+- severe depeg
+- critical risk event
 
 ---
 
@@ -663,10 +663,10 @@ Not required for V1.
 
 The lifecycle succeeds when:
 
-* states remain deterministic
-* transitions remain explicit
-* automation behaves predictably
-* users understand portfolio status
+- states remain deterministic
+- transitions remain explicit
+- automation behaves predictably
+- users understand portfolio status
 
 ---
 
@@ -674,9 +674,9 @@ The lifecycle succeeds when:
 
 The lifecycle fails when:
 
-* ambiguous states appear
-* transitions become unclear
-* automation ignores state restrictions
+- ambiguous states appear
+- transitions become unclear
+- automation ignores state restrictions
 
 ---
 

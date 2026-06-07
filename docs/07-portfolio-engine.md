@@ -10,10 +10,10 @@ The Portfolio Construction Engine is the core allocation system of Laminar.
 
 Its responsibility is to transform:
 
-* Portfolio Policy
-* opportunity rankings
-* eligible opportunities
-* operational constraints
+- Portfolio Policy
+- opportunity rankings
+- eligible opportunities
+- operational constraints
 
 into a concrete portfolio allocation.
 
@@ -125,9 +125,9 @@ Every allocation should be explainable.
 
 Users should understand:
 
-* why a protocol was selected
-* why a protocol weight was assigned
-* why a rebalance was proposed
+- why a protocol was selected
+- why a protocol weight was assigned
+- why a rebalance was proposed
 
 ---
 
@@ -201,9 +201,9 @@ Moonwell USDC
 
 Examples:
 
-* gas reserve
-* execution limits
-* permission validation
+- gas reserve
+- execution limits
+- permission validation
 
 ---
 
@@ -275,10 +275,10 @@ Allocation Constraints
 
 Remove opportunities that violate:
 
-* risk constraints
-* protocol restrictions
-* asset restrictions
-* liquidity requirements
+- risk constraints
+- protocol restrictions
+- asset restrictions
+- liquidity requirements
 
 Remaining opportunities become candidates.
 
@@ -373,9 +373,9 @@ Moonwell  20%
 
 Reduce:
 
-* protocol concentration
-* liquidity concentration
-* operational concentration
+- protocol concentration
+- liquidity concentration
+- operational concentration
 
 ---
 
@@ -398,9 +398,9 @@ policy.riskLimits.minTrustScore = 85
 
 Behavior:
 
-* stronger diversification
-* stronger trust preference
-* higher liquidity preference
+- stronger diversification
+- stronger trust preference
+- higher liquidity preference
 
 ---
 
@@ -415,8 +415,8 @@ policy.riskLimits.minTrustScore = 75
 
 Behavior:
 
-* moderate diversification
-* balanced optimization
+- moderate diversification
+- balanced optimization
 
 ---
 
@@ -431,8 +431,8 @@ policy.riskLimits.minTrustScore = 65
 
 Behavior:
 
-* higher score concentration
-* greater APY sensitivity
+- higher score concentration
+- greater APY sensitivity
 
 ---
 
@@ -528,8 +528,8 @@ policy.liquidityRequirements.allowLockups = false
 
 Behavior:
 
-* prioritize highly liquid protocols
-* reduce allocation to lower-liquidity opportunities
+- prioritize highly liquid protocols
+- reduce allocation to lower-liquidity opportunities
 
 ---
 
@@ -545,7 +545,7 @@ policy.liquidityRequirements.allowLockups = false
 
 Behavior:
 
-* allow broader opportunity set
+- allow broader opportunity set
 
 ---
 
@@ -583,18 +583,18 @@ This ordering is deliberate.
 
 The Portfolio Construction Engine continuously evaluates:
 
-* allocation quality
-* concentration
-* expected yield
-* liquidity profile
+- allocation quality
+- concentration
+- expected yield
+- liquidity profile
 
 ---
 
 Outputs are consumed by:
 
-* dashboard
-* rebalance planner
-* analytics
+- dashboard
+- rebalance planner
+- analytics
 
 ---
 
@@ -640,9 +640,9 @@ Laminar intentionally resists unnecessary movement.
 
 Benefits:
 
-* lower gas costs
-* lower churn
-* greater portfolio stability
+- lower gas costs
+- lower churn
+- greater portfolio stability
 
 ---
 
@@ -668,9 +668,9 @@ Examples:
 
 Examples:
 
-* exploit
-* severe depeg
-* insolvency
+- exploit
+- severe depeg
+- insolvency
 
 ---
 
@@ -726,11 +726,11 @@ A user may create multiple portfolios.
 
 Each portfolio maintains:
 
-* independent user intent
-* independent Selected Profile
-* independent allocations
-* independent automation preferences
-* independent history
+- independent user intent
+- independent Selected Profile
+- independent allocations
+- independent automation preferences
+- independent history
 
 ---
 
@@ -738,18 +738,18 @@ Each portfolio maintains:
 
 Supported Assets:
 
-* USDC
-* EURC
-* DAI
+- USDC
+- EURC
+- DAI
 
 ---
 
 Execution Protocols:
 
-* Morpho
-* Aave
-* Moonwell
-* Aerodrome
+- Morpho
+- Aave
+- Moonwell
+- Aerodrome
 
 ---
 
@@ -763,18 +763,18 @@ Unlimited through adapters.
 
 Potential V2:
 
-* correlation analysis
-* dynamic diversification
-* strategy templates
-* adaptive concentration limits
+- correlation analysis
+- dynamic diversification
+- strategy templates
+- adaptive concentration limits
 
 ---
 
 Potential V3:
 
-* AI-assisted portfolio construction
-* predictive allocation models
-* cross-chain optimization
+- AI-assisted portfolio construction
+- predictive allocation models
+- cross-chain optimization
 
 ---
 
@@ -782,10 +782,10 @@ Potential V3:
 
 The Portfolio Construction Engine does not:
 
-* classify risk events
-* calculate protocol metrics
-* execute transactions
-* manage protocol integrations
+- classify risk events
+- calculate protocol metrics
+- execute transactions
+- manage protocol integrations
 
 ---
 
@@ -793,11 +793,11 @@ The Portfolio Construction Engine does not:
 
 The Portfolio Construction Engine succeeds when:
 
-* allocations align with user intent
-* portfolios remain diversified
-* risk remains controlled
-* yield remains competitive
-* rebalances remain justified
+- allocations align with user intent
+- portfolios remain diversified
+- risk remains controlled
+- yield remains competitive
+- rebalances remain justified
 
 ---
 
@@ -805,11 +805,11 @@ The Portfolio Construction Engine succeeds when:
 
 The Portfolio Construction Engine fails when:
 
-* users receive nearly identical portfolios despite different intent
-* concentration becomes excessive
-* allocations become difficult to explain
-* churn becomes excessive
-* gas costs consume portfolio gains
+- users receive nearly identical portfolios despite different intent
+- concentration becomes excessive
+- allocations become difficult to explain
+- churn becomes excessive
+- gas costs consume portfolio gains
 
 ---
 

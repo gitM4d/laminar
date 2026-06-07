@@ -1,13 +1,19 @@
 import { createMockExecutionPlan } from "./execution/createMockExecutionPlan.js";
 import { generatePortfolioRecommendation } from "./recommendation/generatePortfolioRecommendation.js";
 import { createRecommendationSnapshot } from "./snapshot/createRecommendationSnapshot.js";
-import type { LaminarRecommendationInput, LaminarRecommendationResult } from "./types.js";
+import type {
+  LaminarRecommendationInput,
+  LaminarRecommendationResult,
+} from "./types.js";
 
 export type { UserIntent } from "./intent/types.js";
 export type { PortfolioRecommendationResult } from "./recommendation/types.js";
 export type { RecommendationSnapshot } from "./snapshot/types.js";
 export type { MockExecutionPlan } from "./execution/types.js";
-export type { LaminarRecommendationInput, LaminarRecommendationResult } from "./types.js";
+export type {
+  LaminarRecommendationInput,
+  LaminarRecommendationResult,
+} from "./types.js";
 
 export {
   IntentValidationError,
@@ -21,7 +27,7 @@ export function createLaminarRecommendation(
   const recommendation = generatePortfolioRecommendation({
     intent: input.intent,
     portfolioValueUsd: input.portfolioValueUsd,
-    asOf: input.asOf,
+    ...(input.asOf !== undefined ? { asOf: input.asOf } : {}),
   });
   const snapshot = createRecommendationSnapshot(recommendation);
   const executionPlan = createMockExecutionPlan({ recommendation, snapshot });

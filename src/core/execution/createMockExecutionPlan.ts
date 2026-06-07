@@ -106,7 +106,8 @@ function buildWarnings(
     warnings.push({
       code: "noDepositSteps",
       severity: "warning",
-      message: "No deposit steps were planned; strategy capital is not deployed.",
+      message:
+        "No deposit steps were planned; strategy capital is not deployed.",
     });
   }
 
@@ -198,7 +199,9 @@ function buildExplanations(): ExecutionPlanExplanation[] {
   ];
 }
 
-export function createMockExecutionPlan(input: ExecutionPlanInput): MockExecutionPlan {
+export function createMockExecutionPlan(
+  input: ExecutionPlanInput,
+): MockExecutionPlan {
   const { recommendation } = input;
   const portfolioValueUsd = recommendation.diagnostics.portfolioValueUsd;
   const positions = recommendation.portfolioConstruction.positions;

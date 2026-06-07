@@ -22,11 +22,11 @@ Everything else in the protocol exists to support, execute, monitor, or explain 
 
 Users should never need to think about:
 
-* protocols
-* pools
-* vaults
-* APYs
-* liquidity sources
+- protocols
+- pools
+- vaults
+- APYs
+- liquidity sources
 
 Users define:
 

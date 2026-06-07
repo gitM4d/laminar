@@ -25,62 +25,64 @@ type ProfilePolicyDefaults = {
   targetExposure: TargetExposure;
 };
 
-export const PROFILE_POLICY_DEFAULTS: Record<ProfileName, ProfilePolicyDefaults> =
-  {
-    Conservative: {
-      riskLimits: {
-        minTrustScore: 85,
-        maxProtocolRisk: "low",
-        allowUnauditedProtocols: false,
-        allowExperimentalProtocols: false,
-      },
-      liquidityRequirements: {
-        minLiquidityScore: 85,
-        maxWithdrawalDelay: "1 day",
-        allowLockups: false,
-      },
-      targetExposure: {
-        lending: 0.9,
-        liquidityBuffer: 0.1,
-        yieldEnhancement: 0,
-      },
+export const PROFILE_POLICY_DEFAULTS: Record<
+  ProfileName,
+  ProfilePolicyDefaults
+> = {
+  Conservative: {
+    riskLimits: {
+      minTrustScore: 85,
+      maxProtocolRisk: "low",
+      allowUnauditedProtocols: false,
+      allowExperimentalProtocols: false,
     },
-    Balanced: {
-      riskLimits: {
-        minTrustScore: 75,
-        maxProtocolRisk: "medium",
-        allowUnauditedProtocols: false,
-        allowExperimentalProtocols: false,
-      },
-      liquidityRequirements: {
-        minLiquidityScore: 75,
-        maxWithdrawalDelay: "7 days",
-        allowLockups: false,
-      },
-      targetExposure: {
-        lending: 0.75,
-        yieldEnhancement: 0.25,
-        liquidityBuffer: 0,
-      },
+    liquidityRequirements: {
+      minLiquidityScore: 85,
+      maxWithdrawalDelay: "1 day",
+      allowLockups: false,
     },
-    "Yield Focused": {
-      riskLimits: {
-        minTrustScore: 65,
-        maxProtocolRisk: "medium",
-        allowUnauditedProtocols: false,
-        allowExperimentalProtocols: true,
-      },
-      liquidityRequirements: {
-        minLiquidityScore: 65,
-        maxWithdrawalDelay: "30 days",
-        allowLockups: true,
-      },
-      targetExposure: {
-        lending: 0.6,
-        yieldEnhancement: 0.4,
-        liquidityBuffer: 0,
-      },
+    targetExposure: {
+      lending: 0.9,
+      liquidityBuffer: 0.1,
+      yieldEnhancement: 0,
     },
-  };
+  },
+  Balanced: {
+    riskLimits: {
+      minTrustScore: 75,
+      maxProtocolRisk: "medium",
+      allowUnauditedProtocols: false,
+      allowExperimentalProtocols: false,
+    },
+    liquidityRequirements: {
+      minLiquidityScore: 75,
+      maxWithdrawalDelay: "7 days",
+      allowLockups: false,
+    },
+    targetExposure: {
+      lending: 0.75,
+      yieldEnhancement: 0.25,
+      liquidityBuffer: 0,
+    },
+  },
+  "Yield Focused": {
+    riskLimits: {
+      minTrustScore: 65,
+      maxProtocolRisk: "medium",
+      allowUnauditedProtocols: false,
+      allowExperimentalProtocols: true,
+    },
+    liquidityRequirements: {
+      minLiquidityScore: 65,
+      maxWithdrawalDelay: "30 days",
+      allowLockups: true,
+    },
+    targetExposure: {
+      lending: 0.6,
+      yieldEnhancement: 0.4,
+      liquidityBuffer: 0,
+    },
+  },
+};
 
 export const DEFAULT_POLICY_VERSION = 1;

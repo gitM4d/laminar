@@ -70,7 +70,9 @@ describe("createRecommendationSnapshot", () => {
 
   it("labels gas reserve position", () => {
     const snapshot = createRecommendationSnapshot(balancedRecommendation());
-    const gas = snapshot.positions.find((position) => position.type === "gasReserve");
+    const gas = snapshot.positions.find(
+      (position) => position.type === "gasReserve",
+    );
 
     expect(gas?.label).toBe("Gas Reserve");
     expect(gas?.asset).toBe("USDC");
@@ -80,11 +82,15 @@ describe("createRecommendationSnapshot", () => {
     const recommendation = balancedRecommendation();
     const snapshot = createRecommendationSnapshot(recommendation);
 
-    const strategyPositions = recommendation.portfolioConstruction.positions.filter(
-      (position) => position.type === "strategy",
-    );
+    const strategyPositions =
+      recommendation.portfolioConstruction.positions.filter(
+        (position) => position.type === "strategy",
+      );
     const opportunityById = new Map(
-      recommendation.opportunities.map((opportunity) => [opportunity.id, opportunity]),
+      recommendation.opportunities.map((opportunity) => [
+        opportunity.id,
+        opportunity,
+      ]),
     );
 
     let weightedApySum = 0;
@@ -105,7 +111,9 @@ describe("createRecommendationSnapshot", () => {
     const snapshot = createRecommendationSnapshot(balancedRecommendation());
 
     expect(
-      snapshot.warnings.some((warning) => warning.code === "rejectedOpportunities"),
+      snapshot.warnings.some(
+        (warning) => warning.code === "rejectedOpportunities",
+      ),
     ).toBe(true);
   });
 
@@ -113,16 +121,22 @@ describe("createRecommendationSnapshot", () => {
     const snapshot = createRecommendationSnapshot(conservativeRecommendation());
 
     expect(
-      snapshot.warnings.some((warning) => warning.code === "highLiquidityBuffer"),
+      snapshot.warnings.some(
+        (warning) => warning.code === "highLiquidityBuffer",
+      ),
     ).toBe(true);
-    expect(getMetricValue(snapshot, "liquidityBufferPercent")).toBeGreaterThanOrEqual(25);
+    expect(
+      getMetricValue(snapshot, "liquidityBufferPercent"),
+    ).toBeGreaterThanOrEqual(25);
   });
 
   it("warns when all strategy positions use the same asset", () => {
     const snapshot = createRecommendationSnapshot(balancedRecommendation());
 
     expect(
-      snapshot.warnings.some((warning) => warning.code === "sameAssetConcentration"),
+      snapshot.warnings.some(
+        (warning) => warning.code === "sameAssetConcentration",
+      ),
     ).toBe(true);
   });
 
@@ -130,7 +144,9 @@ describe("createRecommendationSnapshot", () => {
     const snapshot = createRecommendationSnapshot(conservativeRecommendation());
 
     expect(
-      snapshot.warnings.some((warning) => warning.code === "noStrategyPositions"),
+      snapshot.warnings.some(
+        (warning) => warning.code === "noStrategyPositions",
+      ),
     ).toBe(true);
     expect(getMetricValue(snapshot, "numberOfStrategyPositions")).toBe(0);
   });
@@ -158,7 +174,9 @@ describe("createRecommendationSnapshot", () => {
     const recommendation = balancedRecommendation();
     const snapshot = createRecommendationSnapshot(recommendation);
 
-    expect(snapshot.source.policyVersion).toBe(recommendation.policy.policyVersion);
+    expect(snapshot.source.policyVersion).toBe(
+      recommendation.policy.policyVersion,
+    );
     expect(snapshot.source.pipelineStepsCompleted).toBe(10);
     expect(snapshot.source.recommendationId).toBeUndefined();
   });

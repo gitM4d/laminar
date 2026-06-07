@@ -62,7 +62,9 @@ export function calculateOpportunityScore(
   input: CalculateOpportunityScoreInput,
 ): OpportunityScoreResult {
   const apyDecimal = normalizeApyToDecimal(input.opportunity.apy);
-  const normalizedTrustScore = normalizeScore(input.trustScoreResult.trustScore);
+  const normalizedTrustScore = normalizeScore(
+    input.trustScoreResult.trustScore,
+  );
   const normalizedLiquidityScore = normalizeScore(
     input.liquidityScoreResult.liquidityScore,
   );

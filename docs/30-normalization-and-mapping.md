@@ -26,10 +26,10 @@ Laminar is an intent-first protocol.
 
 Users do not select:
 
-* protocols
-* vaults
-* strategies
-* allocations
+- protocols
+- vaults
+- strategies
+- allocations
 
 Users express preferences.
 
@@ -277,9 +277,9 @@ Profiles are derived automatically from user intent.
 
 Laminar does not use:
 
-* rigid buckets
-* simple averages
-* dominant-dimension classification
+- rigid buckets
+- simple averages
+- dominant-dimension classification
 
 Laminar uses:
 
@@ -377,9 +377,9 @@ Return Preference  34%
 
 Balanced users seek equilibrium between:
 
-* safety
-* accessibility
-* portfolio returns
+- safety
+- accessibility
+- portfolio returns
 
 No dimension dominates.
 
@@ -566,11 +566,11 @@ Portfolio Policy
 
 Portfolio Policy then defines:
 
-* risk limits
-* liquidity requirements
-* protocol eligibility
-* exposure targets
-* allocation constraints
+- risk limits
+- liquidity requirements
+- protocol eligibility
+- exposure targets
+- allocation constraints
 
 ---
 
@@ -660,11 +660,11 @@ Portfolio Construction Engine
 
 It does not define:
 
-* Trust Scoring
-* Liquidity Scoring
-* Risk Scoring
-* Opportunity Scoring
-* Portfolio Allocation
+- Trust Scoring
+- Liquidity Scoring
+- Risk Scoring
+- Opportunity Scoring
+- Portfolio Allocation
 
 Those systems consume the outputs produced by this mapping layer.
 
@@ -674,13 +674,13 @@ Those systems consume the outputs produced by this mapping layer.
 
 Normalization and Mapping V1 intentionally excludes:
 
-* machine learning classification
-* adaptive profile generation
-* personalized profile discovery
-* behavioral feedback loops
-* dynamic profile evolution
-* profile clustering
-* AI-generated user segmentation
+- machine learning classification
+- adaptive profile generation
+- personalized profile discovery
+- behavioral feedback loops
+- dynamic profile evolution
+- profile clustering
+- AI-generated user segmentation
 
 Laminar V1 uses deterministic profile classification.
 
@@ -690,10 +690,10 @@ Laminar V1 uses deterministic profile classification.
 
 Potential future enhancements include:
 
-* adaptive profile vectors
-* continuous profile spaces
-* behavioral reclassification
-* profile confidence scoring
-* AI-assisted intent interpretation
+- adaptive profile vectors
+- continuous profile spaces
+- behavioral reclassification
+- profile confidence scoring
+- AI-assisted intent interpretation
 
 These features are explicitly outside the scope of Laminar V1.

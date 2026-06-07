@@ -46,9 +46,9 @@ describe("createLaminarRecommendation", () => {
 
     expect(result.recommendation.selectedProfile).toBe("Conservative");
     expect(result.snapshot.profile).toBe("Conservative");
-    expect(result.executionPlan.warnings.some((w) => w.code === "noDepositSteps")).toBe(
-      true,
-    );
+    expect(
+      result.executionPlan.warnings.some((w) => w.code === "noDepositSteps"),
+    ).toBe(true);
   });
 
   it("works for valid Yield Focused input", () => {
@@ -60,7 +60,9 @@ describe("createLaminarRecommendation", () => {
 
     expect(result.recommendation.selectedProfile).toBe("Yield Focused");
     expect(result.snapshot.profile).toBe("Yield Focused");
-    expect(result.recommendation.opportunityRanking.ranked.length).toBeGreaterThan(0);
+    expect(
+      result.recommendation.opportunityRanking.ranked.length,
+    ).toBeGreaterThan(0);
   });
 
   it("throws for invalid intent", () => {
@@ -98,9 +100,14 @@ describe("createLaminarRecommendation", () => {
       result.recommendation.policy.policyVersion,
     );
 
-    const constructionPositions = result.recommendation.portfolioConstruction.positions;
-    expect(result.snapshot.positions).toHaveLength(constructionPositions.length);
-    expect(result.executionPlan.steps).toHaveLength(constructionPositions.length);
+    const constructionPositions =
+      result.recommendation.portfolioConstruction.positions;
+    expect(result.snapshot.positions).toHaveLength(
+      constructionPositions.length,
+    );
+    expect(result.executionPlan.steps).toHaveLength(
+      constructionPositions.length,
+    );
 
     for (let index = 0; index < constructionPositions.length; index += 1) {
       const position = constructionPositions[index];
@@ -109,10 +116,7 @@ describe("createLaminarRecommendation", () => {
 
       expect(snapshotPosition?.weight).toBe(position?.weight);
       expect(step?.weight).toBe(position?.weight);
-      expect(step?.amountUsd).toBeCloseTo(
-        (position?.weight ?? 0) * 10_000,
-        0,
-      );
+      expect(step?.amountUsd).toBeCloseTo((position?.weight ?? 0) * 10_000, 0);
     }
 
     expect(result.executionPlan.diagnostics.selectedProfile).toBe(

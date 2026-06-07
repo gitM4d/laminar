@@ -44,6 +44,9 @@ export function roundWeightsLargestRemainder(
   let index = 0;
   while (unitsToDistribute > 0) {
     const entry = sorted[index % sorted.length];
+    if (entry === undefined) {
+      break;
+    }
     finalUnits.set(entry.id, (finalUnits.get(entry.id) ?? 0) + 1);
     unitsToDistribute -= 1;
     index += 1;

@@ -3,7 +3,9 @@ import { normalizeIntent } from "./normalizeIntent.js";
 
 describe("normalizeIntent", () => {
   it("maps 1 to 0.1", () => {
-    expect(normalizeIntent({ risk: 1, liquidity: 1, returnPreference: 1 })).toEqual({
+    expect(
+      normalizeIntent({ risk: 1, liquidity: 1, returnPreference: 1 }),
+    ).toEqual({
       riskFactor: 0.1,
       liquidityFactor: 0.1,
       returnFactor: 0.1,
@@ -11,7 +13,9 @@ describe("normalizeIntent", () => {
   });
 
   it("maps 5 to 0.5", () => {
-    expect(normalizeIntent({ risk: 5, liquidity: 5, returnPreference: 5 })).toEqual({
+    expect(
+      normalizeIntent({ risk: 5, liquidity: 5, returnPreference: 5 }),
+    ).toEqual({
       riskFactor: 0.5,
       liquidityFactor: 0.5,
       returnFactor: 0.5,

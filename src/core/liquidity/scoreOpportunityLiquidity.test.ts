@@ -43,14 +43,17 @@ describe("scoreOpportunityLiquidity", () => {
   it("ranks mock opportunities by liquidity accessibility", () => {
     const scored = scoreOpportunitiesLiquidity(MOCK_OPPORTUNITIES);
     const byOpportunity = Object.fromEntries(
-      scored.map((entry) => [entry.opportunityId, entry.liquidity.liquidityScore]),
+      scored.map((entry) => [
+        entry.opportunityId,
+        entry.liquidity.liquidityScore,
+      ]),
     ) as Record<string, number>;
 
-    expect(byOpportunity["morpho-usdc-base"]).toBeGreaterThan(
-      byOpportunity["moonwell-dai-base"],
+    expect(byOpportunity["morpho-usdc-base"]!).toBeGreaterThan(
+      byOpportunity["moonwell-dai-base"]!,
     );
-    expect(byOpportunity["aave-usdc-base"]).toBeGreaterThan(
-      byOpportunity["experimental-usdc-base"],
+    expect(byOpportunity["aave-usdc-base"]!).toBeGreaterThan(
+      byOpportunity["experimental-usdc-base"]!,
     );
     expect(byOpportunity["experimental-usdc-base"]).toBeLessThan(65);
   });

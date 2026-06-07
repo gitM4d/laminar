@@ -119,21 +119,30 @@ describe("rankOpportunities", () => {
   });
 
   it("does not import trust calculation modules", () => {
-    const source = readFileSync(resolve(testDir, "rankOpportunities.ts"), "utf8");
+    const source = readFileSync(
+      resolve(testDir, "rankOpportunities.ts"),
+      "utf8",
+    );
 
     expect(source).not.toContain("calculateTrustScore");
     expect(source).not.toContain("scoreOpportunitiesTrust");
   });
 
   it("does not import liquidity calculation modules", () => {
-    const source = readFileSync(resolve(testDir, "rankOpportunities.ts"), "utf8");
+    const source = readFileSync(
+      resolve(testDir, "rankOpportunities.ts"),
+      "utf8",
+    );
 
     expect(source).not.toContain("calculateLiquidityScore");
     expect(source).not.toContain("scoreOpportunitiesLiquidity");
   });
 
   it("does not import risk evaluation modules", () => {
-    const source = readFileSync(resolve(testDir, "rankOpportunities.ts"), "utf8");
+    const source = readFileSync(
+      resolve(testDir, "rankOpportunities.ts"),
+      "utf8",
+    );
 
     expect(source).not.toContain("evaluateOpportunityRisk");
     expect(source).not.toContain("assessOpportunitiesRisk");

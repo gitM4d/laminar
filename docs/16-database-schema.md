@@ -10,19 +10,19 @@ This document defines the logical database model for Laminar V1.
 
 The database is the source of truth for:
 
-* users
-* portfolios
-* policies
-* executions
-* events
-* historical state
+- users
+- portfolios
+- policies
+- executions
+- events
+- historical state
 
 The database should prioritize:
 
-* auditability
-* simplicity
-* traceability
-* operational efficiency
+- auditability
+- simplicity
+- traceability
+- operational efficiency
 
 ---
 
@@ -56,11 +56,11 @@ PostgreSQL
 
 Reasons:
 
-* mature
-* reliable
-* transactional
-* excellent TypeScript ecosystem
-* future analytics support
+- mature
+- reliable
+- transactional
+- excellent TypeScript ecosystem
+- future analytics support
 
 ---
 
@@ -120,9 +120,9 @@ User {
 
 Notes
 
-* Wallet is primary identity.
-* No email required in V1.
-* Additional profile data optional.
+- Wallet is primary identity.
+- No email required in V1.
+- Additional profile data optional.
 
 ---
 
@@ -170,7 +170,6 @@ Many Portfolios
 
 ```typescript
 enum PortfolioStatus {
-
   DRAFT,
 
   PENDING_FUNDING,
@@ -183,8 +182,7 @@ enum PortfolioStatus {
 
   CLOSING,
 
-  CLOSED
-
+  CLOSED,
 }
 ```
 
@@ -322,7 +320,6 @@ Execution {
 
 ```typescript
 enum ExecutionType {
-
   INITIAL_ALLOCATION,
 
   REBALANCE,
@@ -331,8 +328,7 @@ enum ExecutionType {
 
   WITHDRAWAL,
 
-  MAINTENANCE
-
+  MAINTENANCE,
 }
 ```
 
@@ -342,7 +338,6 @@ enum ExecutionType {
 
 ```typescript
 enum ExecutionStatus {
-
   PENDING,
 
   VALIDATING,
@@ -355,8 +350,7 @@ enum ExecutionStatus {
 
   FAILED,
 
-  CANCELLED
-
+  CANCELLED,
 }
 ```
 
@@ -536,15 +530,13 @@ RiskEvent {
 
 ```typescript
 enum RiskSeverity {
-
   LOW,
 
   MEDIUM,
 
   HIGH,
 
-  CRITICAL
-
+  CRITICAL,
 }
 ```
 
@@ -830,10 +822,10 @@ Examples
 
 Keep:
 
-* executions
-* policies
-* events
-* audit logs
+- executions
+- policies
+- events
+- audit logs
 
 ---
 
@@ -852,7 +844,7 @@ Preferred over hard deletes.
 Example
 
 ```typescript
-deletedAt: timestamp | null
+deletedAt: timestamp | null;
 ```
 
 ---
@@ -903,10 +895,10 @@ Avoid excessive normalization in V1.
 
 The database succeeds when:
 
-* portfolio history is reconstructable
-* decisions are auditable
-* state transitions are traceable
-* performance remains acceptable
+- portfolio history is reconstructable
+- decisions are auditable
+- state transitions are traceable
+- performance remains acceptable
 
 ---
 
@@ -914,10 +906,10 @@ The database succeeds when:
 
 The database fails when:
 
-* decisions cannot be explained
-* history is lost
-* policy versions disappear
-* executions become disconnected from decisions
+- decisions cannot be explained
+- history is lost
+- policy versions disappear
+- executions become disconnected from decisions
 
 ---
 

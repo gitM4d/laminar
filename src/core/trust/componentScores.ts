@@ -116,11 +116,19 @@ export function calculateAuditScore(audits: readonly ProtocolAudit[]): number {
 }
 
 export function calculateProtocolAgeScore(protocolAgeYears: number): number {
-  for (let index = 0; index < PROTOCOL_AGE_THRESHOLDS_YEARS.length; index += 1) {
+  for (
+    let index = 0;
+    index < PROTOCOL_AGE_THRESHOLDS_YEARS.length;
+    index += 1
+  ) {
     const threshold = PROTOCOL_AGE_THRESHOLDS_YEARS[index];
     const score = PROTOCOL_AGE_SCORES[index];
 
-    if (threshold !== undefined && score !== undefined && protocolAgeYears < threshold) {
+    if (
+      threshold !== undefined &&
+      score !== undefined &&
+      protocolAgeYears < threshold
+    ) {
       return score;
     }
   }

@@ -37,7 +37,9 @@ export function calculateLiquidityComponentScores(
   profile: OpportunityLiquidityProfile,
 ): LiquidityComponentScores {
   return {
-    withdrawalSpeed: calculateWithdrawalSpeedScore(profile.withdrawalSpeedBucket),
+    withdrawalSpeed: calculateWithdrawalSpeedScore(
+      profile.withdrawalSpeedBucket,
+    ),
     withdrawalConstraints: calculateWithdrawalConstraintScore(
       profile.withdrawalConstraintType,
     ),

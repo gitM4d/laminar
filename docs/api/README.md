@@ -17,9 +17,9 @@ Override with environment variables:
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/health` | Service health check |
+| Method | Path              | Description                       |
+| ------ | ----------------- | --------------------------------- |
+| `GET`  | `/health`         | Service health check              |
 | `POST` | `/recommendation` | Generate portfolio recommendation |
 
 ## Request example
@@ -74,13 +74,13 @@ All API errors use:
 
 ## Error codes
 
-| Code | HTTP | Meaning |
-|------|------|---------|
-| `INVALID_REQUEST` | 400 | Request body shape or basic field validation failed |
-| `INVALID_INTENT` | 400 | Intent failed core semantic validation |
-| `INVALID_PORTFOLIO_VALUE` | 400 | `portfolioValueUsd` must be greater than 0 |
-| `DATA_CONSISTENCY_ERROR` | 500 | Mock scoring data inconsistency |
-| `INTERNAL_ERROR` | 500 | Unexpected server error |
+| Code                      | HTTP | Meaning                                             |
+| ------------------------- | ---- | --------------------------------------------------- |
+| `INVALID_REQUEST`         | 400  | Request body shape or basic field validation failed |
+| `INVALID_INTENT`          | 400  | Intent failed core semantic validation              |
+| `INVALID_PORTFOLIO_VALUE` | 400  | `portfolioValueUsd` must be greater than 0          |
+| `DATA_CONSISTENCY_ERROR`  | 500  | Mock scoring data inconsistency                     |
+| `INTERNAL_ERROR`          | 500  | Unexpected server error                             |
 
 ## Health check
 

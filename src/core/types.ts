@@ -1,5 +1,4 @@
 import type { MockExecutionPlan } from "./execution/types.js";
-import type { UserIntent } from "./intent/types.js";
 import type { PortfolioRecommendationResult } from "./recommendation/types.js";
 import type { RecommendationSnapshot } from "./snapshot/types.js";
 

@@ -12,10 +12,10 @@ This document defines the long-term evolution of Laminar.
 
 The roadmap exists to:
 
-* align product development
-* prioritize execution
-* prevent scope drift
-* communicate future direction
+- align product development
+- prioritize execution
+- prevent scope drift
+- communicate future direction
 
 The roadmap is aspirational.
 

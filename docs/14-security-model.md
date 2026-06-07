@@ -34,12 +34,12 @@ Security takes precedence over growth.
 
 Laminar must:
 
-* protect user funds
-* preserve user ownership
-* constrain automation
-* prevent unauthorized execution
-* provide auditability
-* minimize trust assumptions
+- protect user funds
+- preserve user ownership
+- constrain automation
+- prevent unauthorized execution
+- provide auditability
+- minimize trust assumptions
 
 ---
 
@@ -107,12 +107,12 @@ No single layer should be relied upon exclusively.
 
 The protocol assumes attackers may attempt to:
 
-* steal funds
-* manipulate allocations
-* abuse permissions
-* exploit integrations
-* compromise infrastructure
-* abuse automation
+- steal funds
+- manipulate allocations
+- abuse permissions
+- exploit integrations
+- compromise infrastructure
+- abuse automation
 
 ---
 
@@ -128,17 +128,17 @@ Laminar intentionally minimizes trust assumptions.
 
 Users must trust:
 
-* Safe infrastructure
-* approved protocol integrations
-* deployed Laminar code
+- Safe infrastructure
+- approved protocol integrations
+- deployed Laminar code
 
 ---
 
 Users should not need to trust:
 
-* manual operators
-* centralized fund custody
-* discretionary portfolio managers
+- manual operators
+- centralized fund custody
+- discretionary portfolio managers
 
 ---
 
@@ -154,9 +154,9 @@ Non-Custodial
 
 Laminar does not:
 
-* hold funds
-* pool funds
-* maintain omnibus accounts
+- hold funds
+- pool funds
+- maintain omnibus accounts
 
 ---
 
@@ -266,10 +266,10 @@ Execution is the highest-risk component.
 
 Execution must be:
 
-* deterministic
-* auditable
-* validated
-* observable
+- deterministic
+- auditable
+- validated
+- observable
 
 ---
 
@@ -351,9 +351,9 @@ No engine may call protocol contracts directly.
 
 Benefits:
 
-* isolation
-* reviewability
-* testability
+- isolation
+- reviewability
+- testability
 
 ---
 
@@ -375,10 +375,10 @@ High
 
 Each adapter must provide:
 
-* integration tests
-* simulation tests
-* failure handling
-* protocol validation
+- integration tests
+- simulation tests
+- failure handling
+- protocol validation
 
 ---
 
@@ -410,9 +410,9 @@ Unsupported assets may not be allocated.
 
 Benefits:
 
-* simpler risk model
-* reduced attack surface
-* easier auditing
+- simpler risk model
+- reduced attack surface
+- easier auditing
 
 ---
 
@@ -436,9 +436,9 @@ Reserve is isolated from strategy capital.
 
 Security Goals:
 
-* avoid failed emergency exits
-* avoid execution starvation
-* avoid partial automation failure
+- avoid failed emergency exits
+- avoid execution starvation
+- avoid partial automation failure
 
 ---
 
@@ -478,9 +478,9 @@ Critical
 
 Secrets should never be:
 
-* hardcoded
-* committed to repositories
-* exposed in logs
+- hardcoded
+- committed to repositories
+- exposed in logs
 
 ---
 
@@ -504,9 +504,9 @@ Managed through secure secret storage.
 
 Requirements:
 
-* encryption at rest
-* backups
-* access controls
+- encryption at rest
+- backups
+- access controls
 
 ---
 
@@ -520,17 +520,17 @@ Only necessary data should be stored.
 
 Logs must never contain:
 
-* private keys
-* secrets
-* sensitive credentials
+- private keys
+- secrets
+- sensitive credentials
 
 ---
 
 Logs should contain:
 
-* decisions
-* events
-* execution traces
+- decisions
+- events
+- execution traces
 
 ---
 
@@ -632,8 +632,8 @@ Rate Limits
 
 Purpose:
 
-* abuse prevention
-* infrastructure protection
+- abuse prevention
+- infrastructure protection
 
 ---
 
@@ -665,9 +665,9 @@ recorded.
 
 High-risk changes should require:
 
-* review
-* testing
-* deployment controls
+- review
+- testing
+- deployment controls
 
 ---
 
@@ -709,16 +709,16 @@ Before production deployment.
 
 Mandatory:
 
-* unit tests
-* integration tests
-* simulation tests
+- unit tests
+- integration tests
+- simulation tests
 
 ---
 
 Recommended:
 
-* fuzz testing
-* invariant testing
+- fuzz testing
+- invariant testing
 
 ---
 
@@ -794,9 +794,9 @@ Trust-Minimized Automation
 
 The Security Model does not:
 
-* define portfolio strategies
-* define scoring rules
-* define yield optimization logic
+- define portfolio strategies
+- define scoring rules
+- define yield optimization logic
 
 ---
 
@@ -808,11 +808,11 @@ It exists to define safe operating boundaries.
 
 The Security Model succeeds when:
 
-* user ownership remains protected
-* permissions remain enforceable
-* automation remains constrained
-* incidents remain observable
-* security assumptions remain explicit
+- user ownership remains protected
+- permissions remain enforceable
+- automation remains constrained
+- incidents remain observable
+- security assumptions remain explicit
 
 ---
 
@@ -820,10 +820,10 @@ The Security Model succeeds when:
 
 The Security Model fails when:
 
-* unauthorized execution occurs
-* policies can be bypassed
-* ownership becomes ambiguous
-* protocol interactions become opaque
+- unauthorized execution occurs
+- policies can be bypassed
+- ownership becomes ambiguous
+- protocol interactions become opaque
 
 ---
 

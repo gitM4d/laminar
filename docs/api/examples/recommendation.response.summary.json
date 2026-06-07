@@ -34,7 +34,11 @@
     ],
     "metrics": [
       { "key": "expectedApy", "label": "Expected APY", "value": 6.07 },
-      { "key": "numberOfStrategyPositions", "label": "Strategy Positions", "value": 3 }
+      {
+        "key": "numberOfStrategyPositions",
+        "label": "Strategy Positions",
+        "value": 3
+      }
     ]
   },
   "executionPlan": {

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { PROFILE_POLICY_DEFAULTS, SHARED_ALLOCATION_CONSTRAINTS } from "./policyConfig.js";
+import {
+  PROFILE_POLICY_DEFAULTS,
+  SHARED_ALLOCATION_CONSTRAINTS,
+} from "./policyConfig.js";
 import { generatePolicy } from "./generatePolicy.js";
 import type { ProfileName } from "../profile/types.js";
 
@@ -10,17 +13,22 @@ const profileNames: ProfileName[] = [
 ];
 
 describe("generatePolicy", () => {
-  it.each(profileNames)("preserves selectedProfile for %s", (selectedProfile) => {
-    const policy = generatePolicy(selectedProfile);
+  it.each(profileNames)(
+    "preserves selectedProfile for %s",
+    (selectedProfile) => {
+      const policy = generatePolicy(selectedProfile);
 
-    expect(policy.selectedProfile).toBe(selectedProfile);
-    expect(policy.policyVersion).toBe(1);
-  });
+      expect(policy.selectedProfile).toBe(selectedProfile);
+      expect(policy.policyVersion).toBe(1);
+    },
+  );
 
   it("generates Conservative policy defaults", () => {
     const policy = generatePolicy("Conservative");
 
-    expect(policy.riskLimits).toEqual(PROFILE_POLICY_DEFAULTS.Conservative.riskLimits);
+    expect(policy.riskLimits).toEqual(
+      PROFILE_POLICY_DEFAULTS.Conservative.riskLimits,
+    );
     expect(policy.liquidityRequirements).toEqual(
       PROFILE_POLICY_DEFAULTS.Conservative.liquidityRequirements,
     );
@@ -32,7 +40,9 @@ describe("generatePolicy", () => {
   it("generates Balanced policy defaults", () => {
     const policy = generatePolicy("Balanced");
 
-    expect(policy.riskLimits).toEqual(PROFILE_POLICY_DEFAULTS.Balanced.riskLimits);
+    expect(policy.riskLimits).toEqual(
+      PROFILE_POLICY_DEFAULTS.Balanced.riskLimits,
+    );
     expect(policy.liquidityRequirements).toEqual(
       PROFILE_POLICY_DEFAULTS.Balanced.liquidityRequirements,
     );
@@ -59,7 +69,9 @@ describe("generatePolicy", () => {
     for (const profile of profileNames) {
       const policy = generatePolicy(profile);
 
-      expect(policy.allocationConstraints).toEqual(SHARED_ALLOCATION_CONSTRAINTS);
+      expect(policy.allocationConstraints).toEqual(
+        SHARED_ALLOCATION_CONSTRAINTS,
+      );
       expect(policy.allocationConstraints).toEqual({
         maxActiveAllocations: 3,
         maxProtocolExposure: 0.5,

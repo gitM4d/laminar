@@ -1,6 +1,9 @@
 import type { ProfileName } from "../profile/types.js";
 
-export type SnapshotPositionType = "strategy" | "liquidityBuffer" | "gasReserve";
+export type SnapshotPositionType =
+  | "strategy"
+  | "liquidityBuffer"
+  | "gasReserve";
 
 export type SnapshotPosition = {
   type: SnapshotPositionType;

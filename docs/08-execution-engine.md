@@ -62,10 +62,10 @@ Separate decision-making from execution.
 
 The Execution Engine should be:
 
-* deterministic
-* auditable
-* observable
-* permission-constrained
+- deterministic
+- auditable
+- observable
+- permission-constrained
 
 Execution should never introduce independent strategy decisions.
 
@@ -75,13 +75,13 @@ Execution should never introduce independent strategy decisions.
 
 The Execution Engine is responsible for:
 
-* transaction generation
-* transaction submission
-* transaction monitoring
-* retry handling
-* execution status tracking
-* gas management
-* execution validation
+- transaction generation
+- transaction submission
+- transaction monitoring
+- retry handling
+- execution status tracking
+- gas management
+- execution validation
 
 ---
 
@@ -89,11 +89,11 @@ The Execution Engine is responsible for:
 
 The Execution Engine does not:
 
-* select protocols
-* evaluate APY
-* evaluate risk
-* determine allocations
-* modify intent profiles
+- select protocols
+- evaluate APY
+- evaluate risk
+- determine allocations
+- modify intent profiles
 
 ---
 
@@ -213,10 +213,10 @@ Separate planning from execution.
 
 Benefits:
 
-* retries
-* prioritization
-* observability
-* rate limiting
+- retries
+- prioritization
+- observability
+- rate limiting
 
 ---
 
@@ -262,9 +262,9 @@ Execution occurs only during approved windows.
 
 Benefits:
 
-* predictable gas usage
-* predictable operations
-* easier user expectations
+- predictable gas usage
+- predictable operations
+- easier user expectations
 
 ---
 
@@ -306,9 +306,9 @@ Certain events may bypass normal schedules.
 
 Examples:
 
-* protocol exploit
-* severe stablecoin depeg
-* insolvency event
+- protocol exploit
+- severe stablecoin depeg
+- insolvency event
 
 ---
 
@@ -440,9 +440,9 @@ Illustrative only.
 
 Support:
 
-* scheduled rebalances
-* emergency actions
-* retries
+- scheduled rebalances
+- emergency actions
+- retries
 
 ---
 
@@ -450,10 +450,10 @@ Support:
 
 Reserve requirements may depend on:
 
-* portfolio size
-* protocol count
-* rebalance frequency
-* network conditions
+- portfolio size
+- protocol count
+- rebalance frequency
+- network conditions
 
 ---
 
@@ -535,10 +535,10 @@ Values remain configurable.
 
 The engine tracks:
 
-* submission
-* inclusion
-* confirmation
-* failure
+- submission
+- inclusion
+- confirmation
+- failure
 
 ---
 
@@ -552,9 +552,9 @@ Temporary failures may be retried.
 
 Examples:
 
-* RPC failure
-* transient network issue
-* temporary gas spike
+- RPC failure
+- transient network issue
+- temporary gas spike
 
 ---
 
@@ -562,9 +562,9 @@ Permanent failures should not be retried automatically.
 
 Examples:
 
-* permission violation
-* protocol rejection
-* insufficient funds
+- permission violation
+- protocol rejection
+- insufficient funds
 
 ---
 
@@ -608,9 +608,9 @@ Execution costs matter.
 
 The system should estimate:
 
-* gas cost
-* expected benefit
-* break-even horizon
+- gas cost
+- expected benefit
+- break-even horizon
 
 ---
 
@@ -668,17 +668,17 @@ Execution Engine should remain executor-agnostic.
 
 Potential V2:
 
-* execution batching
-* smart route optimization
-* gas-aware scheduling
+- execution batching
+- smart route optimization
+- gas-aware scheduling
 
 ---
 
 Potential V3:
 
-* autonomous execution markets
-* decentralized executors
-* AI-assisted execution planning
+- autonomous execution markets
+- decentralized executors
+- AI-assisted execution planning
 
 ---
 
@@ -686,11 +686,11 @@ Potential V3:
 
 The Execution Engine succeeds when:
 
-* execution is reliable
-* execution is transparent
-* gas costs remain controlled
-* user permissions are respected
-* portfolio changes are accurately implemented
+- execution is reliable
+- execution is transparent
+- gas costs remain controlled
+- user permissions are respected
+- portfolio changes are accurately implemented
 
 ---
 
@@ -698,10 +698,10 @@ The Execution Engine succeeds when:
 
 The Execution Engine fails when:
 
-* transactions occur outside approved permissions
-* gas reserves are exhausted unexpectedly
-* rebalances become excessively expensive
-* execution behavior becomes difficult to explain
+- transactions occur outside approved permissions
+- gas reserves are exhausted unexpectedly
+- rebalances become excessively expensive
+- execution behavior becomes difficult to explain
 
 ---
 

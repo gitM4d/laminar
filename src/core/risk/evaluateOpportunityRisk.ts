@@ -74,7 +74,10 @@ function collectRejectionReasons(
     });
   }
 
-  if (liquidityScoreResult.liquidityScore < liquidityRequirements.minLiquidityScore) {
+  if (
+    liquidityScoreResult.liquidityScore <
+    liquidityRequirements.minLiquidityScore
+  ) {
     reasons.push({
       id: REJECTION_REASON_DEFINITIONS.belowMinLiquidityScore.id,
       message: formatTemplate(
@@ -91,7 +94,8 @@ function collectRejectionReasons(
     reasons.push({
       id: REJECTION_REASON_DEFINITIONS.structurallyIneligibleLiquidity.id,
       message: formatTemplate(
-        REJECTION_REASON_DEFINITIONS.structurallyIneligibleLiquidity.messageTemplate,
+        REJECTION_REASON_DEFINITIONS.structurallyIneligibleLiquidity
+          .messageTemplate,
         {
           reasons: liquidityScoreResult.ineligibilityReasons.join("; "),
         },
@@ -103,7 +107,8 @@ function collectRejectionReasons(
     reasons.push({
       id: REJECTION_REASON_DEFINITIONS.experimentalProtocolNotAllowed.id,
       message:
-        REJECTION_REASON_DEFINITIONS.experimentalProtocolNotAllowed.messageTemplate,
+        REJECTION_REASON_DEFINITIONS.experimentalProtocolNotAllowed
+          .messageTemplate,
     });
   }
 
@@ -111,7 +116,8 @@ function collectRejectionReasons(
     reasons.push({
       id: REJECTION_REASON_DEFINITIONS.unauditedProtocolNotAllowed.id,
       message:
-        REJECTION_REASON_DEFINITIONS.unauditedProtocolNotAllowed.messageTemplate,
+        REJECTION_REASON_DEFINITIONS.unauditedProtocolNotAllowed
+          .messageTemplate,
     });
   }
 
@@ -134,7 +140,10 @@ function collectRejectionReasons(
   }
 
   if (
-    !meetsLockupRequirement(liquidityProfile, liquidityRequirements.allowLockups)
+    !meetsLockupRequirement(
+      liquidityProfile,
+      liquidityRequirements.allowLockups,
+    )
   ) {
     reasons.push({
       id: REJECTION_REASON_DEFINITIONS.lockupsNotAllowed.id,
@@ -145,13 +154,11 @@ function collectRejectionReasons(
   return reasons;
 }
 
-function collectSoftPenalties(input: EvaluateOpportunityRiskInput): RiskPenalty[] {
-  const {
-    opportunity,
-    riskLimits,
-    trustScoreResult,
-    liquidityScoreResult,
-  } = input;
+function collectSoftPenalties(
+  input: EvaluateOpportunityRiskInput,
+): RiskPenalty[] {
+  const { opportunity, riskLimits, trustScoreResult, liquidityScoreResult } =
+    input;
   const penalties: RiskPenalty[] = [];
 
   const protocolRiskExcess = getProtocolRiskExcessLevels(
@@ -251,8 +258,7 @@ export function evaluateOpportunityRisk(
   const rejectionReasons = collectRejectionReasons(input);
   const decision = rejectionReasons.length === 0 ? "eligible" : "rejected";
 
-  const penalties =
-    decision === "eligible" ? collectSoftPenalties(input) : [];
+  const penalties = decision === "eligible" ? collectSoftPenalties(input) : [];
   const totalRiskPenalty =
     decision === "eligible"
       ? clampRiskPenalty(

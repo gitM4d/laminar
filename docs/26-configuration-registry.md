@@ -16,11 +16,11 @@ The Configuration Registry is the canonical home for configurable system paramet
 
 The Configuration Registry exists to:
 
-* centralize system configuration
-* avoid hardcoded business rules
-* simplify future adjustments
-* improve auditability
-* reduce deployment risk
+- centralize system configuration
+- avoid hardcoded business rules
+- simplify future adjustments
+- improve auditability
+- reduce deployment risk
 
 ---
 
@@ -42,7 +42,7 @@ Incorrect
 
 ```typescript
 if (scoreImprovement > 10) {
-  rebalance()
+  rebalance();
 }
 ```
 
@@ -51,11 +51,8 @@ if (scoreImprovement > 10) {
 Correct
 
 ```typescript
-if (
-  scoreImprovement >
-  config.rebalanceThreshold
-) {
-  rebalance()
+if (scoreImprovement > config.rebalanceThreshold) {
+  rebalance();
 }
 ```
 
@@ -833,7 +830,7 @@ Morpho
   "executionEnabled": true,
   "trustScoringEnabled": true,
   "liquidityScoringEnabled": true,
-  "maxExposure": 0.50
+  "maxExposure": 0.5
 }
 ```
 
@@ -849,7 +846,7 @@ Aerodrome
   "executionEnabled": true,
   "trustScoringEnabled": true,
   "liquidityScoringEnabled": true,
-  "maxExposure": 0.30
+  "maxExposure": 0.3
 }
 ```
 

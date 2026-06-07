@@ -91,7 +91,10 @@ function expectedScore(
   input: CalculateOpportunityScoreInput,
   riskPenalty: number,
 ): number {
-  const apyDecimal = input.opportunity.apy >= 1 ? input.opportunity.apy / 100 : input.opportunity.apy;
+  const apyDecimal =
+    input.opportunity.apy >= 1
+      ? input.opportunity.apy / 100
+      : input.opportunity.apy;
   const baseScore =
     apyDecimal *
     (input.trustScoreResult.trustScore / 100) *
@@ -177,7 +180,10 @@ describe("calculateOpportunityScore", () => {
     });
 
     expect(result.score).toBeCloseTo(expectedScore(baseInput, 0.05), 6);
-    expect(result.score).not.toBeCloseTo(result.baseScore - 0.05 - GAS_PENALTY, 6);
+    expect(result.score).not.toBeCloseTo(
+      result.baseScore - 0.05 - GAS_PENALTY,
+      6,
+    );
   });
 
   it("reduces score with risk penalty without necessarily zeroing it", () => {

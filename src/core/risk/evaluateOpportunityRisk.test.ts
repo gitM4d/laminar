@@ -102,7 +102,7 @@ function buildInput(
     overrides.liquidityProfile ?? pristineLiquidityProfile;
   const trustScoreResult =
     overrides.trustScoreResult ??
-    calculateTrustScore(MOCK_PROTOCOL_TRUST_PROFILES.morpho);
+    calculateTrustScore(MOCK_PROTOCOL_TRUST_PROFILES.morpho!);
   const liquidityScoreResult =
     overrides.liquidityScoreResult ?? calculateLiquidityScore(liquidityProfile);
 
@@ -141,7 +141,7 @@ describe("evaluateOpportunityRisk", () => {
           auditCount: 1,
         },
         trustScoreResult: calculateTrustScore(
-          MOCK_PROTOCOL_TRUST_PROFILES["experimental-lend"],
+          MOCK_PROTOCOL_TRUST_PROFILES["experimental-lend"]!,
         ),
         riskLimits: balancedPolicy.riskLimits,
       }),
@@ -209,7 +209,7 @@ describe("evaluateOpportunityRisk", () => {
           protocolRiskLevel: "high",
         },
         trustScoreResult: calculateTrustScore(
-          MOCK_PROTOCOL_TRUST_PROFILES["experimental-lend"],
+          MOCK_PROTOCOL_TRUST_PROFILES["experimental-lend"]!,
         ),
       }),
     );
@@ -241,7 +241,7 @@ describe("evaluateOpportunityRisk", () => {
           protocolRiskLevel: "high",
         },
         trustScoreResult: {
-          ...calculateTrustScore(MOCK_PROTOCOL_TRUST_PROFILES.morpho),
+          ...calculateTrustScore(MOCK_PROTOCOL_TRUST_PROFILES.morpho!),
           protocolId: "experimental-lend",
           protocolName: "Experimental Lend",
           trustScore: 70,
@@ -249,7 +249,9 @@ describe("evaluateOpportunityRisk", () => {
         liquidityProfile: experimentalLiquidityProfile,
         riskLimits: yieldFocusedPolicy.riskLimits,
         liquidityRequirements: yieldFocusedPolicy.liquidityRequirements,
-        liquidityScoreResult: calculateLiquidityScore(experimentalLiquidityProfile),
+        liquidityScoreResult: calculateLiquidityScore(
+          experimentalLiquidityProfile,
+        ),
       }),
     );
 
@@ -257,9 +259,11 @@ describe("evaluateOpportunityRisk", () => {
     expect(result.penalties.map((penalty) => penalty.id)).toContain(
       "experimentalProtocolAllowed",
     );
-    expect(result.penalties.find((penalty) => penalty.id === "experimentalProtocolAllowed")?.amount).toBe(
-      EXPERIMENTAL_PROTOCOL_PENALTY,
-    );
+    expect(
+      result.penalties.find(
+        (penalty) => penalty.id === "experimentalProtocolAllowed",
+      )?.amount,
+    ).toBe(EXPERIMENTAL_PROTOCOL_PENALTY);
     expect(result.totalRiskPenalty).toBeGreaterThan(0);
   });
 
@@ -339,7 +343,9 @@ describe("evaluateOpportunityRisk", () => {
           protocolName: "Moonwell",
           protocolRiskLevel: "medium",
         },
-        trustScoreResult: calculateTrustScore(MOCK_PROTOCOL_TRUST_PROFILES.moonwell),
+        trustScoreResult: calculateTrustScore(
+          MOCK_PROTOCOL_TRUST_PROFILES.moonwell!,
+        ),
         liquidityProfile,
         liquidityScoreResult: calculateLiquidityScore(liquidityProfile),
         riskLimits: {
@@ -354,15 +360,18 @@ describe("evaluateOpportunityRisk", () => {
       "protocolRiskAbovePolicy",
     );
     expect(
-      result.penalties.find((penalty) => penalty.id === "protocolRiskAbovePolicy")
-        ?.amount,
+      result.penalties.find(
+        (penalty) => penalty.id === "protocolRiskAbovePolicy",
+      )?.amount,
     ).toBe(PROTOCOL_RISK_EXCESS_PENALTY_PER_LEVEL);
   });
 
   it("applies incident history operational penalty without rejection", () => {
     const result = evaluateOpportunityRisk(
       buildInput({
-        trustScoreResult: calculateTrustScore(MOCK_PROTOCOL_TRUST_PROFILES.aave),
+        trustScoreResult: calculateTrustScore(
+          MOCK_PROTOCOL_TRUST_PROFILES.aave!,
+        ),
       }),
     );
 
@@ -371,8 +380,9 @@ describe("evaluateOpportunityRisk", () => {
       "incidentHistoryOperational",
     );
     expect(
-      result.penalties.find((penalty) => penalty.id === "incidentHistoryOperational")
-        ?.amount,
+      result.penalties.find(
+        (penalty) => penalty.id === "incidentHistoryOperational",
+      )?.amount,
     ).toBe(INCIDENT_HISTORY_OPERATIONAL_PENALTY);
   });
 

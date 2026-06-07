@@ -50,7 +50,9 @@ describe("createMockExecutionPlan", () => {
   });
 
   it("creates hold step for liquidity buffer", () => {
-    const plan = createMockExecutionPlan({ recommendation: balancedRecommendation() });
+    const plan = createMockExecutionPlan({
+      recommendation: balancedRecommendation(),
+    });
     const hold = plan.steps.find((step) => step.type === "hold");
 
     expect(hold).toMatchObject({
@@ -62,7 +64,9 @@ describe("createMockExecutionPlan", () => {
   });
 
   it("creates reserve step for gas reserve", () => {
-    const plan = createMockExecutionPlan({ recommendation: balancedRecommendation() });
+    const plan = createMockExecutionPlan({
+      recommendation: balancedRecommendation(),
+    });
     const reserve = plan.steps.find((step) => step.type === "reserve");
 
     expect(reserve).toMatchObject({
@@ -76,9 +80,13 @@ describe("createMockExecutionPlan", () => {
   it("calculates amountUsd from position weight and portfolio value", () => {
     const recommendation = balancedRecommendation();
     const plan = createMockExecutionPlan({ recommendation });
-    const deposit = plan.steps.find((step) => step.opportunityId === "morpho-usdc-base");
+    const deposit = plan.steps.find(
+      (step) =>
+        step.type === "deposit" && step.opportunityId === "morpho-usdc-base",
+    );
     const position = recommendation.portfolioConstruction.positions.find(
-      (entry) => entry.type === "strategy" && entry.opportunityId === "morpho-usdc-base",
+      (entry) =>
+        entry.type === "strategy" && entry.opportunityId === "morpho-usdc-base",
     );
 
     expect(deposit?.amountUsd).toBe(
@@ -115,7 +123,9 @@ describe("createMockExecutionPlan", () => {
       recommendation: conservativeRecommendation(),
     });
 
-    expect(plan.warnings.some((warning) => warning.code === "noDepositSteps")).toBe(true);
+    expect(
+      plan.warnings.some((warning) => warning.code === "noDepositSteps"),
+    ).toBe(true);
     expect(plan.summary.numberOfDeposits).toBe(0);
   });
 
@@ -134,7 +144,9 @@ describe("createMockExecutionPlan", () => {
       recommendation: balancedRecommendation(100),
     });
 
-    expect(plan.warnings.some((warning) => warning.code === "highGasReserve")).toBe(true);
+    expect(
+      plan.warnings.some((warning) => warning.code === "highGasReserve"),
+    ).toBe(true);
   });
 
   it("warns for small deposit amounts", () => {
@@ -235,7 +247,9 @@ describe("createMockExecutionPlan", () => {
     const plan = createMockExecutionPlan({ recommendation });
 
     expect(plan.diagnostics.source).toBe("mock");
-    expect(plan.diagnostics.policyVersion).toBe(recommendation.policy.policyVersion);
+    expect(plan.diagnostics.policyVersion).toBe(
+      recommendation.policy.policyVersion,
+    );
     expect(plan.diagnostics.selectedProfile).toBe("Balanced");
     expect(plan.diagnostics.portfolioValueUsd).toBe(10_000);
     expect(plan.explanations).toHaveLength(5);

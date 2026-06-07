@@ -14,13 +14,13 @@ All higher-level systems depend on the quality of data provided by the Data Laye
 
 Examples:
 
-* Risk Engine
-* Trust Scoring
-* Liquidity Scoring
-* Opportunity Scoring
-* Portfolio Construction Engine
-* Execution Planner
-* Frontend Analytics
+- Risk Engine
+- Trust Scoring
+- Liquidity Scoring
+- Opportunity Scoring
+- Portfolio Construction Engine
+- Execution Planner
+- Frontend Analytics
 
 ---
 
@@ -42,12 +42,12 @@ Data quality should match business requirements.
 
 The Data Layer should be:
 
-* reliable
-* inexpensive
-* scalable
-* observable
-* protocol-agnostic
-* resilient
+- reliable
+- inexpensive
+- scalable
+- observable
+- protocol-agnostic
+- resilient
 
 ---
 
@@ -161,18 +161,18 @@ Low Latency
 
 Examples:
 
-* stablecoin depeg
-* exploit detection
-* protocol pause
-* insolvency event
-* critical liquidity collapse
+- stablecoin depeg
+- exploit detection
+- protocol pause
+- insolvency event
+- critical liquidity collapse
 
 ---
 
 Consumers:
 
-* Risk Engine
-* Execution Engine
+- Risk Engine
+- Execution Engine
 
 ---
 
@@ -200,20 +200,20 @@ Moderate Accuracy
 
 Examples:
 
-* APY
-* TVL
-* utilization
-* lending rates
-* pool liquidity
+- APY
+- TVL
+- utilization
+- lending rates
+- pool liquidity
 
 ---
 
 Consumers:
 
-* Trust Scoring
-* Liquidity Scoring
-* Opportunity Scoring
-* Portfolio Construction Engine
+- Trust Scoring
+- Liquidity Scoring
+- Opportunity Scoring
+- Portfolio Construction Engine
 
 ---
 
@@ -243,18 +243,18 @@ Historical
 
 Examples:
 
-* charts
-* rankings
-* trends
-* historical analytics
+- charts
+- rankings
+- trends
+- historical analytics
 
 ---
 
 Consumers:
 
-* frontend
-* reporting
-* analytics
+- frontend
+- reporting
+- analytics
 
 ---
 
@@ -294,16 +294,16 @@ Aerodrome
 
 Advantages:
 
-* trustless
-* accurate
-* no API dependency
+- trustless
+- accurate
+- no API dependency
 
 ---
 
 Disadvantages:
 
-* more RPC load
-* more engineering effort
+- more RPC load
+- more engineering effort
 
 ---
 
@@ -329,15 +329,15 @@ Utilization
 
 Advantages:
 
-* fast
-* inexpensive
-* scalable
+- fast
+- inexpensive
+- scalable
 
 ---
 
 Disadvantages:
 
-* not perfectly fresh
+- not perfectly fresh
 
 ---
 
@@ -351,9 +351,9 @@ Used only when justified.
 
 Examples:
 
-* market data
-* historical analytics
-* enrichment data
+- market data
+- historical analytics
+- enrichment data
 
 ---
 
@@ -432,7 +432,7 @@ apy
 Normalized:
 
 ```typescript id="h6bh4d"
-yieldRate
+yieldRate;
 ```
 
 ---
@@ -629,9 +629,9 @@ Cache Refresh
 
 Benefits:
 
-* lower cost
-* faster updates
-* improved scalability
+- lower cost
+- faster updates
+- improved scalability
 
 ---
 
@@ -661,10 +661,10 @@ Fallback mechanisms should exist whenever practical.
 
 The system should monitor:
 
-* stale data
-* missing data
-* inconsistent data
-* delayed updates
+- stale data
+- missing data
+- inconsistent data
+- delayed updates
 
 ---
 
@@ -676,16 +676,16 @@ Data quality metrics should be observable.
 
 V1 should store:
 
-* portfolio history
-* execution history
-* risk history
-* allocation history
+- portfolio history
+- execution history
+- risk history
+- allocation history
 
 ---
 
 Optional:
 
-* protocol metric history
+- protocol metric history
 
 depending on storage costs.
 
@@ -721,17 +721,17 @@ External APIs First
 
 Potential V2:
 
-* protocol event indexing
-* custom indexers
-* protocol forecasting
+- protocol event indexing
+- custom indexers
+- protocol forecasting
 
 ---
 
 Potential V3:
 
-* predictive analytics
-* anomaly detection
-* AI-assisted risk signals
+- predictive analytics
+- anomaly detection
+- AI-assisted risk signals
 
 ---
 
@@ -739,10 +739,10 @@ Potential V3:
 
 The Data Layer does not:
 
-* evaluate risk
-* construct portfolios
-* score opportunities
-* execute transactions
+- evaluate risk
+- construct portfolios
+- score opportunities
+- execute transactions
 
 ---
 
@@ -750,10 +750,10 @@ The Data Layer does not:
 
 The Data Layer succeeds when:
 
-* data remains reliable
-* infrastructure costs remain low
-* freshness matches business needs
-* downstream systems receive consistent information
+- data remains reliable
+- infrastructure costs remain low
+- freshness matches business needs
+- downstream systems receive consistent information
 
 ---
 
@@ -761,10 +761,10 @@ The Data Layer succeeds when:
 
 The Data Layer fails when:
 
-* critical data becomes stale
-* infrastructure costs scale faster than users
-* external APIs become mandatory
-* protocol integrations become difficult to maintain
+- critical data becomes stale
+- infrastructure costs scale faster than users
+- external APIs become mandatory
+- protocol integrations become difficult to maintain
 
 ---
 

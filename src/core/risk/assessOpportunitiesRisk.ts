@@ -54,7 +54,9 @@ export function assessOpportunitiesRisk(
     const liquidity = liquidityByOpportunityId.get(opportunity.id);
 
     if (trust === undefined) {
-      throw new Error(`No trust score found for opportunity: ${opportunity.id}`);
+      throw new Error(
+        `No trust score found for opportunity: ${opportunity.id}`,
+      );
     }
 
     if (liquidity === undefined) {

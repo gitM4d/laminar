@@ -98,7 +98,8 @@ export const LIQUIDITY_CAP_RULES: readonly LiquidityCapRuleDefinition[] = [
   {
     id: "lowRedemptionReliabilityCap",
     maxScore: 70,
-    description: "Low redemption reliability limits maximum liquidity score to 70.",
+    description:
+      "Low redemption reliability limits maximum liquidity score to 70.",
     match: { field: "redemptionReliabilityLevel", value: "low" },
   },
   {

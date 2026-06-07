@@ -1,9 +1,5 @@
 import { MOCK_OPPORTUNITIES } from "./mockOpportunities.js";
-import type {
-  Opportunity,
-  OpportunityDiscoveryResult,
-  SupportedAsset,
-} from "./types.js";
+import type { OpportunityDiscoveryResult, SupportedAsset } from "./types.js";
 
 export function discoverOpportunities(
   options: { assets?: readonly SupportedAsset[] } = {},

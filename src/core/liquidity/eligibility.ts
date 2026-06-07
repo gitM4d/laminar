@@ -21,13 +21,15 @@ function matchesIneligibilityRule(
   profile: OpportunityLiquidityProfile,
   rule: StructuralIneligibilityRuleDefinition,
 ): boolean {
-  if ("type" in rule.match && rule.match.type === "all") {
-    return rule.match.conditions.every((condition) =>
+  const match = rule.match;
+
+  if ("type" in match && match.type === "all") {
+    return match.conditions.every((condition) =>
       matchesProfileField(profile, condition),
     );
   }
 
-  return matchesProfileField(profile, rule.match);
+  return matchesProfileField(profile, match as LiquidityProfileFieldMatch);
 }
 
 export function evaluateStructuralEligibility(
@@ -70,7 +72,9 @@ export function meetsWithdrawalDelay(
   profile: OpportunityLiquidityProfile,
   maxWithdrawalDelay: string,
 ): boolean {
-  const opportunityDelayDays = parseWithdrawalDelayDays(profile.maxWithdrawalDelay);
+  const opportunityDelayDays = parseWithdrawalDelayDays(
+    profile.maxWithdrawalDelay,
+  );
   const policyDelayDays = parseWithdrawalDelayDays(maxWithdrawalDelay);
 
   return opportunityDelayDays <= policyDelayDays;

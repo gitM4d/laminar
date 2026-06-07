@@ -14,11 +14,11 @@ This document defines how Laminar generates revenue.
 
 The fee model must:
 
-* align incentives
-* remain transparent
-* be simple to understand
-* avoid hidden costs
-* scale with portfolio growth
+- align incentives
+- remain transparent
+- be simple to understand
+- avoid hidden costs
+- scale with portfolio growth
 
 ---
 

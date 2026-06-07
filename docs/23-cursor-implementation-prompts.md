@@ -12,10 +12,10 @@ This document defines the exact sequence of prompts that should be used to devel
 
 The objective is to:
 
-* maximize implementation quality
-* minimize architectural drift
-* reduce AI hallucinations
-* keep development aligned with project documentation
+- maximize implementation quality
+- minimize architectural drift
+- reduce AI hallucinations
+- keep development aligned with project documentation
 
 ---
 
@@ -977,12 +977,12 @@ in that order.
 
 Laminar V1 implementation succeeds when:
 
-* users create portfolios
-* users define intent
-* policies are generated
-* allocations are explainable
-* execution is auditable
-* risk is monitored
+- users create portfolios
+- users define intent
+- policies are generated
+- allocations are explainable
+- execution is auditable
+- risk is monitored
 
 without exposing protocol complexity.
 

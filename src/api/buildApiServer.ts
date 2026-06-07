@@ -29,25 +29,38 @@ export function buildApiServer(
   const app = Fastify({ logger: false });
 
   app.setErrorHandler((error, _request, reply) => {
-    if (error.validation) {
-      return reply.status(400).send(
-        createApiError(
-          "INVALID_REQUEST",
-          "Request body validation failed",
-          error.validation,
-        ),
-      );
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "validation" in error &&
+      error.validation
+    ) {
+      return reply
+        .status(400)
+        .send(
+          createApiError(
+            "INVALID_REQUEST",
+            "Request body validation failed",
+            error.validation,
+          ),
+        );
     }
 
-    return reply.status(500).send(
-      createApiError(
-        "INTERNAL_ERROR",
-        error instanceof Error ? error.message : "An unexpected error occurred",
-      ),
-    );
+    return reply
+      .status(500)
+      .send(
+        createApiError(
+          "INTERNAL_ERROR",
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+        ),
+      );
   });
 
-  app.get("/health", async (): Promise<HealthResponse> => ({
+  app.get(
+    "/health",
+    async (): Promise<HealthResponse> => ({
       status: "ok",
       service: "laminar-api",
       version: PACKAGE_VERSION,
@@ -90,29 +103,35 @@ export function buildApiServer(
         return reply.status(200).send(response);
       } catch (error) {
         if (error instanceof IntentValidationError) {
-          return reply.status(400).send(
-            createApiError("INVALID_INTENT", error.message, error.errors),
-          );
+          return reply
+            .status(400)
+            .send(
+              createApiError("INVALID_INTENT", error.message, error.errors),
+            );
         }
 
         if (error instanceof InvalidPortfolioValueError) {
-          return reply.status(400).send(
-            createApiError("INVALID_PORTFOLIO_VALUE", error.message),
-          );
+          return reply
+            .status(400)
+            .send(createApiError("INVALID_PORTFOLIO_VALUE", error.message));
         }
 
         if (error instanceof RecommendationDataConsistencyError) {
-          return reply.status(500).send(
-            createApiError("DATA_CONSISTENCY_ERROR", error.message),
-          );
+          return reply
+            .status(500)
+            .send(createApiError("DATA_CONSISTENCY_ERROR", error.message));
         }
 
-        return reply.status(500).send(
-          createApiError(
-            "INTERNAL_ERROR",
-            error instanceof Error ? error.message : "An unexpected error occurred",
-          ),
-        );
+        return reply
+          .status(500)
+          .send(
+            createApiError(
+              "INTERNAL_ERROR",
+              error instanceof Error
+                ? error.message
+                : "An unexpected error occurred",
+            ),
+          );
       }
     },
   );

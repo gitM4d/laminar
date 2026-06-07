@@ -16,7 +16,9 @@ function buildStrategyLabel(protocolName: string, asset: string): string {
   return `${protocolName} ${asset}`;
 }
 
-function mapPositions(recommendation: PortfolioRecommendationResult): SnapshotPosition[] {
+function mapPositions(
+  recommendation: PortfolioRecommendationResult,
+): SnapshotPosition[] {
   const portfolioValueUsd = recommendation.diagnostics.portfolioValueUsd;
 
   return recommendation.portfolioConstruction.positions.map((position) => {
@@ -62,12 +64,16 @@ function calculateExpectedApyPercent(
   recommendation: PortfolioRecommendationResult,
 ): number {
   const opportunityById = new Map(
-    recommendation.opportunities.map((opportunity) => [opportunity.id, opportunity]),
+    recommendation.opportunities.map((opportunity) => [
+      opportunity.id,
+      opportunity,
+    ]),
   );
 
-  const strategyPositions = recommendation.portfolioConstruction.positions.filter(
-    (position) => position.type === "strategy",
-  );
+  const strategyPositions =
+    recommendation.portfolioConstruction.positions.filter(
+      (position) => position.type === "strategy",
+    );
 
   if (strategyPositions.length === 0) {
     return 0;
@@ -94,7 +100,9 @@ function calculateExpectedApyPercent(
   return roundTo((weightedApySum / totalStrategyWeight) * 100, 2);
 }
 
-function buildMetrics(recommendation: PortfolioRecommendationResult): SnapshotMetric[] {
+function buildMetrics(
+  recommendation: PortfolioRecommendationResult,
+): SnapshotMetric[] {
   const metadata = recommendation.portfolioConstruction.metadata;
 
   return [
@@ -136,18 +144,23 @@ function buildMetrics(recommendation: PortfolioRecommendationResult): SnapshotMe
   ];
 }
 
-function strategyPositionCount(recommendation: PortfolioRecommendationResult): number {
+function strategyPositionCount(
+  recommendation: PortfolioRecommendationResult,
+): number {
   return recommendation.portfolioConstruction.positions.filter(
     (position) => position.type === "strategy",
   ).length;
 }
 
-function buildWarnings(recommendation: PortfolioRecommendationResult): SnapshotWarning[] {
+function buildWarnings(
+  recommendation: PortfolioRecommendationResult,
+): SnapshotWarning[] {
   const warnings: SnapshotWarning[] = [];
   const metadata = recommendation.portfolioConstruction.metadata;
-  const strategyPositions = recommendation.portfolioConstruction.positions.filter(
-    (position) => position.type === "strategy",
-  );
+  const strategyPositions =
+    recommendation.portfolioConstruction.positions.filter(
+      (position) => position.type === "strategy",
+    );
   const strategyCount = strategyPositions.length;
   const liquidityBufferPercent = metadata.liquidityBufferWeight * 100;
   const gasReservePercent = metadata.gasReserveWeight * 100;
@@ -157,7 +170,8 @@ function buildWarnings(recommendation: PortfolioRecommendationResult): SnapshotW
     warnings.push({
       code: "noStrategyPositions",
       severity: "warning",
-      message: "No strategy positions were allocated; capital is held in reserve.",
+      message:
+        "No strategy positions were allocated; capital is held in reserve.",
     });
   }
 
@@ -219,7 +233,6 @@ function buildExplanations(
 ): SnapshotExplanation[] {
   const rankedCount = recommendation.opportunityRanking.ranked.length;
   const rejectedCount = recommendation.opportunityRanking.rejected.length;
-  const strategyCount = strategyPositionCount(recommendation);
   const constructionSummary =
     recommendation.portfolioConstruction.explanations.at(-1)?.summary ??
     "Portfolio construction completed.";

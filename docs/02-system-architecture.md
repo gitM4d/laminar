@@ -20,14 +20,14 @@ It focuses on architectural responsibilities.
 
 Laminar follows the following principles:
 
-* Intent-centric
-* Non-custodial
-* Modular
-* Protocol-agnostic
-* Explainable
-* Automation-first
-* Risk-aware
-* Extensible
+- Intent-centric
+- Non-custodial
+- Modular
+- Protocol-agnostic
+- Explainable
+- Automation-first
+- Risk-aware
+- Extensible
 
 ---
 
@@ -110,12 +110,12 @@ Laminar is divided into two domains:
 
 Responsible for:
 
-* intelligence
-* planning
-* optimization
-* monitoring
-* scoring
-* risk evaluation
+- intelligence
+- planning
+- optimization
+- monitoring
+- scoring
+- risk evaluation
 
 ---
 
@@ -123,11 +123,11 @@ Responsible for:
 
 Responsible for:
 
-* asset ownership
-* permissions
-* execution
-* validation
-* accounting
+- asset ownership
+- permissions
+- execution
+- validation
+- accounting
 
 ---
 
@@ -139,22 +139,22 @@ Responsible for:
 
 Responsibilities:
 
-* onboarding
-* portfolio creation
-* permission visualization
-* portfolio monitoring
-* analytics
-* rebalance history
-* risk notifications
+- onboarding
+- portfolio creation
+- permission visualization
+- portfolio monitoring
+- analytics
+- rebalance history
+- risk notifications
 
 The frontend must remain explainable.
 
 Users should always understand:
 
-* current allocations
-* target allocations
-* pending actions
-* active permissions
+- current allocations
+- target allocations
+- pending actions
+- active permissions
 
 ---
 
@@ -178,15 +178,15 @@ Capture user objectives.
 
 Inputs:
 
-* onboarding responses
-* user preferences
-* slider adjustments
+- onboarding responses
+- user preferences
+- slider adjustments
 
 Outputs:
 
-* user intent
-* onboarding responses
-* slider adjustments
+- user intent
+- onboarding responses
+- slider adjustments
 
 The Intent Engine does not select protocols.
 
@@ -202,14 +202,14 @@ Convert user intent into normalized construction inputs.
 
 Inputs:
 
-* Risk
-* Liquidity
-* Return Preference
+- Risk
+- Liquidity
+- Return Preference
 
 Outputs:
 
-* normalized intent values
-* Selected Profile
+- normalized intent values
+- Selected Profile
 
 ---
 
@@ -221,13 +221,13 @@ Generate and version Portfolio Policy.
 
 Inputs:
 
-* Selected Profile
-* normalized intent
+- Selected Profile
+- normalized intent
 
 Outputs:
 
-* active Portfolio Policy
-* policy version
+- active Portfolio Policy
+- policy version
 
 ---
 
@@ -239,12 +239,12 @@ Discover candidate opportunities.
 
 Inputs:
 
-* Portfolio Policy
-* protocol data
+- Portfolio Policy
+- protocol data
 
 Outputs:
 
-* candidate opportunity set
+- candidate opportunity set
 
 ---
 
@@ -256,13 +256,13 @@ Generate Trust Scores for eligible opportunities.
 
 Inputs:
 
-* protocol data
-* trust scoring configuration
+- protocol data
+- trust scoring configuration
 
 Outputs:
 
-* normalizedTrustScore
-* Trust Score explanation
+- normalizedTrustScore
+- Trust Score explanation
 
 Trust Scoring owns Trust Score generation.
 
@@ -276,13 +276,13 @@ Generate Liquidity Scores for eligible opportunities.
 
 Inputs:
 
-* opportunity liquidity data
-* liquidity scoring configuration
+- opportunity liquidity data
+- liquidity scoring configuration
 
 Outputs:
 
-* normalizedLiquidityScore
-* Liquidity Score explanation
+- normalizedLiquidityScore
+- Liquidity Score explanation
 
 Liquidity Scoring owns Liquidity Score generation.
 
@@ -296,10 +296,10 @@ Continuously evaluate risk conditions.
 
 Responsibilities:
 
-* protocol monitoring
-* stablecoin monitoring
-* liquidity signal consumption
-* protocol health monitoring
+- protocol monitoring
+- stablecoin monitoring
+- liquidity signal consumption
+- protocol health monitoring
 
 Risk categories:
 
@@ -307,10 +307,10 @@ Risk categories:
 
 Examples:
 
-* confirmed exploit
-* confirmed insolvency
-* severe depeg
-* protocol shutdown
+- confirmed exploit
+- confirmed insolvency
+- severe depeg
+- protocol shutdown
 
 ---
 
@@ -318,17 +318,17 @@ Examples:
 
 Examples:
 
-* declining liquidity
-* APY deterioration
-* TVL decline
-* governance concerns
+- declining liquidity
+- APY deterioration
+- TVL decline
+- governance concerns
 
 Outputs:
 
-* risk events
-* severity levels
-* recommended actions
-* risk penalties
+- risk events
+- severity levels
+- recommended actions
+- risk penalties
 
 ---
 
@@ -340,24 +340,25 @@ Rank available opportunities.
 
 Inputs:
 
-* Portfolio Policy
-* APY
-* liquidity
-* utilization
-* normalizedTrustScore
-* normalizedLiquidityScore
-* risk penalty
-* gas costs
+- Portfolio Policy
+- APY
+- liquidity
+- utilization
+- normalizedTrustScore
+- normalizedLiquidityScore
+- risk penalty
+- gas costs
 
 Outputs:
 
-* opportunity rankings
+- opportunity rankings
 
 Example conceptual formula:
 
 score =
 (APY × normalizedLiquidityScore × normalizedTrustScore)
---------------------------------------
+
+---
 
 (risk_penalty + gas_penalty)
 
@@ -375,21 +376,21 @@ Generate portfolio allocations.
 
 Inputs:
 
-* active Portfolio Policy
-* opportunity rankings
-* eligible opportunities
-* operational constraints
+- active Portfolio Policy
+- opportunity rankings
+- eligible opportunities
+- operational constraints
 
 Outputs:
 
-* target allocations
-* protocol weights
-* portfolio composition
+- target allocations
+- protocol weights
+- portfolio composition
 
 The Portfolio Construction Engine decides:
 
-* where capital should be allocated
-* how much capital should be allocated
+- where capital should be allocated
+- how much capital should be allocated
 
 ---
 
@@ -401,15 +402,15 @@ Represent the final allocation output produced by Portfolio Construction.
 
 Inputs:
 
-* Portfolio Policy
-* opportunity rankings
-* construction constraints
+- Portfolio Policy
+- opportunity rankings
+- construction constraints
 
 Outputs:
 
-* position list
-* allocation percentages
-* expected portfolio metrics
+- position list
+- allocation percentages
+- expected portfolio metrics
 
 Portfolio Allocation is consumed by execution planning.
 
@@ -429,10 +430,10 @@ Primary source.
 
 Examples:
 
-* Aave
-* Morpho
-* Moonwell
-* Aerodrome
+- Aave
+- Morpho
+- Moonwell
+- Aerodrome
 
 ---
 
@@ -448,9 +449,9 @@ Freshness depends on data class.
 
 Used only for:
 
-* enrichment
-* analytics
-* validation
+- enrichment
+- analytics
+- validation
 
 External APIs must never become critical dependencies.
 
@@ -464,13 +465,13 @@ Critical risk data.
 
 Requirements:
 
-* near real-time
+- near real-time
 
 Examples:
 
-* depeg
-* exploit
-* insolvency
+- depeg
+- exploit
+- insolvency
 
 ---
 
@@ -480,13 +481,13 @@ Operational data.
 
 Requirements:
 
-* 5–30 minute freshness
+- 5–30 minute freshness
 
 Examples:
 
-* APY
-* liquidity
-* utilization
+- APY
+- liquidity
+- utilization
 
 ---
 
@@ -496,13 +497,13 @@ Analytics data.
 
 Requirements:
 
-* hourly or daily freshness
+- hourly or daily freshness
 
 Examples:
 
-* historical metrics
-* rankings
-* charts
+- historical metrics
+- rankings
+- charts
 
 ---
 
@@ -530,11 +531,11 @@ Each adapter exposes a standardized interface.
 
 Responsibilities:
 
-* deposits
-* withdrawals
-* metric retrieval
-* gas estimation
-* risk metadata
+- deposits
+- withdrawals
+- metric retrieval
+- gas estimation
+- risk metadata
 
 ---
 
@@ -546,14 +547,14 @@ Determine when allocations should change.
 
 Inputs:
 
-* current portfolio
-* target portfolio
-* protocol data
-* risk data
+- current portfolio
+- target portfolio
+- protocol data
+- risk data
 
 Outputs:
 
-* rebalance plans
+- rebalance plans
 
 A rebalance plan is not an execution.
 
@@ -579,7 +580,7 @@ Deposit:
 
 Outputs:
 
-* execution jobs
+- execution jobs
 
 ---
 
@@ -591,10 +592,10 @@ Manage pending execution jobs.
 
 Responsibilities:
 
-* scheduling
-* prioritization
-* retries
-* batching opportunities
+- scheduling
+- prioritization
+- retries
+- batching opportunities
 
 The queue separates planning from execution.
 
@@ -620,9 +621,9 @@ Laminar-managed executors.
 
 Future:
 
-* Gelato integration
-* Keeper networks
-* Decentralized executors
+- Gelato integration
+- Keeper networks
+- Decentralized executors
 
 The rest of the system should not depend on the executor implementation.
 
@@ -632,18 +633,18 @@ The rest of the system should not depend on the executor implementation.
 
 Global execution windows:
 
-* 00:00 UTC
-* 08:00 UTC
-* 16:00 UTC
+- 00:00 UTC
+- 08:00 UTC
+- 16:00 UTC
 
 Users select participation frequency.
 
 Examples:
 
-* every 8h
-* every 24h
-* every 48h
-* every 72h
+- every 8h
+- every 24h
+- every 48h
+- every 72h
 
 Execution only occurs within approved windows.
 
@@ -655,9 +656,9 @@ Hard Risk Events may bypass normal scheduling.
 
 Examples:
 
-* exploit
-* insolvency
-* severe depeg
+- exploit
+- insolvency
+- severe depeg
 
 Emergency actions are executed according to the risk policy.
 
@@ -671,11 +672,11 @@ Users pre-authorize actions within explicit boundaries.
 
 Examples:
 
-* allowed protocols
-* allowed assets
-* max slippage
-* max rebalance size
-* frequency limits
+- allowed protocols
+- allowed assets
+- max slippage
+- max rebalance size
+- frequency limits
 
 All executions must pass permission validation before submission.
 
@@ -685,12 +686,12 @@ All executions must pass permission validation before submission.
 
 The architecture must support:
 
-* AI-driven scoring
-* AI-driven allocation
-* advanced risk models
-* additional protocols
-* additional chains
-* account abstraction upgrades
+- AI-driven scoring
+- AI-driven allocation
+- advanced risk models
+- additional protocols
+- additional chains
+- account abstraction upgrades
 
 without requiring a redesign of core components.
 

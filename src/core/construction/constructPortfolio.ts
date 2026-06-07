@@ -20,7 +20,9 @@ import type {
 
 export class InvalidPortfolioValueError extends Error {
   constructor(portfolioValueUsd: number) {
-    super(`portfolioValueUsd must be greater than 0, received ${portfolioValueUsd}`);
+    super(
+      `portfolioValueUsd must be greater than 0, received ${portfolioValueUsd}`,
+    );
     this.name = "InvalidPortfolioValueError";
   }
 }
@@ -43,19 +45,21 @@ function computeGasReserveWeight(
   portfolioValueUsd: number,
   policy: PortfolioPolicy,
 ): number {
-  const minWeight = policy.allocationConstraints.gasReserve.minUsd / portfolioValueUsd;
+  const minWeight =
+    policy.allocationConstraints.gasReserve.minUsd / portfolioValueUsd;
   const targetWeight = policy.allocationConstraints.gasReserve.targetRate;
-  const maxWeight = policy.allocationConstraints.gasReserve.maxUsd / portfolioValueUsd;
+  const maxWeight =
+    policy.allocationConstraints.gasReserve.maxUsd / portfolioValueUsd;
 
-  return roundInternal(
-    Math.min(maxWeight, Math.max(minWeight, targetWeight)),
-  );
+  return roundInternal(Math.min(maxWeight, Math.max(minWeight, targetWeight)));
 }
 
 function buildOpportunityMap(
   opportunities: readonly Opportunity[],
 ): Map<string, Opportunity> {
-  return new Map(opportunities.map((opportunity) => [opportunity.id, opportunity]));
+  return new Map(
+    opportunities.map((opportunity) => [opportunity.id, opportunity]),
+  );
 }
 
 function toScoredCandidate(
@@ -83,7 +87,9 @@ function selectCandidates(
   const selected: InternalSelectedCandidate[] = [];
   const seenProtocols = new Set<string>();
 
-  for (const entry of [...ranked].sort((left, right) => left.rank - right.rank)) {
+  for (const entry of [...ranked].sort(
+    (left, right) => left.rank - right.rank,
+  )) {
     if (selected.length >= maxActiveAllocations) {
       break;
     }
@@ -122,11 +128,17 @@ function computeScoreProportionalWeights(
     return weights;
   }
 
-  const totalScore = candidates.reduce((sum, candidate) => sum + candidate.score, 0);
+  const totalScore = candidates.reduce(
+    (sum, candidate) => sum + candidate.score,
+    0,
+  );
 
   if (totalScore > 0) {
     for (const candidate of candidates) {
-      weights.set(candidate.opportunityId, roundInternal(candidate.score / totalScore));
+      weights.set(
+        candidate.opportunityId,
+        roundInternal(candidate.score / totalScore),
+      );
     }
     return weights;
   }
@@ -152,7 +164,11 @@ function applyProtocolExposureCaps(
   maxProtocolExposure: number,
   steps: ConstructionStep[],
 ): void {
-  for (let iteration = 0; iteration < MAX_CONSTRAINT_ITERATIONS; iteration += 1) {
+  for (
+    let iteration = 0;
+    iteration < MAX_CONSTRAINT_ITERATIONS;
+    iteration += 1
+  ) {
     const protocolGroups = new Map<string, string[]>();
 
     for (const candidate of candidates) {
@@ -276,7 +292,10 @@ function findBelowMinAllocation(
 ): InternalSelectedCandidate | undefined {
   return candidates.find((candidate) => {
     const relativeWeight = weights.get(candidate.opportunityId) ?? 0;
-    return getPortfolioWeight(relativeWeight, strategyDeployableWeight) < minAllocationSize;
+    return (
+      getPortfolioWeight(relativeWeight, strategyDeployableWeight) <
+      minAllocationSize
+    );
   });
 }
 
@@ -341,7 +360,9 @@ function buildFinalPositions(
   return positions;
 }
 
-function applyRoundedWeights(positions: PortfolioPosition[]): PortfolioPosition[] {
+function applyRoundedWeights(
+  positions: PortfolioPosition[],
+): PortfolioPosition[] {
   const rounded = roundWeightsLargestRemainder(
     positions.map((position, index) => ({
       id: `${position.type}:${"opportunityId" in position ? position.opportunityId : index}`,
@@ -479,9 +500,11 @@ export function constructPortfolio(
     );
   }
 
-  let targetLiquidityBufferWeight = roundInternal(policy.targetExposure.liquidityBuffer);
+  let targetLiquidityBufferWeight = roundInternal(
+    policy.targetExposure.liquidityBuffer,
+  );
   let lendingTarget = roundInternal(policy.targetExposure.lending);
-  let yieldTarget = roundInternal(policy.targetExposure.yieldEnhancement);
+  const yieldTarget = roundInternal(policy.targetExposure.yieldEnhancement);
 
   const lendingCandidatesAvailable = ranking.ranked.some((entry) => {
     const opportunity = opportunityById.get(entry.opportunityId);
@@ -494,7 +517,6 @@ export function constructPortfolio(
 
   if (yieldTarget > 0 && !yieldCandidatesAvailable) {
     lendingTarget = roundInternal(lendingTarget + yieldTarget);
-    yieldTarget = 0;
     explanations.push({
       summary: "Yield enhancement target reassigned to lending.",
       details: [
@@ -516,7 +538,6 @@ export function constructPortfolio(
     targetLiquidityBufferWeight = roundInternal(
       targetLiquidityBufferWeight + lendingTarget,
     );
-    lendingTarget = 0;
   }
 
   const strategyDeployableWeight = roundInternal(
@@ -528,10 +549,12 @@ export function constructPortfolio(
   }
 
   const excludedOpportunityIds = new Set<string>();
-  const maxActiveAllocations = policy.allocationConstraints.maxActiveAllocations;
+  const maxActiveAllocations =
+    policy.allocationConstraints.maxActiveAllocations;
   const minAllocationSize = policy.allocationConstraints.minAllocationSize;
   const maxProtocolExposure = policy.allocationConstraints.maxProtocolExposure;
-  const maxStablecoinExposure = policy.allocationConstraints.maxStablecoinExposure;
+  const maxStablecoinExposure =
+    policy.allocationConstraints.maxStablecoinExposure;
 
   let selected: InternalSelectedCandidate[] = [];
   let relativeWeights = new Map<string, number>();

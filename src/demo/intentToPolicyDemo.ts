@@ -2,15 +2,17 @@ import { createLaminarRecommendation } from "../core/index.js";
 
 const asOf = new Date("2026-06-01T00:00:00.000Z");
 
-const { recommendation, snapshot, executionPlan } = createLaminarRecommendation({
-  intent: {
-    risk: 3,
-    liquidity: 8,
-    returnPreference: 4,
+const { recommendation, snapshot, executionPlan } = createLaminarRecommendation(
+  {
+    intent: {
+      risk: 3,
+      liquidity: 8,
+      returnPreference: 4,
+    },
+    portfolioValueUsd: 10_000,
+    asOf,
   },
-  portfolioValueUsd: 10_000,
-  asOf,
-});
+);
 
 const output = {
   intent: recommendation.intent,
@@ -53,36 +55,41 @@ const output = {
     rejectionReasons: entry.assessment.rejectionReasons,
     explanations: entry.assessment.explanations,
   })),
-  opportunityRankings: recommendation.opportunityRanking.ranked.map((entry) => ({
-    rank: entry.rank,
-    opportunityId: entry.opportunityId,
-    protocolId: entry.protocolId,
-    protocolName: entry.protocolName,
-    asset: entry.asset,
-    score: entry.scoring.score,
-    baseScore: entry.scoring.baseScore,
-    penaltyDenominator: entry.scoring.penaltyDenominator,
-    minimumPenaltyDenominator: entry.scoring.minimumPenaltyDenominator,
-    normalizedTrustScore: entry.scoring.normalizedTrustScore,
-    normalizedLiquidityScore: entry.scoring.normalizedLiquidityScore,
-    apyDecimal: entry.scoring.apyDecimal,
-    returnPreferenceMultiplier: entry.scoring.returnPreferenceMultiplier,
-    riskPenalty: entry.scoring.riskPenalty,
-    gasPenalty: entry.scoring.gasPenalty,
-    breakdown: entry.scoring.breakdown,
-    explanations: entry.scoring.explanations,
-  })),
-  rejectedOpportunities: recommendation.opportunityRanking.rejected.map((entry) => ({
-    opportunityId: entry.opportunityId,
-    protocolId: entry.protocolId,
-    protocolName: entry.protocolName,
-    asset: entry.asset,
-    rejectionReasons: entry.rejectionReasons,
-    explanations: entry.explanations,
-  })),
+  opportunityRankings: recommendation.opportunityRanking.ranked.map(
+    (entry) => ({
+      rank: entry.rank,
+      opportunityId: entry.opportunityId,
+      protocolId: entry.protocolId,
+      protocolName: entry.protocolName,
+      asset: entry.asset,
+      score: entry.scoring.score,
+      baseScore: entry.scoring.baseScore,
+      penaltyDenominator: entry.scoring.penaltyDenominator,
+      minimumPenaltyDenominator: entry.scoring.minimumPenaltyDenominator,
+      normalizedTrustScore: entry.scoring.normalizedTrustScore,
+      normalizedLiquidityScore: entry.scoring.normalizedLiquidityScore,
+      apyDecimal: entry.scoring.apyDecimal,
+      returnPreferenceMultiplier: entry.scoring.returnPreferenceMultiplier,
+      riskPenalty: entry.scoring.riskPenalty,
+      gasPenalty: entry.scoring.gasPenalty,
+      breakdown: entry.scoring.breakdown,
+      explanations: entry.scoring.explanations,
+    }),
+  ),
+  rejectedOpportunities: recommendation.opportunityRanking.rejected.map(
+    (entry) => ({
+      opportunityId: entry.opportunityId,
+      protocolId: entry.protocolId,
+      protocolName: entry.protocolName,
+      asset: entry.asset,
+      rejectionReasons: entry.rejectionReasons,
+      explanations: entry.explanations,
+    }),
+  ),
   portfolioConstruction: {
     positions: recommendation.portfolioConstruction.positions,
-    rejectedOpportunities: recommendation.portfolioConstruction.rejectedOpportunities,
+    rejectedOpportunities:
+      recommendation.portfolioConstruction.rejectedOpportunities,
     constructionSteps: recommendation.portfolioConstruction.constructionSteps,
     explanations: recommendation.portfolioConstruction.explanations,
     metadata: recommendation.portfolioConstruction.metadata,

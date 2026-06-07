@@ -92,7 +92,9 @@ describe("generatePortfolioRecommendation", () => {
     });
 
     expect(result.liquidityScores).toHaveLength(result.opportunities.length);
-    expect(result.liquidityScores[0]?.liquidity.liquidityScore).toBeGreaterThan(0);
+    expect(result.liquidityScores[0]?.liquidity.liquidityScore).toBeGreaterThan(
+      0,
+    );
   });
 
   it("includes riskAssessments in the result", () => {
@@ -150,5 +152,4 @@ describe("generatePortfolioRecommendation", () => {
     );
     expect(total).toBe(1);
   });
-
 });

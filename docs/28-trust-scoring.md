@@ -8,11 +8,11 @@ The Trust Score measures:
 
 Trust Score is NOT intended to measure:
 
-* popularity
-* protocol growth
-* marketing strength
-* token performance
-* APY attractiveness
+- popularity
+- protocol growth
+- marketing strength
+- token performance
+- APY attractiveness
 
 Trust Score exists to answer a single question:
 
@@ -20,10 +20,10 @@ Trust Score exists to answer a single question:
 
 The Trust Score is one of the primary inputs used by:
 
-* Asset Universe Selection
-* Portfolio Construction
-* Rebalancing Decisions
-* Portfolio Recommendations
+- Asset Universe Selection
+- Portfolio Construction
+- Rebalancing Decisions
+- Portfolio Recommendations
 
 ---
 
@@ -35,18 +35,18 @@ Trust must be based on observable evidence.
 
 Laminar does not evaluate:
 
-* founder reputation
-* social media influence
-* venture backing
-* market narratives
+- founder reputation
+- social media influence
+- venture backing
+- market narratives
 
 Laminar evaluates:
 
-* security history
-* audits
-* protocol maturity
-* capital confidence
-* deployment quality
+- security history
+- audits
+- protocol maturity
+- capital confidence
+- deployment quality
 
 ---
 
@@ -62,11 +62,11 @@ Trust Score: 92
 
 Why?
 
-* Long operational history
-* Multiple Tier-1 audits
-* No recent security incidents
-* Strong capital confidence
-* High-quality deployment environment
+- Long operational history
+- Multiple Tier-1 audits
+- No recent security incidents
+- Strong capital confidence
+- High-quality deployment environment
 
 Laminar favors explainable scoring over black-box scoring.
 
@@ -84,9 +84,9 @@ Protocols that suffer incidents may recover trust over time.
 
 Trust recovery is determined through:
 
-* incident severity
-* elapsed time
-* subsequent operational performance
+- incident severity
+- elapsed time
+- subsequent operational performance
 
 ---
 
@@ -110,10 +110,10 @@ Measures protocol-level confidence.
 
 Examples:
 
-* audit history
-* protocol age
-* security incidents
-* protocol TVL
+- audit history
+- protocol age
+- security incidents
+- protocol TVL
 
 Protocol Trust is shared across all deployments.
 
@@ -133,10 +133,10 @@ In the Base-only V1 deployment, Chain Adjustment defaults to 0.
 
 Examples:
 
-* chain maturity
-* chain security assumptions
-* ecosystem quality
-* operational stability
+- chain maturity
+- chain security assumptions
+- ecosystem quality
+- operational stability
 
 Example:
 
@@ -172,8 +172,8 @@ Security incidents represent direct evidence regarding capital preservation.
 
 Examples:
 
-* vulnerability discovered before exploitation
-* low-impact bug
+- vulnerability discovered before exploitation
+- low-impact bug
 
 Penalty:
 
@@ -187,8 +187,8 @@ Penalty:
 
 Examples:
 
-* temporary operational impact
-* limited user exposure
+- temporary operational impact
+- limited user exposure
 
 Penalty:
 
@@ -202,8 +202,8 @@ Penalty:
 
 Examples:
 
-* meaningful financial impact
-* partial capital loss
+- meaningful financial impact
+- partial capital loss
 
 Penalty:
 
@@ -217,8 +217,8 @@ Penalty:
 
 Examples:
 
-* major capital impairment
-* significant user losses
+- major capital impairment
+- significant user losses
 
 Penalty:
 
@@ -232,9 +232,9 @@ Penalty:
 
 Examples:
 
-* large-scale capital loss
-* protocol collapse
-* trust-destroying exploit
+- large-scale capital loss
+- protocol collapse
+- trust-destroying exploit
 
 Penalty:
 
@@ -325,11 +325,11 @@ However:
 
 Examples:
 
-* Trail of Bits
-* OpenZeppelin
-* Spearbit
-* Halborn
-* Certora
+- Trail of Bits
+- OpenZeppelin
+- Spearbit
+- Halborn
+- Certora
 
 Highest trust contribution.
 
@@ -396,6 +396,7 @@ should not automatically score twice as high as:
 ```text
 5 years
 ```
+
 ---
 
 ### Conceptual Age Curve
@@ -439,14 +440,14 @@ TVL does NOT dominate Trust Score.
 
 TVL may indicate:
 
-* market confidence
-* adoption
-* capital participation
+- market confidence
+- adoption
+- capital participation
 
 TVL does NOT guarantee:
 
-* security
-* capital preservation
+- security
+- capital preservation
 
 Therefore:
 
@@ -473,11 +474,11 @@ Chain Adjustment captures deployment-specific differences.
 
 Examples:
 
-* Ethereum
-* Base
-* Arbitrum
-* Optimism
-* Polygon
+- Ethereum
+- Base
+- Arbitrum
+- Optimism
+- Polygon
 
 ---
 
@@ -619,12 +620,12 @@ No protocol logic should depend on hardcoded Trust parameters.
 
 Potential V2 additions:
 
-* Formal chain risk model
-* Smart contract verification scoring
-* Formal verification bonuses
-* Bug bounty scoring
-* Insurance coverage scoring
-* Governance quality scoring
-* Team reputation signals (optional)
+- Formal chain risk model
+- Smart contract verification scoring
+- Formal verification bonuses
+- Bug bounty scoring
+- Insurance coverage scoring
+- Governance quality scoring
+- Team reputation signals (optional)
 
 These features are explicitly out of scope for V1.

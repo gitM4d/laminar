@@ -16,10 +16,10 @@ The frontend exists to translate a sophisticated portfolio automation system int
 
 Users should never need to understand:
 
-* APY optimization
-* protocol routing
-* scoring algorithms
-* execution planning
+- APY optimization
+- protocol routing
+- scoring algorithms
+- execution planning
 
 to successfully use Laminar.
 
@@ -1061,10 +1061,10 @@ Portfolio Simulator
 
 The frontend succeeds when:
 
-* users understand their portfolio
-* users understand automation
-* users understand permissions
-* portfolio decisions remain explainable
+- users understand their portfolio
+- users understand automation
+- users understand permissions
+- portfolio decisions remain explainable
 
 ---
 
@@ -1072,10 +1072,10 @@ The frontend succeeds when:
 
 The frontend fails when:
 
-* users feel surprised
-* users cannot explain allocations
-* automation feels opaque
-* protocol behavior appears magical
+- users feel surprised
+- users cannot explain allocations
+- automation feels opaque
+- protocol behavior appears magical
 
 ---
 

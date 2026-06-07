@@ -50,8 +50,10 @@ describe("scoreOpportunityTrust", () => {
       scored.map((entry) => [entry.protocolId, entry.trust.trustScore]),
     ) as Record<string, number>;
 
-    expect(byProtocol.aave).toBeGreaterThanOrEqual(byProtocol.moonwell);
-    expect(byProtocol.morpho).toBeGreaterThan(byProtocol["experimental-lend"]);
+    expect(byProtocol.aave!).toBeGreaterThanOrEqual(byProtocol.moonwell!);
+    expect(byProtocol.morpho!).toBeGreaterThan(
+      byProtocol["experimental-lend"]!,
+    );
     expect(byProtocol["experimental-lend"]).toBeLessThan(65);
   });
 

@@ -67,9 +67,12 @@ describe("API contract artifacts", () => {
     ).toBeDefined();
   });
 
-  it.each(exampleFiles)("example file %s exists and is valid JSON", (filePath) => {
-    expect(readJson(filePath)).toBeDefined();
-  });
+  it.each(exampleFiles)(
+    "example file %s exists and is valid JSON",
+    (filePath) => {
+      expect(readJson(filePath)).toBeDefined();
+    },
+  );
 });
 
 describe("API contract runtime behavior", () => {

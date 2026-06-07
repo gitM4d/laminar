@@ -25,7 +25,8 @@ export const EXPERIMENTAL_PROTOCOL_PENALTY = 0.15;
 export const REJECTION_REASON_DEFINITIONS = {
   belowMinTrustScore: {
     id: "belowMinTrustScore",
-    messageTemplate: "Trust score {trustScore} is below policy minimum {minTrustScore}.",
+    messageTemplate:
+      "Trust score {trustScore} is below policy minimum {minTrustScore}.",
   },
   belowMinLiquidityScore: {
     id: "belowMinLiquidityScore",

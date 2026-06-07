@@ -12,19 +12,19 @@ Liquidity Score answers a single question:
 
 Liquidity Score is not intended to measure:
 
-* protocol popularity
-* protocol TVL
-* APY attractiveness
-* portfolio performance
+- protocol popularity
+- protocol TVL
+- APY attractiveness
+- portfolio performance
 
 Liquidity Score evaluates how accessible capital remains after deployment.
 
 The Liquidity Score is one of the primary inputs used by:
 
-* Portfolio Construction
-* Rebalancing Decisions
-* Portfolio Recommendations
-* Opportunity Scoring
+- Portfolio Construction
+- Rebalancing Decisions
+- Portfolio Recommendations
+- Opportunity Scoring
 
 ---
 
@@ -66,14 +66,14 @@ Liquidity is defined as:
 
 Laminar prioritizes:
 
-* withdrawal speed
-* withdrawal flexibility
-* redemption reliability
+- withdrawal speed
+- withdrawal flexibility
+- redemption reliability
 
 over:
 
-* execution optimization
-* trading efficiency
+- execution optimization
+- trading efficiency
 
 ---
 
@@ -83,10 +83,10 @@ Liquidity characteristics are evaluated exclusively by Liquidity Scoring.
 
 Examples:
 
-* lockups
-* withdrawal delays
-* withdrawal queues
-* redemption accessibility
+- lockups
+- withdrawal delays
+- withdrawal queues
+- redemption accessibility
 
 These characteristics should not be re-scored by Risk Scoring.
 
@@ -104,10 +104,10 @@ Liquidity Score: 88
 
 Reasons:
 
-* Instant withdrawals
-* No lockup period
-* Reliable redemption path
-* Low exit slippage
+- Instant withdrawals
+- No lockup period
+- Reliable redemption path
+- Low exit slippage
 
 Laminar favors explainable scoring over black-box models.
 
@@ -121,13 +121,13 @@ Example:
 
 Protocol A
 
-* $1B TVL
-* Instant withdrawals
+- $1B TVL
+- Instant withdrawals
 
 Protocol B
 
-* $1B TVL
-* 21-day withdrawal delay
+- $1B TVL
+- 21-day withdrawal delay
 
 These positions should not receive the same Liquidity Score.
 
@@ -188,8 +188,8 @@ Long withdrawal periods reduce liquidity.
 
 Examples:
 
-* Lending withdrawals
-* V1-supported lending positions
+- Lending withdrawals
+- V1-supported lending positions
 
 Contribution:
 
@@ -269,7 +269,7 @@ Withdrawal Constraints measure:
 
 No Restrictions
 
-* Immediate withdrawal
+- Immediate withdrawal
 
 Highest contribution.
 
@@ -279,8 +279,8 @@ Cooldown Periods
 
 Examples:
 
-* withdrawal cooldowns
-* withdrawal waiting periods
+- withdrawal cooldowns
+- withdrawal waiting periods
 
 Reduced contribution.
 
@@ -290,8 +290,8 @@ Withdrawal Queues
 
 Examples:
 
-* queued redemption systems
-* delayed withdrawal processing
+- queued redemption systems
+- delayed withdrawal processing
 
 Further reduction.
 
@@ -301,7 +301,7 @@ Epoch-Based Withdrawals
 
 Examples:
 
-* periodic redemption windows
+- periodic redemption windows
 
 Lower contribution.
 
@@ -311,8 +311,8 @@ Hard Lockups
 
 Examples:
 
-* fixed lock periods
-* mandatory holding periods
+- fixed lock periods
+- mandatory holding periods
 
 Significant reduction.
 
@@ -350,12 +350,12 @@ It evaluates operational accessibility rather than simply withdrawal availabilit
 
 Examples include:
 
-* withdrawal queues
-* redemption delays
-* liquidity bottlenecks
-* counterparty dependencies
-* emergency redemption mechanisms
-* protocol-specific redemption risks
+- withdrawal queues
+- redemption delays
+- liquidity bottlenecks
+- counterparty dependencies
+- emergency redemption mechanisms
+- protocol-specific redemption risks
 
 ---
 
@@ -379,9 +379,9 @@ Can capital realistically be recovered?
 
 Protocol A
 
-* Instant redemption
-* No queues
-* No dependencies
+- Instant redemption
+- No queues
+- No dependencies
 
 Result:
 
@@ -391,15 +391,16 @@ Very High Reliability
 
 Protocol B
 
-* Withdrawal queue
-* Redemption bottlenecks
-* Emergency withdrawal mode
+- Withdrawal queue
+- Redemption bottlenecks
+- Emergency withdrawal mode
 
 Result:
 
 ```text
 Lower Reliability
 ```
+
 ---
 
 # Component 4
@@ -424,9 +425,9 @@ Laminar V1 evaluates slippage at the asset level.
 
 Liquidity assessment considers:
 
-* asset liquidity quality
-* asset market depth classification
-* expected exit efficiency
+- asset liquidity quality
+- asset market depth classification
+- expected exit efficiency
 
 Examples:
 
@@ -609,9 +610,9 @@ Very High Liquidity
 
 Characteristics:
 
-* instant withdrawals
-* minimal constraints
-* highly reliable redemption
+- instant withdrawals
+- minimal constraints
+- highly reliable redemption
 
 ---
 
@@ -621,9 +622,9 @@ Accept moderate liquidity tradeoffs.
 
 Characteristics:
 
-* short withdrawal periods
-* limited restrictions
-* predictable redemption paths
+- short withdrawal periods
+- limited restrictions
+- predictable redemption paths
 
 ---
 
@@ -633,9 +634,9 @@ May accept reduced liquidity in exchange for improved portfolio outcomes.
 
 Characteristics:
 
-* longer withdrawal periods
-* moderate restrictions
-* acceptable redemption complexity
+- longer withdrawal periods
+- moderate restrictions
+- acceptable redemption complexity
 
 All liquidity decisions remain constrained by user intent.
 
@@ -677,10 +678,10 @@ Liquidity scoring parameters should be configurable.
 
 Examples:
 
-* component weights
-* lockup buckets
-* liquidity caps
-* eligibility thresholds
+- component weights
+- lockup buckets
+- liquidity caps
+- eligibility thresholds
 
 Configuration should be centralized through protocol configuration systems.
 
@@ -692,12 +693,12 @@ No portfolio logic should depend on hardcoded liquidity values.
 
 Liquidity Scoring V1 intentionally excludes:
 
-* real-time order book analysis
-* dynamic slippage simulation
-* user-specific exit impact modeling
-* maturity-adjusted liquidity curves
-* stress-testing engines
-* market microstructure analysis
+- real-time order book analysis
+- dynamic slippage simulation
+- user-specific exit impact modeling
+- maturity-adjusted liquidity curves
+- stress-testing engines
+- market microstructure analysis
 
 These features may be considered in future protocol versions.
 
@@ -707,10 +708,10 @@ These features may be considered in future protocol versions.
 
 Potential future enhancements include:
 
-* portfolio-level liquidity modeling
-* dynamic market depth evaluation
-* maturity-aware fixed-income scoring
-* chain-specific liquidity adjustments
-* stress-condition liquidity analysis
+- portfolio-level liquidity modeling
+- dynamic market depth evaluation
+- maturity-aware fixed-income scoring
+- chain-specific liquidity adjustments
+- stress-condition liquidity analysis
 
 These capabilities are explicitly outside the scope of Laminar V1.

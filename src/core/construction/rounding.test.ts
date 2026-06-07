@@ -11,7 +11,10 @@ describe("roundWeightsLargestRemainder", () => {
       { id: "e", weight: 0.01 },
     ]);
 
-    const total = [...rounded.values()].reduce((sum, weight) => sum + weight, 0);
+    const total = [...rounded.values()].reduce(
+      (sum, weight) => sum + weight,
+      0,
+    );
 
     expect(total).toBe(1);
     expect(rounded.get("a")).toBe(0.4579);

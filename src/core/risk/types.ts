@@ -1,6 +1,9 @@
 import type { Opportunity } from "../opportunity/types.js";
 import type { LiquidityRequirements, RiskLimits } from "../policy/types.js";
-import type { LiquidityScoreResult, OpportunityLiquidityProfile } from "../liquidity/types.js";
+import type {
+  LiquidityScoreResult,
+  OpportunityLiquidityProfile,
+} from "../liquidity/types.js";
 import type { TrustScoreResult } from "../trust/types.js";
 
 export type RiskDecision = "eligible" | "rejected";

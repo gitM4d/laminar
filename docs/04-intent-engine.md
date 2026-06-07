@@ -12,10 +12,10 @@ It is the entry point of the Laminar decision pipeline.
 
 The Intent Engine does not:
 
-* select protocols
-* allocate capital
-* evaluate risk
-* execute transactions
+- select protocols
+- allocate capital
+- evaluate risk
+- execute transactions
 
 Its only responsibility is to transform user intent into normalized portfolio parameters.
 
@@ -27,11 +27,11 @@ Users should express desired outcomes.
 
 Users should not be required to understand:
 
-* lending markets
-* protocol mechanics
-* utilization rates
-* yield sources
-* liquidity structures
+- lending markets
+- protocol mechanics
+- utilization rates
+- yield sources
+- liquidity structures
 
 The user defines objectives.
 
@@ -91,10 +91,10 @@ The Intent Engine receives:
 
 Examples:
 
-* primary objective
-* liquidity needs
-* investment horizon
-* risk comfort level
+- primary objective
+- liquidity needs
+- investment horizon
+- risk comfort level
 
 ---
 
@@ -102,9 +102,9 @@ Examples:
 
 Users may adjust:
 
-* Risk
-* Liquidity
-* Return Preference
+- Risk
+- Liquidity
+- Return Preference
 
 using sliders.
 
@@ -114,9 +114,9 @@ using sliders.
 
 Examples:
 
-* portfolio name
-* portfolio type
-* automation preference
+- portfolio name
+- portfolio type
+- automation preference
 
 ---
 
@@ -290,9 +290,9 @@ Maximum target:
 
 Options:
 
-* Preserve capital
-* Balance risk and expected returns
-* Maximize expected returns
+- Preserve capital
+- Balance risk and expected returns
+- Maximize expected returns
 
 ---
 
@@ -334,9 +334,9 @@ Return Preference = 9
 
 Options:
 
-* Very Important
-* Moderately Important
-* Not Important
+- Very Important
+- Moderately Important
+- Not Important
 
 Adjusts:
 
@@ -352,14 +352,14 @@ Liquidity
 
 Options:
 
-* Short Term
-* Medium Term
-* Long Term
+- Short Term
+- Medium Term
+- Long Term
 
 Adjusts:
 
-* Risk
-* Liquidity
+- Risk
+- Liquidity
 
 ---
 
@@ -369,9 +369,9 @@ Adjusts:
 
 Options:
 
-* Losing capital
-* Missing yield opportunities
-* Limited liquidity
+- Losing capital
+- Missing yield opportunities
+- Limited liquidity
 
 Adjusts intent scores accordingly.
 
@@ -509,10 +509,10 @@ Future versions may support templates.
 
 Examples:
 
-* Conservative Income
-* Treasury Reserve
-* Yield Focused
-* Stablecoin Savings
+- Conservative Income
+- Treasury Reserve
+- Yield Focused
+- Stablecoin Savings
 
 Internally, templates still produce Selected Profiles through Normalization and Mapping.
 
@@ -524,11 +524,11 @@ A user may create multiple portfolios.
 
 Each portfolio has:
 
-* independent user intent
-* independent Selected Profile
-* independent allocations
-* independent risk profile
-* independent automation settings
+- independent user intent
+- independent Selected Profile
+- independent allocations
+- independent risk profile
+- independent automation settings
 
 ---
 
@@ -536,11 +536,11 @@ Each portfolio has:
 
 The Intent Engine does not:
 
-* evaluate protocols
-* compute APY
-* calculate allocations
-* rank opportunities
-* manage risk
+- evaluate protocols
+- compute APY
+- calculate allocations
+- rank opportunities
+- manage risk
 
 These responsibilities belong to later stages.
 
@@ -550,11 +550,11 @@ These responsibilities belong to later stages.
 
 A successful Intent Engine:
 
-* captures user objectives accurately
-* remains understandable
-* minimizes onboarding friction
-* generates meaningful portfolio constraints
-* creates consistent outputs
+- captures user objectives accurately
+- remains understandable
+- minimizes onboarding friction
+- generates meaningful portfolio constraints
+- creates consistent outputs
 
 ---
 
@@ -562,10 +562,10 @@ A successful Intent Engine:
 
 The Intent Engine has failed if:
 
-* users cannot understand questions
-* users cannot understand resulting profiles
-* different users receive identical profiles despite different objectives
-* onboarding becomes protocol-centric
+- users cannot understand questions
+- users cannot understand resulting profiles
+- different users receive identical profiles despite different objectives
+- onboarding becomes protocol-centric
 
 ---
 

@@ -10,19 +10,19 @@ This document defines the public backend API exposed by Laminar V1.
 
 The API exists to:
 
-* manage portfolios
-* manage policies
-* expose protocol data
-* expose portfolio analytics
-* expose execution history
-* expose risk information
+- manage portfolios
+- manage policies
+- expose protocol data
+- expose portfolio analytics
+- expose execution history
+- expose risk information
 
 The API should remain:
 
-* simple
-* explicit
-* auditable
-* versioned
+- simple
+- explicit
+- auditable
+- versioned
 
 ---
 
@@ -905,10 +905,10 @@ Example
 
 The API succeeds when:
 
-* business concepts remain clear
-* portfolio decisions are explainable
-* frontend requirements are satisfied
-* endpoints remain stable
+- business concepts remain clear
+- portfolio decisions are explainable
+- frontend requirements are satisfied
+- endpoints remain stable
 
 ---
 
@@ -916,9 +916,9 @@ The API succeeds when:
 
 The API fails when:
 
-* frontend requires direct database knowledge
-* decision-making becomes opaque
-* business logic leaks into clients
+- frontend requires direct database knowledge
+- decision-making becomes opaque
+- business logic leaks into clients
 
 ---
 
@@ -928,6 +928,6 @@ The API should expose portfolios, policies, risk, and decisions as first-class c
 
 Users should always be able to understand:
 
-* what Laminar did
-* why Laminar did it
-* what Laminar may do next
+- what Laminar did
+- why Laminar did it
+- what Laminar may do next

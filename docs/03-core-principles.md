@@ -36,8 +36,8 @@ Every allocation decision must ultimately optimize for user intent.
 
 User:
 
-* low risk
-* high liquidity
+- low risk
+- high liquidity
 
 System selects lower yield opportunities.
 
@@ -47,7 +47,7 @@ System selects lower yield opportunities.
 
 User:
 
-* low risk
+- low risk
 
 System allocates capital into a higher-risk protocol solely because APY is higher.
 
@@ -119,10 +119,10 @@ Explainability is part of the product itself.
 
 Users should understand:
 
-* where funds are allocated
-* why funds are allocated
-* why changes occurred
-* why risk actions occurred
+- where funds are allocated
+- why funds are allocated
+- why changes occurred
+- why risk actions occurred
 
 ---
 
@@ -184,14 +184,14 @@ Rules should outperform complexity.
 
 Preferred:
 
-* scoring models
-* rules-based allocation
-* rules-based risk systems
+- scoring models
+- rules-based allocation
+- rules-based risk systems
 
 Avoid:
 
-* opaque AI decisions
-* non-deterministic execution paths
+- opaque AI decisions
+- non-deterministic execution paths
 
 ---
 
@@ -215,10 +215,10 @@ A recommendation without explanation is unacceptable.
 
 Every AI-driven recommendation should produce:
 
-* rationale
-* confidence
-* assumptions
-* expected outcomes
+- rationale
+- confidence
+- assumptions
+- expected outcomes
 
 ---
 
@@ -256,10 +256,10 @@ No engine should directly interact with protocol-specific logic.
 
 ### Benefits
 
-* extensibility
-* maintainability
-* testing
-* portability
+- extensibility
+- maintainability
+- testing
+- portability
 
 ---
 
@@ -275,10 +275,10 @@ Infrastructure should only be built when it provides strategic advantage.
 
 Building:
 
-* indexers
-* services
-* databases
-* monitoring systems
+- indexers
+- services
+- databases
+- monitoring systems
 
 without clear justification.
 
@@ -288,9 +288,9 @@ without clear justification.
 
 Use existing solutions when:
 
-* reliable
-* inexpensive
-* non-critical
+- reliable
+- inexpensive
+- non-critical
 
 ---
 
@@ -336,9 +336,9 @@ Rebalancing is not free.
 
 Every rebalance consumes:
 
-* gas
-* liquidity
-* operational complexity
+- gas
+- liquidity
+- operational complexity
 
 ---
 
@@ -484,10 +484,10 @@ Laminar should generate revenue without requiring a token.
 
 ### Acceptable Revenue
 
-* AUM fees
-* premium analytics
-* premium automation
-* institutional offerings
+- AUM fees
+- premium analytics
+- premium automation
+- institutional offerings
 
 ---
 

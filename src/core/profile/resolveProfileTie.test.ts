@@ -16,9 +16,9 @@ describe("resolveProfileTie", () => {
   });
 
   it("applies tie priority order Balanced, Conservative, Yield Focused", () => {
-    expect(resolveProfileTie(["Balanced", "Conservative", "Yield Focused"])).toBe(
-      "Balanced",
-    );
+    expect(
+      resolveProfileTie(["Balanced", "Conservative", "Yield Focused"]),
+    ).toBe("Balanced");
     expect(resolveProfileTie(["Conservative", "Yield Focused"])).toBe(
       "Conservative",
     );

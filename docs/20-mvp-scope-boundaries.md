@@ -12,10 +12,10 @@ This document defines exactly what is included and excluded from Laminar V1.
 
 Its purpose is to prevent:
 
-* scope creep
-* architectural drift
-* premature optimization
-* unnecessary complexity
+- scope creep
+- architectural drift
+- premature optimization
+- unnecessary complexity
 
 This document takes precedence over feature requests that are not explicitly included in the V1 scope.
 
@@ -25,12 +25,12 @@ This document takes precedence over feature requests that are not explicitly inc
 
 Laminar V1 is not attempting to become:
 
-* Yearn
-* Enzyme
-* Morpho
-* Beefy
-* DeBank
-* Zapper
+- Yearn
+- Enzyme
+- Morpho
+- Beefy
+- DeBank
+- Zapper
 
 Laminar V1 exists to validate one hypothesis:
 
@@ -164,10 +164,10 @@ Reason
 
 Stablecoins simplify:
 
-* risk management
-* scoring
-* portfolio construction
-* user understanding
+- risk management
+- scoring
+- portfolio construction
+- user understanding
 
 ---
 
@@ -893,9 +893,9 @@ A smaller product shipped is more valuable than a larger product imagined.
 
 Laminar V1 should optimize for:
 
-* clarity
-* trust
-* explainability
-* execution
+- clarity
+- trust
+- explainability
+- execution
 
 not feature count.

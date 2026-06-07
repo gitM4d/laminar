@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   ASSET_LIQUIDITY_SCORES,
-  REDEMPTION_RELIABILITY_SCORES,
-  WITHDRAWAL_CONSTRAINT_SCORES,
   WITHDRAWAL_SPEED_BUCKET_SCORES,
 } from "./liquidityConfig.js";
 import {

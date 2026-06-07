@@ -7,9 +7,9 @@ export type ValidRecommendationRequest = {
   asOf?: Date;
 };
 
-function parseAsOf(value: string):
-  | { valid: true; asOf: Date }
-  | { valid: false; message: string } {
+function parseAsOf(
+  value: string,
+): { valid: true; asOf: Date } | { valid: false; message: string } {
   const parsed = new Date(value);
 
   if (Number.isNaN(parsed.getTime())) {
@@ -23,7 +23,11 @@ export function validateRecommendationRequest(
   body: RecommendationRequest,
 ):
   | { valid: true; value: ValidRecommendationRequest }
-  | { valid: false; statusCode: number; body: ReturnType<typeof createApiError> } {
+  | {
+      valid: false;
+      statusCode: number;
+      body: ReturnType<typeof createApiError>;
+    } {
   if (!Number.isFinite(body.portfolioValueUsd)) {
     return {
       valid: false,

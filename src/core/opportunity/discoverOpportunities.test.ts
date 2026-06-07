@@ -15,9 +15,9 @@ describe("discoverOpportunities", () => {
     const result = discoverOpportunities({ assets: ["USDC"] });
 
     expect(result.opportunities).toHaveLength(4);
-    expect(result.opportunities.every((opportunity) => opportunity.asset === "USDC")).toBe(
-      true,
-    );
+    expect(
+      result.opportunities.every((opportunity) => opportunity.asset === "USDC"),
+    ).toBe(true);
   });
 
   it("returns unique opportunity ids", () => {
