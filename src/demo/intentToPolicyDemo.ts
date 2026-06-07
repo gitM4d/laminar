@@ -5,6 +5,7 @@ import { normalizeIntent } from "../core/normalization/normalizeIntent.js";
 import { generatePolicy } from "../core/policy/generatePolicy.js";
 import { selectProfile } from "../core/profile/selectProfile.js";
 import { assessOpportunitiesRisk } from "../core/risk/assessOpportunitiesRisk.js";
+import { rankOpportunities } from "../core/scoring/rankOpportunities.js";
 import { scoreOpportunitiesTrust } from "../core/trust/scoreOpportunityTrust.js";
 
 const asOf = new Date("2026-06-01T00:00:00.000Z");
@@ -28,6 +29,13 @@ const riskAssessments = assessOpportunitiesRisk(
   trustScores,
   liquidityScores,
 );
+const opportunityRanking = rankOpportunities({
+  opportunities: discovery.opportunities,
+  policy,
+  trustScores,
+  liquidityScores,
+  riskAssessments,
+});
 
 const output = {
   intent: validatedIntent,
@@ -70,6 +78,33 @@ const output = {
     penalties: entry.assessment.penalties,
     rejectionReasons: entry.assessment.rejectionReasons,
     explanations: entry.assessment.explanations,
+  })),
+  opportunityRankings: opportunityRanking.ranked.map((entry) => ({
+    rank: entry.rank,
+    opportunityId: entry.opportunityId,
+    protocolId: entry.protocolId,
+    protocolName: entry.protocolName,
+    asset: entry.asset,
+    score: entry.scoring.score,
+    baseScore: entry.scoring.baseScore,
+    penaltyDenominator: entry.scoring.penaltyDenominator,
+    minimumPenaltyDenominator: entry.scoring.minimumPenaltyDenominator,
+    normalizedTrustScore: entry.scoring.normalizedTrustScore,
+    normalizedLiquidityScore: entry.scoring.normalizedLiquidityScore,
+    apyDecimal: entry.scoring.apyDecimal,
+    returnPreferenceMultiplier: entry.scoring.returnPreferenceMultiplier,
+    riskPenalty: entry.scoring.riskPenalty,
+    gasPenalty: entry.scoring.gasPenalty,
+    breakdown: entry.scoring.breakdown,
+    explanations: entry.scoring.explanations,
+  })),
+  rejectedOpportunities: opportunityRanking.rejected.map((entry) => ({
+    opportunityId: entry.opportunityId,
+    protocolId: entry.protocolId,
+    protocolName: entry.protocolName,
+    asset: entry.asset,
+    rejectionReasons: entry.rejectionReasons,
+    explanations: entry.explanations,
   })),
 };
 
