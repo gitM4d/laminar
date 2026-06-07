@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "api": "tsx src/api/server.ts",
     "demo": "tsx src/demo/intentToPolicyDemo.ts",
     "test": "vitest run"
   },
@@ -11,5 +12,8 @@
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "fastify": "^5.8.5"
   }
 }
