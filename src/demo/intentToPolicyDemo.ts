@@ -1,61 +1,26 @@
-import { discoverOpportunities } from "../core/opportunity/discoverOpportunities.js";
-import { assertValidIntent } from "../core/intent/validateIntent.js";
-import { scoreOpportunitiesLiquidity } from "../core/liquidity/scoreOpportunityLiquidity.js";
-import { normalizeIntent } from "../core/normalization/normalizeIntent.js";
-import { generatePolicy } from "../core/policy/generatePolicy.js";
-import { selectProfile } from "../core/profile/selectProfile.js";
-import { assessOpportunitiesRisk } from "../core/risk/assessOpportunitiesRisk.js";
-import { constructPortfolio } from "../core/construction/constructPortfolio.js";
-import { rankOpportunities } from "../core/scoring/rankOpportunities.js";
-import { scoreOpportunitiesTrust } from "../core/trust/scoreOpportunityTrust.js";
-
-const portfolioValueUsd = 10_000;
+import { generatePortfolioRecommendation } from "../core/recommendation/generatePortfolioRecommendation.js";
 
 const asOf = new Date("2026-06-01T00:00:00.000Z");
 
-const intent = {
-  risk: 3,
-  liquidity: 8,
-  returnPreference: 4,
-};
-
-const validatedIntent = assertValidIntent(intent);
-const normalizedIntent = normalizeIntent(validatedIntent);
-const profileClassification = selectProfile(validatedIntent);
-const policy = generatePolicy(profileClassification.selectedProfile);
-const discovery = discoverOpportunities();
-const trustScores = scoreOpportunitiesTrust(discovery.opportunities, { asOf });
-const liquidityScores = scoreOpportunitiesLiquidity(discovery.opportunities);
-const riskAssessments = assessOpportunitiesRisk(
-  discovery.opportunities,
-  policy,
-  trustScores,
-  liquidityScores,
-);
-const opportunityRanking = rankOpportunities({
-  opportunities: discovery.opportunities,
-  policy,
-  trustScores,
-  liquidityScores,
-  riskAssessments,
-});
-const portfolioConstruction = constructPortfolio({
-  policy,
-  ranking: opportunityRanking,
-  opportunities: discovery.opportunities,
-  portfolioValueUsd,
+const recommendation = generatePortfolioRecommendation({
+  intent: {
+    risk: 3,
+    liquidity: 8,
+    returnPreference: 4,
+  },
+  portfolioValueUsd: 10_000,
+  asOf,
 });
 
 const output = {
-  intent: validatedIntent,
-  normalizedIntent,
+  intent: recommendation.intent,
+  normalizedIntent: recommendation.normalizedIntent,
   profileClassification: {
-    selectedProfile: profileClassification.selectedProfile,
-    distances: profileClassification.distances,
+    selectedProfile: recommendation.selectedProfile,
   },
-  policy,
-  opportunities: discovery.opportunities,
-  trustScores: trustScores.map((entry) => ({
+  policy: recommendation.policy,
+  opportunities: recommendation.opportunities,
+  trustScores: recommendation.trustScores.map((entry) => ({
     opportunityId: entry.opportunityId,
     protocolId: entry.protocolId,
     protocolName: entry.protocolName,
@@ -63,7 +28,7 @@ const output = {
     breakdown: entry.trust.breakdown,
     explanations: entry.trust.explanations,
   })),
-  liquidityScores: liquidityScores.map((entry) => ({
+  liquidityScores: recommendation.liquidityScores.map((entry) => ({
     opportunityId: entry.opportunityId,
     protocolId: entry.protocolId,
     protocolName: entry.protocolName,
@@ -75,7 +40,7 @@ const output = {
     breakdown: entry.liquidity.breakdown,
     explanations: entry.liquidity.explanations,
   })),
-  riskAssessments: riskAssessments.map((entry) => ({
+  riskAssessments: recommendation.riskAssessments.map((entry) => ({
     opportunityId: entry.opportunityId,
     protocolId: entry.protocolId,
     protocolName: entry.protocolName,
@@ -88,7 +53,7 @@ const output = {
     rejectionReasons: entry.assessment.rejectionReasons,
     explanations: entry.assessment.explanations,
   })),
-  opportunityRankings: opportunityRanking.ranked.map((entry) => ({
+  opportunityRankings: recommendation.opportunityRanking.ranked.map((entry) => ({
     rank: entry.rank,
     opportunityId: entry.opportunityId,
     protocolId: entry.protocolId,
@@ -107,7 +72,7 @@ const output = {
     breakdown: entry.scoring.breakdown,
     explanations: entry.scoring.explanations,
   })),
-  rejectedOpportunities: opportunityRanking.rejected.map((entry) => ({
+  rejectedOpportunities: recommendation.opportunityRanking.rejected.map((entry) => ({
     opportunityId: entry.opportunityId,
     protocolId: entry.protocolId,
     protocolName: entry.protocolName,
@@ -116,12 +81,13 @@ const output = {
     explanations: entry.explanations,
   })),
   portfolioConstruction: {
-    positions: portfolioConstruction.positions,
-    rejectedOpportunities: portfolioConstruction.rejectedOpportunities,
-    constructionSteps: portfolioConstruction.constructionSteps,
-    explanations: portfolioConstruction.explanations,
-    metadata: portfolioConstruction.metadata,
+    positions: recommendation.portfolioConstruction.positions,
+    rejectedOpportunities: recommendation.portfolioConstruction.rejectedOpportunities,
+    constructionSteps: recommendation.portfolioConstruction.constructionSteps,
+    explanations: recommendation.portfolioConstruction.explanations,
+    metadata: recommendation.portfolioConstruction.metadata,
   },
+  diagnostics: recommendation.diagnostics,
 };
 
 console.log(JSON.stringify(output, null, 2));
