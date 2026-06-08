@@ -8,13 +8,13 @@ describe("discoverOpportunities", () => {
 
     expect(result.source).toBe("mock");
     expect(result.opportunities).toEqual([...MOCK_OPPORTUNITIES]);
-    expect(result.opportunities).toHaveLength(6);
+    expect(result.opportunities).toHaveLength(9);
   });
 
   it("filters opportunities by supported asset", () => {
     const result = discoverOpportunities({ assets: ["USDC"] });
 
-    expect(result.opportunities).toHaveLength(4);
+    expect(result.opportunities).toHaveLength(7);
     expect(
       result.opportunities.every((opportunity) => opportunity.asset === "USDC"),
     ).toBe(true);

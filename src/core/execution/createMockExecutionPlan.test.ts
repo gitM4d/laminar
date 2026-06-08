@@ -39,8 +39,12 @@ describe("createMockExecutionPlan", () => {
     const recommendation = balancedRecommendation();
     const plan = createMockExecutionPlan({ recommendation });
     const deposits = plan.steps.filter((step) => step.type === "deposit");
+    const strategyPositionCount =
+      recommendation.portfolioConstruction.positions.filter(
+        (position) => position.type === "strategy",
+      ).length;
 
-    expect(deposits).toHaveLength(3);
+    expect(deposits).toHaveLength(strategyPositionCount);
     expect(deposits[0]).toMatchObject({
       type: "deposit",
       status: "planned",
@@ -100,7 +104,11 @@ describe("createMockExecutionPlan", () => {
     const metadata = recommendation.portfolioConstruction.metadata;
 
     expect(plan.summary.numberOfSteps).toBe(plan.steps.length);
-    expect(plan.summary.numberOfDeposits).toBe(3);
+    expect(plan.summary.numberOfDeposits).toBe(
+      recommendation.portfolioConstruction.positions.filter(
+        (position) => position.type === "strategy",
+      ).length,
+    );
     expect(plan.summary.numberOfHolds).toBe(1);
     expect(plan.summary.numberOfReserves).toBe(1);
     expect(plan.summary.strategyAmountUsd).toBeCloseTo(
@@ -118,15 +126,21 @@ describe("createMockExecutionPlan", () => {
     expect(plan.summary.totalAmountUsd).toBeCloseTo(10_000, 0);
   });
 
-  it("warns when there are no deposit steps", () => {
-    const plan = createMockExecutionPlan({
-      recommendation: conservativeRecommendation(),
-    });
+  it("creates deposit steps for Conservative strategy positions", () => {
+    const recommendation = conservativeRecommendation();
+    const plan = createMockExecutionPlan({ recommendation });
 
     expect(
       plan.warnings.some((warning) => warning.code === "noDepositSteps"),
+    ).toBe(false);
+    expect(plan.summary.numberOfDeposits).toBeGreaterThanOrEqual(1);
+    expect(
+      plan.steps.some(
+        (step) =>
+          step.type === "deposit" &&
+          step.opportunityId === "aave-prime-usdc-base",
+      ),
     ).toBe(true);
-    expect(plan.summary.numberOfDeposits).toBe(0);
   });
 
   it("warns for high liquidity buffer", () => {
@@ -151,7 +165,7 @@ describe("createMockExecutionPlan", () => {
 
   it("warns for small deposit amounts", () => {
     const plan = createMockExecutionPlan({
-      recommendation: balancedRecommendation(50),
+      recommendation: balancedRecommendation(25),
     });
 
     expect(

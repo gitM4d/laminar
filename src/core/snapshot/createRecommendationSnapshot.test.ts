@@ -140,15 +140,24 @@ describe("createRecommendationSnapshot", () => {
     ).toBe(true);
   });
 
-  it("warns when there are no strategy positions", () => {
+  it("includes strategy positions for Conservative recommendation", () => {
     const snapshot = createRecommendationSnapshot(conservativeRecommendation());
 
     expect(
       snapshot.warnings.some(
         (warning) => warning.code === "noStrategyPositions",
       ),
+    ).toBe(false);
+    expect(getMetricValue(snapshot, "numberOfStrategyPositions")).toBeGreaterThan(
+      0,
+    );
+    expect(
+      snapshot.positions.some(
+        (position) =>
+          position.type === "strategy" &&
+          position.protocolId === "aave-prime",
+      ),
     ).toBe(true);
-    expect(getMetricValue(snapshot, "numberOfStrategyPositions")).toBe(0);
   });
 
   it("includes correct metrics", () => {
@@ -166,8 +175,8 @@ describe("createRecommendationSnapshot", () => {
       Number((metadata.gasReserveWeight * 100).toFixed(2)),
     );
     expect(getMetricValue(snapshot, "selectedProfile")).toBe("Balanced");
-    expect(getMetricValue(snapshot, "numberOfStrategyPositions")).toBe(3);
-    expect(getMetricValue(snapshot, "numberOfRejectedOpportunities")).toBe(2);
+    expect(getMetricValue(snapshot, "numberOfStrategyPositions")).toBe(2);
+    expect(getMetricValue(snapshot, "numberOfRejectedOpportunities")).toBe(4);
   });
 
   it("includes policyVersion and pipeline steps count in source", () => {

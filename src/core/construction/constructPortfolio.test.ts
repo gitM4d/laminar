@@ -210,12 +210,12 @@ describe("constructPortfolio", () => {
       (position) => position.type === "strategy",
     );
 
-    expect(strategyPositions).toHaveLength(3);
+    expect(strategyPositions).toHaveLength(2);
     expect(
       new Set(strategyPositions.map((position) => position.protocolId)).size,
-    ).toBe(3);
+    ).toBe(2);
     expect(strategyPositions.map((position) => position.opportunityId)).toEqual(
-      ["morpho-usdc-base", "aave-usdc-base", "moonwell-usdc-base"],
+      ["morpho-usdc-base", "aave-prime-usdc-base"],
     );
   });
 

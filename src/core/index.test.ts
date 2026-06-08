@@ -47,8 +47,9 @@ describe("createLaminarRecommendation", () => {
     expect(result.recommendation.selectedProfile).toBe("Conservative");
     expect(result.snapshot.profile).toBe("Conservative");
     expect(
-      result.executionPlan.warnings.some((w) => w.code === "noDepositSteps"),
-    ).toBe(true);
+      result.snapshot.positions.filter((position) => position.type === "strategy")
+        .length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("works for valid Yield Focused input", () => {

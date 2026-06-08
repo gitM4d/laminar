@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MOCK_OPPORTUNITIES } from "../core/opportunity/mockOpportunities.js";
 import {
   DEFAULT_SENSITIVITY_AS_OF,
   extractScenarioSummary,
@@ -71,6 +72,50 @@ describe("sensitivityMatrix", () => {
     expect(summary.numberOfRejectedOpportunities).toBeGreaterThanOrEqual(0);
     expect(summary.warningCodes.length).toBeGreaterThan(0);
     expect(summary.topStrategyPositionLabel.length).toBeGreaterThan(0);
+  });
+
+  it("includes at least one yieldEnhancement opportunity in the mock universe", () => {
+    const yieldEnhancementOpportunities = MOCK_OPPORTUNITIES.filter(
+      (opportunity) => opportunity.exposureCategory === "yieldEnhancement",
+    );
+
+    expect(yieldEnhancementOpportunities.length).toBeGreaterThanOrEqual(1);
+    expect(
+      yieldEnhancementOpportunities.some(
+        (opportunity) => opportunity.id === "aerodrome-usdc-eurc-base",
+      ),
+    ).toBe(true);
+  });
+
+  it("gives Conservative default at least one strategy position", () => {
+    const scenario = SENSITIVITY_SCENARIOS.find(
+      (entry) => entry.name === "Conservative default",
+    );
+
+    expect(scenario).toBeDefined();
+
+    const { summary } = runScenario(scenario!, DEFAULT_SENSITIVITY_AS_OF);
+
+    expect(summary.numberOfStrategyPositions).toBeGreaterThanOrEqual(1);
+  });
+
+  it("gives Yield Focused expected APY greater than or equal to Balanced", () => {
+    const balanced = runScenario(
+      SENSITIVITY_SCENARIOS.find(
+        (entry) => entry.name === "Balanced default",
+      )!,
+      DEFAULT_SENSITIVITY_AS_OF,
+    );
+    const yieldFocused = runScenario(
+      SENSITIVITY_SCENARIOS.find(
+        (entry) => entry.name === "Yield Focused default",
+      )!,
+      DEFAULT_SENSITIVITY_AS_OF,
+    );
+
+    expect(yieldFocused.summary.expectedApy).toBeGreaterThanOrEqual(
+      balanced.summary.expectedApy,
+    );
   });
 
   it("formats a readable table", () => {

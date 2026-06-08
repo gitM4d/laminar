@@ -130,26 +130,23 @@ describe("generatePortfolioRecommendation", () => {
     expect(result.portfolioConstruction.metadata.totalWeight).toBe(1);
   });
 
-  it("handles empty candidate universe when ranking has no eligible items", () => {
+  it("allocates Conservative-safe strategy positions when aave-prime is eligible", () => {
     const result = generatePortfolioRecommendation({
       intent: { risk: 1, liquidity: 10, returnPreference: 2 },
       portfolioValueUsd: 10_000,
       asOf,
     });
 
-    expect(result.opportunityRanking.ranked).toHaveLength(0);
+    expect(result.opportunityRanking.ranked.length).toBeGreaterThan(0);
     expect(
-      result.portfolioConstruction.constructionSteps.some(
-        (step) => step.id === "emptyCandidateUniverse",
+      result.portfolioConstruction.positions.some(
+        (position) =>
+          position.type === "strategy" &&
+          position.opportunityId === "aave-prime-usdc-base",
       ),
     ).toBe(true);
-    expect(result.portfolioConstruction.metadata.strategyWeight).toBe(0);
-    expect(result.diagnostics.warnings.length).toBeGreaterThan(0);
-
-    const total = result.portfolioConstruction.positions.reduce(
-      (sum, position) => sum + position.weight,
+    expect(result.portfolioConstruction.metadata.strategyWeight).toBeGreaterThan(
       0,
     );
-    expect(total).toBe(1);
   });
 });

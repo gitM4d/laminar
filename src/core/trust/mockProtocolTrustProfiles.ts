@@ -97,4 +97,64 @@ export const MOCK_PROTOCOL_TRUST_PROFILES: Record<
     ],
     chainAdjustment: 0,
   },
+  "aave-prime": {
+    protocolId: "aave-prime",
+    protocolName: "Aave Prime",
+    protocolAgeYears: 6,
+    tvlUsd: 15_000_000_000,
+    audits: [
+      {
+        auditor: "OpenZeppelin",
+        tier: 1,
+        completedAt: "2020-06-01",
+      },
+      {
+        auditor: "Trail of Bits",
+        tier: 1,
+        completedAt: "2022-03-15",
+      },
+      {
+        auditor: "Spearbit",
+        tier: 1,
+        completedAt: "2024-09-01",
+      },
+    ],
+    incidents: [],
+    chainAdjustment: 0,
+  },
+  aerodrome: {
+    protocolId: "aerodrome",
+    protocolName: "Aerodrome",
+    protocolAgeYears: 2.5,
+    tvlUsd: 420_000_000,
+    audits: [
+      {
+        auditor: "Halborn",
+        tier: 1,
+        completedAt: "2024-04-10",
+      },
+      {
+        auditor: "Independent Audit Firm",
+        tier: 2,
+        completedAt: "2025-01-20",
+      },
+    ],
+    incidents: [],
+    chainAdjustment: 0,
+  },
+  "spectra-yield": {
+    protocolId: "spectra-yield",
+    protocolName: "Spectra Yield",
+    protocolAgeYears: 1.8,
+    tvlUsd: 500_000_000,
+    audits: [
+      {
+        auditor: "Emerging Security Partner",
+        tier: 2,
+        completedAt: "2025-08-01",
+      },
+    ],
+    incidents: [],
+    chainAdjustment: 0,
+  },
 };
