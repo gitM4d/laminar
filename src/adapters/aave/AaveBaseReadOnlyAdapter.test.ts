@@ -15,11 +15,16 @@ const USDC = "0xUSDC000000000000000000000000000000000000" as `0x${string}`;
 const EURC = "0xEURC000000000000000000000000000000000000" as `0x${string}`;
 const WETH = "0xWETH000000000000000000000000000000000000" as `0x${string}`;
 
-function buildDiscoveryClient(): AaveReadOnlyClient {
-  const reserves: Record<string, { symbol: string; decimals: number }> = {
-    [USDC]: { symbol: "USDC", decimals: 6 },
-    [EURC]: { symbol: "EURC", decimals: 6 },
-    [WETH]: { symbol: "WETH", decimals: 18 },
+function buildDiscoveryClient(
+  options: { failReserveData?: boolean } = {},
+): AaveReadOnlyClient {
+  const reserves: Record<
+    string,
+    { symbol: string; decimals: number; liquidityRateRay: bigint }
+  > = {
+    [USDC]: { symbol: "USDC", decimals: 6, liquidityRateRay: 5n * 10n ** 25n },
+    [EURC]: { symbol: "EURC", decimals: 6, liquidityRateRay: 3n * 10n ** 25n },
+    [WETH]: { symbol: "WETH", decimals: 18, liquidityRateRay: 1n * 10n ** 25n },
   };
 
   return {
@@ -27,6 +32,17 @@ function buildDiscoveryClient(): AaveReadOnlyClient {
     readContract: async (args) => {
       if (args.functionName === "getReservesList") {
         return [USDC, WETH, EURC];
+      }
+      if (args.functionName === "getReserveData") {
+        if (options.failReserveData) {
+          throw new Error("getReserveData failed");
+        }
+        const target = (args.args?.[0] ?? "") as string;
+        const reserve = reserves[target];
+        if (reserve === undefined) {
+          throw new Error("unknown reserve data");
+        }
+        return { currentLiquidityRate: reserve.liquidityRateRay };
       }
       const reserve = reserves[args.address];
       if (reserve === undefined) {
@@ -173,12 +189,77 @@ describe("AaveBaseReadOnlyAdapter", () => {
     for (const market of markets) {
       expect(market.source).toBe("rpc-reserve-discovery");
       expect(market.metadata?.reserveDiscovery).toBe("on-chain");
-      expect(market.metadata?.apyTvlSource).toBe("static-placeholder");
       expect(market.apy).toBeGreaterThan(0);
       expect(market.tvlUsd).toBeGreaterThan(0);
     }
     expect(markets[0]?.metadata?.reserveAddress).toBe(USDC);
     expect(markets[0]?.metadata?.decimals).toBe(6);
+  });
+
+  it("uses real Aave liquidityRate APY for RPC-discovered markets", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: buildDiscoveryClient(),
+      now: fixedNow,
+    });
+
+    const markets = await adapter.discoverMarkets();
+    const usdc = markets.find((market) => market.asset === "USDC");
+    const eurc = markets.find((market) => market.asset === "EURC");
+
+    // 5e25 ray → 0.05; 3e25 ray → 0.03
+    expect(usdc?.apy).toBe(0.05);
+    expect(eurc?.apy).toBe(0.03);
+
+    expect(usdc?.metadata?.apySource).toBe("aave-liquidity-rate");
+    expect(usdc?.metadata?.apyIsApproximation).toBe(true);
+    expect(usdc?.metadata?.apyNote).toContain("incentives not included");
+    expect(usdc?.metadata?.liquidityRateRay).toBe((5n * 10n ** 25n).toString());
+  });
+
+  it("keeps TVL as a static placeholder even with on-chain APY", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: buildDiscoveryClient(),
+      now: fixedNow,
+    });
+
+    const markets = await adapter.discoverMarkets();
+    for (const market of markets) {
+      expect(market.metadata?.tvlSource).toBe("static-placeholder");
+      expect(market.tvlUsd).toBeGreaterThan(0);
+    }
+  });
+
+  it("strictRpc throws when reserve data read fails", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      strictRpc: true,
+      publicClient: buildDiscoveryClient({ failReserveData: true }),
+      now: fixedNow,
+    });
+
+    await expect(adapter.discoverMarkets()).rejects.toBeInstanceOf(
+      AaveReserveDiscoveryError,
+    );
+  });
+
+  it("non-strict per-market fallback uses static APY when reserve data fails", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: buildDiscoveryClient({ failReserveData: true }),
+      now: fixedNow,
+    });
+
+    const markets = await adapter.discoverMarkets();
+    const usdc = markets.find((market) => market.asset === "USDC");
+
+    // Reserve still discovered on-chain, but APY falls back to static.
+    expect(usdc?.source).toBe("rpc-reserve-discovery");
+    expect(usdc?.metadata?.reserveDiscovery).toBe("on-chain");
+    expect(usdc?.metadata?.apySource).toBe("static-placeholder");
+    expect(usdc?.metadata?.apyNote).toContain("non-strict fallback");
+    expect(usdc?.apy).toBeGreaterThan(0);
   });
 
   it("strictRpc throws when reserve discovery fails", async () => {
@@ -227,6 +308,7 @@ describe("AaveBaseReadOnlyAdapter", () => {
       "AaveBaseReadOnlyAdapter.ts",
       "aaveReserveDiscovery.ts",
       "aaveAbi.ts",
+      "aaveMath.ts",
       "mapAaveMarketToOpportunity.ts",
     ].map((file) => readFileSync(join(here, file), "utf8"));
 

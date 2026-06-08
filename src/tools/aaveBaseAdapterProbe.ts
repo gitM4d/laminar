@@ -28,6 +28,25 @@ async function main(): Promise<void> {
   console.log("");
 
   console.log(`Discovered markets (${markets.length}):`);
+  for (const market of markets) {
+    console.log(`  ${market.asset} (${market.id})`);
+    console.log(
+      `    reserveAddress: ${market.metadata?.reserveAddress ?? "n/a"}`,
+    );
+    console.log(`    decimals: ${market.metadata?.decimals ?? "n/a"}`);
+    console.log(`    apy: ${market.apy} (${(market.apy * 100).toFixed(3)}%)`);
+    console.log(`    apySource: ${market.metadata?.apySource ?? "n/a"}`);
+    console.log(
+      `    apyIsApproximation: ${market.metadata?.apyIsApproximation ?? "n/a"}`,
+    );
+    console.log(`    apyNote: ${market.metadata?.apyNote ?? "n/a"}`);
+    console.log(
+      `    tvlUsd: ${market.tvlUsd} (tvlSource: ${market.metadata?.tvlSource ?? "n/a"})`,
+    );
+  }
+  console.log("");
+
+  console.log("Full market objects:");
   console.log(JSON.stringify(markets, null, 2));
   console.log("");
 
@@ -39,6 +58,9 @@ async function main(): Promise<void> {
   const reservesOnChain = markets.some(
     (market) => market.metadata?.reserveDiscovery === "on-chain",
   );
+  const apyOnChain = markets.some(
+    (market) => market.metadata?.apySource === "aave-liquidity-rate",
+  );
 
   console.log("Notes:");
   console.log(
@@ -47,7 +69,11 @@ async function main(): Promise<void> {
   console.log(
     `- Reserve assets discovered on-chain: ${reservesOnChain ? "yes" : "no (static fallback)"}`,
   );
-  console.log("- Market APY/TVL are STATIC placeholders in Sprint 18.");
+  console.log(
+    `- Supply APY from Aave liquidityRate: ${apyOnChain ? "yes" : "no (static placeholder)"}`,
+  );
+  console.log("- APY is an APR approximation (incentives not included).");
+  console.log("- TVL is a STATIC placeholder.");
   console.log("- Trust/liquidity metadata is curated/static.");
   console.log("- No transactions were created. Read-only adapter only.");
 }

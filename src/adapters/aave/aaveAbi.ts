@@ -8,9 +8,14 @@
  */
 
 /**
- * Minimal Aave V3 Pool ABI — read-only reserve discovery only.
+ * Minimal Aave V3 Pool ABI — read-only reserve discovery and supply rate.
  *
- * `getReservesList()` returns the list of underlying reserve asset addresses.
+ * - `getReservesList()` returns the list of underlying reserve asset addresses.
+ * - `getReserveData(asset)` returns the reserve data struct; only
+ *   `currentLiquidityRate` (ray-denominated supply APR) is consumed here.
+ *
+ * The struct mirrors Aave V3 `DataTypes.ReserveDataLegacy`. It is included only
+ * to decode the supply rate; no write/state-changing functions are present.
  */
 export const AAVE_POOL_ABI = [
   {
@@ -19,6 +24,39 @@ export const AAVE_POOL_ABI = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "address[]" }],
+  },
+  {
+    type: "function",
+    name: "getReserveData",
+    stateMutability: "view",
+    inputs: [{ name: "asset", type: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        components: [
+          {
+            name: "configuration",
+            type: "tuple",
+            components: [{ name: "data", type: "uint256" }],
+          },
+          { name: "liquidityIndex", type: "uint128" },
+          { name: "currentLiquidityRate", type: "uint128" },
+          { name: "variableBorrowIndex", type: "uint128" },
+          { name: "currentVariableBorrowRate", type: "uint128" },
+          { name: "currentStableBorrowRate", type: "uint128" },
+          { name: "lastUpdateTimestamp", type: "uint40" },
+          { name: "id", type: "uint16" },
+          { name: "aTokenAddress", type: "address" },
+          { name: "stableDebtTokenAddress", type: "address" },
+          { name: "variableDebtTokenAddress", type: "address" },
+          { name: "interestRateStrategyAddress", type: "address" },
+          { name: "accruedToTreasury", type: "uint128" },
+          { name: "unbacked", type: "uint128" },
+          { name: "isolationModeTotalDebt", type: "uint128" },
+        ],
+      },
+    ],
   },
 ] as const;
 

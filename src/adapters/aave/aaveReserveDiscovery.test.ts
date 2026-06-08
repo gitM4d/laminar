@@ -4,7 +4,9 @@ import {
   AaveReserveDiscoveryError,
   buildAaveMarketId,
   discoverAaveBaseReserves,
+  extractCurrentLiquidityRate,
   isV1SupportedAsset,
+  readAaveReserveSupplyApr,
   V1_SUPPORTED_ASSETS,
   type AaveReadOnlyClient,
 } from "./aaveReserveDiscovery.js";
@@ -53,6 +55,15 @@ describe("aave ABI fragments", () => {
     expect(
       AAVE_POOL_ABI.every((entry) => entry.stateMutability === "view"),
     ).toBe(true);
+  });
+
+  it("Aave Pool ABI includes getReserveData", () => {
+    const getReserveData = AAVE_POOL_ABI.find(
+      (entry) => entry.name === "getReserveData",
+    );
+    expect(getReserveData).toBeDefined();
+    expect(getReserveData?.stateMutability).toBe("view");
+    expect(getReserveData?.inputs[0]?.type).toBe("address");
   });
 
   it("ERC20 ABI includes symbol and decimals", () => {
@@ -142,5 +153,78 @@ describe("discoverAaveBaseReserves", () => {
     await expect(discoverAaveBaseReserves(client)).rejects.toBeInstanceOf(
       AaveReserveDiscoveryError,
     );
+  });
+});
+
+describe("extractCurrentLiquidityRate", () => {
+  it("reads currentLiquidityRate from a named-object decode", () => {
+    expect(
+      extractCurrentLiquidityRate({
+        configuration: { data: 0n },
+        liquidityIndex: 10n,
+        currentLiquidityRate: 45n * 10n ** 24n,
+      }),
+    ).toBe(45n * 10n ** 24n);
+  });
+
+  it("reads currentLiquidityRate from a positional tuple (index 2)", () => {
+    expect(
+      extractCurrentLiquidityRate([{ data: 0n }, 10n, 5n * 10n ** 25n]),
+    ).toBe(5n * 10n ** 25n);
+  });
+
+  it("returns undefined when the rate cannot be decoded", () => {
+    expect(extractCurrentLiquidityRate({})).toBeUndefined();
+    expect(extractCurrentLiquidityRate(null)).toBeUndefined();
+  });
+});
+
+describe("readAaveReserveSupplyApr", () => {
+  it("maps liquidityRate to a supply APR decimal", async () => {
+    const client: AaveReadOnlyClient = {
+      getBlockNumber: async () => 1n,
+      readContract: async (args) => {
+        expect(args.functionName).toBe("getReserveData");
+        return { currentLiquidityRate: 45n * 10n ** 24n };
+      },
+    };
+
+    const result = await readAaveReserveSupplyApr(
+      client,
+      "0x1111111111111111111111111111111111111111",
+    );
+
+    expect(result.liquidityRateRay).toBe(45n * 10n ** 24n);
+    expect(result.supplyApr).toBe(0.045);
+  });
+
+  it("throws AaveReserveDiscoveryError when getReserveData fails", async () => {
+    const client: AaveReadOnlyClient = {
+      getBlockNumber: async () => 1n,
+      readContract: async () => {
+        throw new Error("reserve data unavailable");
+      },
+    };
+
+    await expect(
+      readAaveReserveSupplyApr(
+        client,
+        "0x1111111111111111111111111111111111111111",
+      ),
+    ).rejects.toBeInstanceOf(AaveReserveDiscoveryError);
+  });
+
+  it("throws when the liquidity rate cannot be decoded", async () => {
+    const client: AaveReadOnlyClient = {
+      getBlockNumber: async () => 1n,
+      readContract: async () => ({ somethingElse: 1n }),
+    };
+
+    await expect(
+      readAaveReserveSupplyApr(
+        client,
+        "0x1111111111111111111111111111111111111111",
+      ),
+    ).rejects.toBeInstanceOf(AaveReserveDiscoveryError);
   });
 });

@@ -9,6 +9,7 @@ import {
   AaveReserveDiscoveryError,
   buildAaveMarketId,
   discoverAaveBaseReserves,
+  readAaveReserveSupplyApr,
   type AaveReadOnlyClient,
   type DiscoveredReserve,
 } from "./aaveReserveDiscovery.js";
@@ -16,6 +17,7 @@ import type {
   AdapterHealthStatus,
   AdapterMode,
   ProtocolAdapter,
+  ReadOnlyMarketMetadata,
   ReadOnlyMarketOpportunity,
   ReadOnlyMarketSource,
 } from "../types.js";
@@ -46,10 +48,11 @@ export type AaveBaseReadOnlyAdapterOptions = {
  * - static-fallback: no RPC configured; deterministic static markets only.
  * - rpc-readonly: RPC configured; getHealth() performs a read-only connectivity
  *   check (getBlockNumber) and discoverMarkets() performs on-chain reserve
- *   discovery (Pool.getReservesList + ERC20 symbol/decimals).
+ *   discovery (Pool.getReservesList + ERC20 symbol/decimals) plus real supply
+ *   APR (Pool.getReserveData currentLiquidityRate).
  *
- * NOTE (Sprint 18): reserve assets are discovered on-chain, but APY/TVL remain
- * STATIC placeholders. Real Aave reserve math is not implemented yet.
+ * NOTE: APY is the real Aave liquidityRate APR used as an APY approximation
+ * (incentives excluded). TVL remains a STATIC placeholder.
  */
 export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
   readonly id = AAVE_BASE_CONFIG.protocolId;
@@ -137,7 +140,7 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
         rpcChecked: true,
         blockNumber: blockNumber.toString(),
         detail:
-          "RPC read-only health check succeeded (getBlockNumber). Reserves discovered on-chain; APY/TVL remain static placeholders.",
+          "RPC read-only health check succeeded (getBlockNumber). Reserves and supply APR discovered on-chain; TVL remains a static placeholder.",
         checkedAt,
       };
     } catch (error) {
@@ -185,9 +188,13 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
         );
       }
 
-      return reserves.map((reserve) =>
-        this.buildMarketFromReserve(reserve, fetchedAt),
-      );
+      const markets: ReadOnlyMarketOpportunity[] = [];
+      for (const reserve of reserves) {
+        markets.push(
+          await this.buildMarketFromReserve(client, reserve, fetchedAt),
+        );
+      }
+      return markets;
     } catch (error) {
       if (this.strictRpc) {
         throw error instanceof AaveReserveDiscoveryError
@@ -207,11 +214,53 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
     }
   }
 
-  private buildMarketFromReserve(
+  private async buildMarketFromReserve(
+    client: AaveReadOnlyClient,
     reserve: DiscoveredReserve,
     fetchedAt: string,
-  ): ReadOnlyMarketOpportunity {
+  ): Promise<ReadOnlyMarketOpportunity> {
     const { staticApy, staticTvlUsd } = getStaticApyTvlForAsset(reserve.symbol);
+
+    let apy = staticApy;
+    let apySource: ReadOnlyMarketMetadata["apySource"] = "static-placeholder";
+    let apyIsApproximation = false;
+    let apyNote: string;
+    let liquidityRateRay: string | undefined;
+
+    try {
+      const supply = await readAaveReserveSupplyApr(client, reserve.address);
+      apy = supply.supplyApr;
+      apySource = "aave-liquidity-rate";
+      apyIsApproximation = true;
+      apyNote =
+        "Aave liquidityRate APR used as APY approximation; incentives not included.";
+      liquidityRateRay = supply.liquidityRateRay.toString();
+    } catch (error) {
+      // In strict mode, surface the failure. In non-strict mode, fall back to
+      // the static APY placeholder for this specific market.
+      if (this.strictRpc) {
+        throw error instanceof AaveReserveDiscoveryError
+          ? error
+          : new AaveReserveDiscoveryError(
+              `supply APR read failed for ${reserve.symbol}`,
+              error,
+            );
+      }
+      apyNote =
+        "On-chain supply APR read failed; using static placeholder APY (non-strict fallback).";
+    }
+
+    const metadata: ReadOnlyMarketMetadata = {
+      reserveDiscovery: "on-chain",
+      reserveAddress: reserve.address,
+      decimals: reserve.decimals,
+      apySource,
+      apyIsApproximation,
+      apyNote,
+      tvlSource: "static-placeholder",
+      note: "Reserve discovered on-chain; TVL is a static placeholder.",
+      ...(liquidityRateRay !== undefined ? { liquidityRateRay } : {}),
+    };
 
     return {
       id: buildAaveMarketId(reserve.symbol),
@@ -219,18 +268,12 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
       protocolName: AAVE_BASE_CONFIG.protocolName,
       chain: AAVE_BASE_CONFIG.chain,
       asset: reserve.symbol,
-      apy: staticApy,
+      apy,
       tvlUsd: staticTvlUsd,
       exposureCategory: "lending",
       source: "rpc-reserve-discovery",
       fetchedAt,
-      metadata: {
-        reserveDiscovery: "on-chain",
-        apyTvlSource: "static-placeholder",
-        reserveAddress: reserve.address,
-        decimals: reserve.decimals,
-        note: "Reserve discovered on-chain (Sprint 18); APY/TVL are static placeholders.",
-      },
+      metadata,
     };
   }
 
@@ -251,8 +294,11 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
       fetchedAt,
       metadata: {
         reserveDiscovery: "static" as const,
-        apyTvlSource: "static-placeholder" as const,
         reserveAddress: market.reserveAddress,
+        apySource: "static-placeholder" as const,
+        apyIsApproximation: false,
+        apyNote: "APY is a static placeholder.",
+        tvlSource: "static-placeholder" as const,
         note: "Static fallback market; APY/TVL and reserve are static placeholders.",
       },
     }));

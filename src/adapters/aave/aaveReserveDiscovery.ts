@@ -2,6 +2,7 @@ import type { Abi, Address } from "viem";
 import type { SupportedAsset } from "../../core/opportunity/types.js";
 import { AAVE_BASE_CONFIG } from "./aaveBaseConfig.js";
 import { AAVE_POOL_ABI, ERC20_ABI } from "./aaveAbi.js";
+import { rayToDecimal } from "./aaveMath.js";
 
 /**
  * Minimal read-only client surface required for Aave Base reserve discovery.
@@ -122,4 +123,88 @@ export async function discoverAaveBaseReserves(
   }
 
   return supported;
+}
+
+export type AaveReserveSupplyData = {
+  /** Raw Aave currentLiquidityRate in ray units (1e27 = 100%). */
+  liquidityRateRay: bigint;
+  /** Supply APR as a decimal (e.g. 0.045 = 4.5%). */
+  supplyApr: number;
+};
+
+/**
+ * Extracts the Aave `currentLiquidityRate` (ray) from a decoded getReserveData
+ * result. Supports both viem's named-object decoding and a positional tuple.
+ *
+ * In the ReserveDataLegacy struct, `currentLiquidityRate` is the 3rd field
+ * (index 2), after `configuration` (0) and `liquidityIndex` (1).
+ */
+export function extractCurrentLiquidityRate(
+  reserveData: unknown,
+): bigint | undefined {
+  if (
+    reserveData !== null &&
+    typeof reserveData === "object" &&
+    "currentLiquidityRate" in reserveData
+  ) {
+    const value = (reserveData as Record<string, unknown>).currentLiquidityRate;
+    if (typeof value === "bigint") {
+      return value;
+    }
+    if (typeof value === "number") {
+      return BigInt(value);
+    }
+    return undefined;
+  }
+
+  if (Array.isArray(reserveData)) {
+    const value = reserveData[2];
+    if (typeof value === "bigint") {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Reads the real Aave supply APR for a reserve via read-only getReserveData.
+ *
+ * NOTE: Aave `liquidityRate` is an APR (not compounded). For MVP we use APR as
+ * an APY approximation. Incentives/rewards are NOT included.
+ *
+ * Throws AaveReserveDiscoveryError on RPC failure or decode failure.
+ */
+export async function readAaveReserveSupplyApr(
+  client: AaveReadOnlyClient,
+  assetAddress: Address,
+): Promise<AaveReserveSupplyData> {
+  let reserveData: unknown;
+
+  try {
+    reserveData = await client.readContract({
+      address: AAVE_BASE_CONFIG.poolAddress as Address,
+      abi: AAVE_POOL_ABI,
+      functionName: "getReserveData",
+      args: [assetAddress],
+    });
+  } catch (error) {
+    throw new AaveReserveDiscoveryError(
+      `getReserveData() call failed for ${assetAddress}`,
+      error,
+    );
+  }
+
+  const liquidityRateRay = extractCurrentLiquidityRate(reserveData);
+
+  if (liquidityRateRay === undefined) {
+    throw new AaveReserveDiscoveryError(
+      `could not decode currentLiquidityRate for ${assetAddress}`,
+    );
+  }
+
+  return {
+    liquidityRateRay,
+    supplyApr: rayToDecimal(liquidityRateRay),
+  };
 }

@@ -31,6 +31,10 @@ export type ReadOnlyMarketSource =
   | "static-fallback-rpc-verified"
   | "rpc-reserve-discovery";
 
+export type ApySource = "aave-liquidity-rate" | "static-placeholder";
+
+export type TvlSource = "static-placeholder";
+
 /**
  * Provenance metadata for a read-only market.
  *
@@ -39,12 +43,20 @@ export type ReadOnlyMarketSource =
 export type ReadOnlyMarketMetadata = {
   /** How the reserve asset itself was discovered. */
   reserveDiscovery: "static" | "on-chain";
-  /** How the APY/TVL values were produced. */
-  apyTvlSource: "static-placeholder" | "on-chain";
   /** Underlying reserve asset address, when discovered on-chain. */
   reserveAddress?: string;
   /** ERC20 decimals, when read on-chain. */
   decimals?: number;
+  /** How the APY value was produced. */
+  apySource: ApySource;
+  /** True when APY is an approximation (e.g. APR used as APY). */
+  apyIsApproximation: boolean;
+  /** Human-readable note about the APY value. */
+  apyNote?: string;
+  /** Raw Aave currentLiquidityRate in ray units, when read on-chain. */
+  liquidityRateRay?: string;
+  /** How the TVL value was produced (still a placeholder in this sprint). */
+  tvlSource: TvlSource;
   /** Human-readable provenance note. */
   note?: string;
 };

@@ -160,20 +160,28 @@ BASE_RPC_URL=https://base-mainnet.example/v2/<key>
 - **RPC read-only mode** (RPC configured): `getHealth()` performs a read-only
   connectivity check (`getBlockNumber`), and `discoverMarkets()` discovers Aave
   reserve assets **on-chain** via `Pool.getReservesList()` plus ERC20
-  `symbol()`/`decimals()`, filtered to Laminar V1 assets (USDC/EURC/DAI). Those
-  markets report `source = "rpc-reserve-discovery"`.
+  `symbol()`/`decimals()`, filtered to Laminar V1 assets (USDC/EURC/DAI), and
+  reads the **real supply APR** from `Pool.getReserveData().currentLiquidityRate`.
+  Those markets report `source = "rpc-reserve-discovery"`.
 
-### Reserve discovery (on-chain)
+### Reserve and APY discovery (on-chain)
 
-When RPC is configured, reserve **assets** are discovered on-chain (read-only).
-If on-chain discovery fails, the adapter falls back to static markets unless
-`strictRpc: true` is passed, in which case it throws an
-`AaveReserveDiscoveryError`.
+When RPC is configured, reserve **assets** are discovered on-chain (read-only)
+and the **supply APY** is derived from Aave's `liquidityRate` (ray units,
+`1e27 = 100%`). The APY is currently the Aave **APR used as an APY
+approximation** — incentives/reward emissions are **not** included.
+
+If on-chain reserve discovery fails, the adapter falls back to static markets
+unless `strictRpc: true` is passed, in which case it throws an
+`AaveReserveDiscoveryError`. If only the per-market supply APR read fails
+(non-strict), the reserve is kept but its APY falls back to a static
+placeholder.
 
 ### Warnings
 
-- **APY/TVL are static placeholders**, even when reserves are discovered
-  on-chain. Real Aave reserve APY/TVL math is not implemented yet.
+- **APY is the Aave `liquidityRate` APR** used as an APY approximation;
+  incentives are not included.
+- **TVL remains a static placeholder.** Real TVL math is not implemented yet.
 - Trust/liquidity metadata for Aave is curated/static.
 - The adapter is **read-only**: no wallet, no private key, no signer, and
   **no transactions are created**.
