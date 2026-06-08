@@ -1,0 +1,10 @@
+{
+  "selectedProfile": "Conservative",
+  "expectedApy": 3.7,
+  "strategyAllocationPercent": 44.5,
+  "liquidityBufferPercent": 54.5,
+  "gasReservePercent": 1.0,
+  "numberOfStrategyPositions": 1,
+  "topStrategyLabel": "Aave Prime USDC",
+  "warningCodes": ["highLiquidityBuffer", "rejectedOpportunities"]
+}

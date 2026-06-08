@@ -1,0 +1,10 @@
+{
+  "selectedProfile": "Balanced",
+  "expectedApy": 5.4,
+  "strategyAllocationPercent": 79.2,
+  "liquidityBufferPercent": 19.8,
+  "gasReservePercent": 1.0,
+  "numberOfStrategyPositions": 2,
+  "topStrategyLabel": "Morpho USDC",
+  "warningCodes": ["rejectedOpportunities", "sameAssetConcentration"]
+}

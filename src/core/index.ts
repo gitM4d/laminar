@@ -1,4 +1,5 @@
 import { createMockExecutionPlan } from "./execution/createMockExecutionPlan.js";
+import type { LaminarDataProvider } from "./providers/types.js";
 import { generatePortfolioRecommendation } from "./recommendation/generatePortfolioRecommendation.js";
 import { createRecommendationSnapshot } from "./snapshot/createRecommendationSnapshot.js";
 import type {
@@ -14,6 +15,13 @@ export type {
   LaminarRecommendationInput,
   LaminarRecommendationResult,
 } from "./types.js";
+export type {
+  LaminarDataProvider,
+  LiquidityProfileProvider,
+  OpportunityProvider,
+  TrustProfileProvider,
+} from "./providers/types.js";
+export { MockLaminarDataProvider } from "./providers/MockLaminarDataProvider.js";
 
 export {
   IntentValidationError,
@@ -24,11 +32,25 @@ export {
 export function createLaminarRecommendation(
   input: LaminarRecommendationInput,
 ): LaminarRecommendationResult {
-  const recommendation = generatePortfolioRecommendation({
+  const recommendationInput: {
+    intent: unknown;
+    portfolioValueUsd: number;
+    asOf?: Date;
+    dataProvider?: LaminarDataProvider;
+  } = {
     intent: input.intent,
     portfolioValueUsd: input.portfolioValueUsd,
-    ...(input.asOf !== undefined ? { asOf: input.asOf } : {}),
-  });
+  };
+
+  if (input.asOf !== undefined) {
+    recommendationInput.asOf = input.asOf;
+  }
+
+  if (input.dataProvider !== undefined) {
+    recommendationInput.dataProvider = input.dataProvider;
+  }
+
+  const recommendation = generatePortfolioRecommendation(recommendationInput);
   const snapshot = createRecommendationSnapshot(recommendation);
   const executionPlan = createMockExecutionPlan({ recommendation, snapshot });
 

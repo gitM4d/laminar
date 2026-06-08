@@ -1,0 +1,9 @@
+{
+  "intent": {
+    "risk": 1,
+    "liquidity": 10,
+    "returnPreference": 2
+  },
+  "portfolioValueUsd": 10000,
+  "asOf": "2026-06-01T00:00:00.000Z"
+}

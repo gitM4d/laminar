@@ -4,6 +4,8 @@ Laminar is an intent-first portfolio recommendation engine. Users express risk, 
 
 This repository contains the Laminar MVP core pipeline and a local HTTP API for development and integration testing.
 
+The core reads opportunities, trust profiles, and liquidity profiles through a **read-only data provider abstraction**. The default provider is mock-only; real protocol adapters are future work.
+
 ## MVP pipeline
 
 ```text
@@ -118,6 +120,15 @@ npm run check
 
 Runs typecheck, lint, tests, and API contract validation.
 
+## Manual QA
+
+- Sensitivity QA guide: [docs/qa/manual-sensitivity-qa.md](docs/qa/manual-sensitivity-qa.md)
+- Request fixtures: [docs/qa/fixtures/](docs/qa/fixtures/)
+
+```bash
+npm run qa:sensitivity
+```
+
 ## API documentation
 
 - API guide: [docs/api/README.md](docs/api/README.md)
@@ -138,8 +149,10 @@ Runs typecheck, lint, tests, and API contract validation.
 
 ```text
 src/core/     Domain pipeline and public core API
+src/core/providers/  Read-only data provider interfaces (mock default)
 src/api/      Local HTTP API
 src/demo/     CLI demo
 frontend/     Minimal React prototype UI
 docs/api/     HTTP contract and examples
+docs/qa/      Manual sensitivity QA guide and fixtures
 ```

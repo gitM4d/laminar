@@ -3,12 +3,15 @@ import {
   InvalidPortfolioValueError,
 } from "../construction/constructPortfolio.js";
 import { assertValidIntent } from "../intent/validateIntent.js";
+import type { OpportunityLiquidityProfile } from "../liquidity/types.js";
 import {
   scoreOpportunitiesLiquidity,
   UnknownOpportunityLiquidityProfileError,
 } from "../liquidity/scoreOpportunityLiquidity.js";
 import { normalizeIntent } from "../normalization/normalizeIntent.js";
-import { discoverOpportunities } from "../opportunity/discoverOpportunities.js";
+import type { Opportunity } from "../opportunity/types.js";
+import { MockLaminarDataProvider } from "../providers/MockLaminarDataProvider.js";
+import type { LaminarDataProvider } from "../providers/types.js";
 import { generatePolicy } from "../policy/generatePolicy.js";
 import { selectProfile } from "../profile/selectProfile.js";
 import { assessOpportunitiesRisk } from "../risk/assessOpportunitiesRisk.js";
@@ -17,6 +20,7 @@ import {
   scoreOpportunitiesTrust,
   UnknownProtocolTrustProfileError,
 } from "../trust/scoreOpportunityTrust.js";
+import type { ProtocolTrustProfile } from "../trust/types.js";
 import type {
   GeneratePortfolioRecommendationInput,
   PortfolioRecommendationResult,
@@ -65,12 +69,67 @@ function completeStep(
   });
 }
 
+function buildTrustProfilesFromProvider(
+  opportunities: readonly Opportunity[],
+  dataProvider: LaminarDataProvider,
+): Record<string, ProtocolTrustProfile> {
+  const profiles: Record<string, ProtocolTrustProfile> = {};
+
+  for (const opportunity of opportunities) {
+    if (profiles[opportunity.protocolId] !== undefined) {
+      continue;
+    }
+
+    try {
+      profiles[opportunity.protocolId] = dataProvider.getTrustProfile(
+        opportunity.protocolId,
+      );
+    } catch (error) {
+      if (error instanceof UnknownProtocolTrustProfileError) {
+        throw new RecommendationDataConsistencyError(
+          `Cannot score trust for protocol ${error.protocolId}`,
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  return profiles;
+}
+
+function buildLiquidityProfilesFromProvider(
+  opportunities: readonly Opportunity[],
+  dataProvider: LaminarDataProvider,
+): Record<string, OpportunityLiquidityProfile> {
+  const profiles: Record<string, OpportunityLiquidityProfile> = {};
+
+  for (const opportunity of opportunities) {
+    try {
+      profiles[opportunity.id] = dataProvider.getLiquidityProfile(
+        opportunity.id,
+      );
+    } catch (error) {
+      if (error instanceof UnknownOpportunityLiquidityProfileError) {
+        throw new RecommendationDataConsistencyError(
+          `Cannot score liquidity for opportunity ${error.opportunityId}`,
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  return profiles;
+}
+
 function scoreTrustWithConsistencyCheck(
   opportunities: PortfolioRecommendationResult["opportunities"],
   asOf: Date,
+  trustProfiles: Record<string, ProtocolTrustProfile>,
 ): PortfolioRecommendationResult["trustScores"] {
   try {
-    return scoreOpportunitiesTrust(opportunities, { asOf });
+    return scoreOpportunitiesTrust(opportunities, { asOf, profiles: trustProfiles });
   } catch (error) {
     if (error instanceof UnknownProtocolTrustProfileError) {
       throw new RecommendationDataConsistencyError(
@@ -84,9 +143,12 @@ function scoreTrustWithConsistencyCheck(
 
 function scoreLiquidityWithConsistencyCheck(
   opportunities: PortfolioRecommendationResult["opportunities"],
+  liquidityProfiles: Record<string, OpportunityLiquidityProfile>,
 ): PortfolioRecommendationResult["liquidityScores"] {
   try {
-    return scoreOpportunitiesLiquidity(opportunities);
+    return scoreOpportunitiesLiquidity(opportunities, {
+      profiles: liquidityProfiles,
+    });
   } catch (error) {
     if (error instanceof UnknownOpportunityLiquidityProfileError) {
       throw new RecommendationDataConsistencyError(
@@ -121,30 +183,43 @@ export function generatePortfolioRecommendation(
   const policy = generatePolicy(profileClassification.selectedProfile);
   completeStep(pipelineSteps, "generatePolicy");
 
-  const discovery = discoverOpportunities();
+  const dataProvider = input.dataProvider ?? new MockLaminarDataProvider();
+  const opportunities = dataProvider.discoverOpportunities();
   completeStep(pipelineSteps, "discoverOpportunities");
 
+  const trustProfiles = buildTrustProfilesFromProvider(
+    opportunities,
+    dataProvider,
+  );
+  const liquidityProfiles = buildLiquidityProfilesFromProvider(
+    opportunities,
+    dataProvider,
+  );
+
   const trustScores = scoreTrustWithConsistencyCheck(
-    discovery.opportunities,
+    opportunities,
     input.asOf ?? new Date(generatedAt),
+    trustProfiles,
   );
   completeStep(pipelineSteps, "scoreTrust");
 
   const liquidityScores = scoreLiquidityWithConsistencyCheck(
-    discovery.opportunities,
+    opportunities,
+    liquidityProfiles,
   );
   completeStep(pipelineSteps, "scoreLiquidity");
 
   const riskAssessments = assessOpportunitiesRisk(
-    discovery.opportunities,
+    opportunities,
     policy,
     trustScores,
     liquidityScores,
+    { liquidityProfiles },
   );
   completeStep(pipelineSteps, "assessRisk");
 
   const opportunityRanking = rankOpportunities({
-    opportunities: discovery.opportunities,
+    opportunities,
     policy,
     trustScores,
     liquidityScores,
@@ -161,7 +236,7 @@ export function generatePortfolioRecommendation(
   const portfolioConstruction = constructPortfolio({
     policy,
     ranking: opportunityRanking,
-    opportunities: discovery.opportunities,
+    opportunities,
     portfolioValueUsd: input.portfolioValueUsd,
   });
   completeStep(pipelineSteps, "constructPortfolio");
@@ -181,7 +256,7 @@ export function generatePortfolioRecommendation(
     normalizedIntent,
     selectedProfile: profileClassification.selectedProfile,
     policy,
-    opportunities: discovery.opportunities,
+    opportunities,
     trustScores,
     liquidityScores,
     riskAssessments,

@@ -7,12 +7,14 @@ import type { PortfolioPolicy } from "../policy/types.js";
 import type { ProfileName } from "../profile/types.js";
 import type { AssessedOpportunityRisk } from "../risk/types.js";
 import type { OpportunityRanking } from "../scoring/types.js";
+import type { LaminarDataProvider } from "../providers/types.js";
 import type { ScoredOpportunityTrust } from "../trust/types.js";
 
 export type GeneratePortfolioRecommendationInput = {
   intent: unknown;
   portfolioValueUsd: number;
   asOf?: Date;
+  dataProvider?: LaminarDataProvider;
 };
 
 export type RecommendationPipelineStepStatus =

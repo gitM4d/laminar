@@ -41,6 +41,9 @@ export function assessOpportunitiesRisk(
   policy: PortfolioPolicy,
   trustScores: readonly ScoredOpportunityTrust[],
   liquidityScores: readonly ScoredOpportunityLiquidity[],
+  options: {
+    liquidityProfiles?: Record<string, OpportunityLiquidityProfile>;
+  } = {},
 ): AssessedOpportunityRisk[] {
   const trustByOpportunityId = new Map(
     trustScores.map((entry) => [entry.opportunityId, entry]),
@@ -65,6 +68,12 @@ export function assessOpportunitiesRisk(
       );
     }
 
-    return assessOpportunityRisk(opportunity, policy, trust, liquidity);
+    return assessOpportunityRisk(
+      opportunity,
+      policy,
+      trust,
+      liquidity,
+      options.liquidityProfiles?.[opportunity.id],
+    );
   });
 }
