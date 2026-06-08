@@ -1,8 +1,41 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { AaveBaseReadOnlyAdapter } from "./AaveBaseReadOnlyAdapter.js";
 import { AAVE_BASE_STATIC_MARKETS } from "./aaveStaticMarkets.js";
+import {
+  AaveReserveDiscoveryError,
+  type AaveReadOnlyClient,
+} from "./aaveReserveDiscovery.js";
 
 const fixedNow = () => new Date("2026-06-01T00:00:00.000Z");
+
+const USDC = "0xUSDC000000000000000000000000000000000000" as `0x${string}`;
+const EURC = "0xEURC000000000000000000000000000000000000" as `0x${string}`;
+const WETH = "0xWETH000000000000000000000000000000000000" as `0x${string}`;
+
+function buildDiscoveryClient(): AaveReadOnlyClient {
+  const reserves: Record<string, { symbol: string; decimals: number }> = {
+    [USDC]: { symbol: "USDC", decimals: 6 },
+    [EURC]: { symbol: "EURC", decimals: 6 },
+    [WETH]: { symbol: "WETH", decimals: 18 },
+  };
+
+  return {
+    getBlockNumber: async () => 100n,
+    readContract: async (args) => {
+      if (args.functionName === "getReservesList") {
+        return [USDC, WETH, EURC];
+      }
+      const reserve = reserves[args.address];
+      if (reserve === undefined) {
+        throw new Error("unknown reserve");
+      }
+      return args.functionName === "symbol" ? reserve.symbol : reserve.decimals;
+    },
+  };
+}
 
 describe("AaveBaseReadOnlyAdapter", () => {
   it("uses static-fallback mode without RPC", () => {
@@ -68,6 +101,9 @@ describe("AaveBaseReadOnlyAdapter", () => {
       rpcUrl: "https://example.invalid/rpc",
       publicClient: {
         getBlockNumber: async () => 12_345_678n,
+        readContract: async () => {
+          throw new Error("reserve discovery unavailable");
+        },
       },
       now: fixedNow,
     });
@@ -79,6 +115,8 @@ describe("AaveBaseReadOnlyAdapter", () => {
     expect(health.rpcChecked).toBe(true);
     expect(health.blockNumber).toBe("12345678");
 
+    // Reserve discovery fails here, but RPC is reachable → static fallback
+    // flagged as rpc-verified.
     const markets = await adapter.discoverMarkets();
     expect(markets[0]?.source).toBe("static-fallback-rpc-verified");
   });
@@ -88,6 +126,9 @@ describe("AaveBaseReadOnlyAdapter", () => {
       rpcUrl: "https://example.invalid/rpc",
       publicClient: {
         getBlockNumber: async () => {
+          throw new Error("connection refused");
+        },
+        readContract: async () => {
           throw new Error("connection refused");
         },
       },
@@ -114,5 +155,95 @@ describe("AaveBaseReadOnlyAdapter", () => {
     });
 
     expect(adapter.getMode()).toBe("rpc-readonly");
+  });
+
+  it("discovers reserves on-chain in rpc mode and filters to supported assets", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: buildDiscoveryClient(),
+      now: fixedNow,
+    });
+
+    const markets = await adapter.discoverMarkets();
+
+    expect(markets.map((market) => market.id)).toEqual([
+      "aave-usdc-base",
+      "aave-eurc-base",
+    ]);
+    for (const market of markets) {
+      expect(market.source).toBe("rpc-reserve-discovery");
+      expect(market.metadata?.reserveDiscovery).toBe("on-chain");
+      expect(market.metadata?.apyTvlSource).toBe("static-placeholder");
+      expect(market.apy).toBeGreaterThan(0);
+      expect(market.tvlUsd).toBeGreaterThan(0);
+    }
+    expect(markets[0]?.metadata?.reserveAddress).toBe(USDC);
+    expect(markets[0]?.metadata?.decimals).toBe(6);
+  });
+
+  it("strictRpc throws when reserve discovery fails", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      strictRpc: true,
+      publicClient: {
+        getBlockNumber: async () => 1n,
+        readContract: async () => {
+          throw new Error("rpc reserve call failed");
+        },
+      },
+      now: fixedNow,
+    });
+
+    expect(adapter.isStrictRpc()).toBe(true);
+    await expect(adapter.discoverMarkets()).rejects.toBeInstanceOf(
+      AaveReserveDiscoveryError,
+    );
+  });
+
+  it("non-strict RPC failure falls back to static markets", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: {
+        getBlockNumber: async () => 1n,
+        readContract: async () => {
+          throw new Error("rpc reserve call failed");
+        },
+      },
+      now: fixedNow,
+    });
+
+    const markets = await adapter.discoverMarkets();
+
+    expect(markets).toHaveLength(AAVE_BASE_STATIC_MARKETS.length);
+    // RPC endpoint itself is reachable (getBlockNumber succeeds), so the
+    // fallback is flagged as rpc-verified.
+    expect(markets[0]?.source).toBe("static-fallback-rpc-verified");
+    expect(markets[0]?.metadata?.reserveDiscovery).toBe("static");
+  });
+
+  it("does not introduce wallet/private key/signing imports in adapter sources", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const sources = [
+      "AaveBaseReadOnlyAdapter.ts",
+      "aaveReserveDiscovery.ts",
+      "aaveAbi.ts",
+      "mapAaveMarketToOpportunity.ts",
+    ].map((file) => readFileSync(join(here, file), "utf8"));
+
+    const forbidden = [
+      "walletClient",
+      "createWalletClient",
+      "privateKeyToAccount",
+      "PrivateKey",
+      "signTransaction",
+      "sendTransaction",
+      "writeContract",
+    ];
+
+    for (const source of sources) {
+      for (const term of forbidden) {
+        expect(source).not.toContain(term);
+      }
+    }
   });
 });

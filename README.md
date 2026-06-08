@@ -131,9 +131,9 @@ npm run qa:sensitivity
 
 ## Protocol adapters (experimental)
 
-Sprint 17 introduces the first read-only protocol adapter spike for Aave V3 on
-Base. It is **not** wired into the API or frontend default flow; the default
-data provider remains `MockLaminarDataProvider`.
+The read-only protocol adapter for Aave V3 on Base is **not** wired into the API
+or frontend default flow; the default data provider remains
+`MockLaminarDataProvider`.
 
 Run the read-only adapter probe:
 
@@ -157,15 +157,24 @@ BASE_RPC_URL=https://base-mainnet.example/v2/<key>
 - **Static fallback mode** (no RPC configured): `getHealth()` returns a healthy
   static status and `discoverMarkets()` returns deterministic static markets
   (`source = "static-fallback"`).
-- **RPC read-only mode** (RPC configured): `getHealth()` performs a minimal
-  read-only connectivity check (`getBlockNumber`) and discovered markets report
-  `source = "static-fallback-rpc-verified"`.
+- **RPC read-only mode** (RPC configured): `getHealth()` performs a read-only
+  connectivity check (`getBlockNumber`), and `discoverMarkets()` discovers Aave
+  reserve assets **on-chain** via `Pool.getReservesList()` plus ERC20
+  `symbol()`/`decimals()`, filtered to Laminar V1 assets (USDC/EURC/DAI). Those
+  markets report `source = "rpc-reserve-discovery"`.
+
+### Reserve discovery (on-chain)
+
+When RPC is configured, reserve **assets** are discovered on-chain (read-only).
+If on-chain discovery fails, the adapter falls back to static markets unless
+`strictRpc: true` is passed, in which case it throws an
+`AaveReserveDiscoveryError`.
 
 ### Warnings
 
-- **APY/TVL are static placeholders in Sprint 17**, even when RPC health
-  succeeds. Real Aave reserve math is not implemented yet.
-- Trust/liquidity metadata for Aave is curated/static in this sprint.
+- **APY/TVL are static placeholders**, even when reserves are discovered
+  on-chain. Real Aave reserve APY/TVL math is not implemented yet.
+- Trust/liquidity metadata for Aave is curated/static.
 - The adapter is **read-only**: no wallet, no private key, no signer, and
   **no transactions are created**.
 

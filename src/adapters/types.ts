@@ -22,11 +22,32 @@ export type AdapterMode = "static-fallback" | "rpc-readonly";
  *
  * - `static-fallback`: data is fully static; no RPC was available.
  * - `static-fallback-rpc-verified`: RPC connectivity was verified, but the
- *   market APY/TVL values are still static for this spike.
+ *   reserves and the market APY/TVL values are still static.
+ * - `rpc-reserve-discovery`: the reserve asset was discovered on-chain via
+ *   read-only RPC calls. APY/TVL may still be static placeholders.
  */
 export type ReadOnlyMarketSource =
   | "static-fallback"
-  | "static-fallback-rpc-verified";
+  | "static-fallback-rpc-verified"
+  | "rpc-reserve-discovery";
+
+/**
+ * Provenance metadata for a read-only market.
+ *
+ * Distinguishes which parts of the market are sourced on-chain vs static.
+ */
+export type ReadOnlyMarketMetadata = {
+  /** How the reserve asset itself was discovered. */
+  reserveDiscovery: "static" | "on-chain";
+  /** How the APY/TVL values were produced. */
+  apyTvlSource: "static-placeholder" | "on-chain";
+  /** Underlying reserve asset address, when discovered on-chain. */
+  reserveAddress?: string;
+  /** ERC20 decimals, when read on-chain. */
+  decimals?: number;
+  /** Human-readable provenance note. */
+  note?: string;
+};
 
 export type AdapterHealthStatus = {
   adapterId: ProtocolAdapterId;
@@ -52,6 +73,7 @@ export type ReadOnlyMarketOpportunity = {
   exposureCategory: ExposureCategory;
   source: ReadOnlyMarketSource;
   fetchedAt: string;
+  metadata?: ReadOnlyMarketMetadata;
 };
 
 export interface ProtocolAdapter {

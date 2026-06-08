@@ -1,3 +1,4 @@
+import type { SupportedAsset } from "../../core/opportunity/types.js";
 import type { AaveBaseStaticMarket } from "./aaveTypes.js";
 
 /**
@@ -25,3 +26,26 @@ export const AAVE_BASE_STATIC_MARKETS: readonly AaveBaseStaticMarket[] = [
     staticTvlUsd: 25_000_000,
   },
 ] as const;
+
+/**
+ * Static APY/TVL placeholders keyed by supported asset.
+ *
+ * Used by on-chain reserve discovery (Sprint 18): reserves are discovered on
+ * chain, but APY/TVL values remain STATIC placeholders until real Aave reserve
+ * math is implemented in a later sprint.
+ */
+export const AAVE_BASE_STATIC_APY_TVL_BY_ASSET: Record<
+  SupportedAsset,
+  { staticApy: number; staticTvlUsd: number }
+> = {
+  USDC: { staticApy: 0.052, staticTvlUsd: 180_000_000 },
+  EURC: { staticApy: 0.041, staticTvlUsd: 25_000_000 },
+  DAI: { staticApy: 0.038, staticTvlUsd: 40_000_000 },
+};
+
+export function getStaticApyTvlForAsset(asset: SupportedAsset): {
+  staticApy: number;
+  staticTvlUsd: number;
+} {
+  return AAVE_BASE_STATIC_APY_TVL_BY_ASSET[asset];
+}
