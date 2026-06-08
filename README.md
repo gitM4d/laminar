@@ -35,6 +35,17 @@ npm ci
 
 ## Development
 
+### Run API and frontend together
+
+```bash
+npm run dev
+```
+
+- API: `http://127.0.0.1:3000`
+- Frontend: `http://127.0.0.1:5173`
+
+The Vite dev server proxies `/recommendation` and `/health` to the local API.
+
 ### Run demo
 
 ```bash
@@ -51,19 +62,20 @@ Default base URL: `http://127.0.0.1:3000`
 
 ### Run frontend prototype
 
-In one terminal, start the API:
+Start both services:
+
+```bash
+npm run dev
+```
+
+Or run them separately:
 
 ```bash
 npm run api
-```
-
-In another terminal, start the frontend:
-
-```bash
 npm run frontend
 ```
 
-Open `http://127.0.0.1:5173` in your browser.
+Frontend URL: `http://127.0.0.1:5173`
 
 Build the frontend:
 
