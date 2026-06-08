@@ -118,6 +118,31 @@ describe("sensitivityMatrix", () => {
     );
   });
 
+  it("shows Yield Focused allocation differs from Balanced allocation", () => {
+    const balanced = runScenario(
+      SENSITIVITY_SCENARIOS.find(
+        (entry) => entry.name === "Balanced default",
+      )!,
+      DEFAULT_SENSITIVITY_AS_OF,
+    );
+    const yieldFocused = runScenario(
+      SENSITIVITY_SCENARIOS.find(
+        (entry) => entry.name === "Yield Focused default",
+      )!,
+      DEFAULT_SENSITIVITY_AS_OF,
+    );
+
+    expect(yieldFocused.summary.numberOfStrategyPositions).not.toBe(
+      balanced.summary.numberOfStrategyPositions,
+    );
+    expect(yieldFocused.summary.topStrategyPositionLabel).not.toBe(
+      balanced.summary.topStrategyPositionLabel,
+    );
+    expect(yieldFocused.summary.expectedApy).toBeGreaterThan(
+      balanced.summary.expectedApy,
+    );
+  });
+
   it("formats a readable table", () => {
     const results = runSensitivityMatrix(
       SENSITIVITY_SCENARIOS.slice(0, 2),

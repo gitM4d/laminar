@@ -36,6 +36,16 @@ export class InvalidStrategyDeployableWeightError extends Error {
   }
 }
 
+const BUCKET_ORDER: readonly ExposureCategory[] = [
+  "lending",
+  "yieldEnhancement",
+];
+
+type ActiveBucket = {
+  category: ExposureCategory;
+  target: number;
+};
+
 function roundInternal(value: number): number {
   const factor = 10 ** INTERNAL_PRECISION_DECIMALS;
   return Math.round(value * factor) / factor;
@@ -62,6 +72,17 @@ function buildOpportunityMap(
   );
 }
 
+function hasCandidatesForBucket(
+  ranking: PortfolioConstructionInput["ranking"],
+  opportunityById: Map<string, Opportunity>,
+  exposureCategory: ExposureCategory,
+): boolean {
+  return ranking.ranked.some((entry) => {
+    const opportunity = opportunityById.get(entry.opportunityId);
+    return opportunity?.exposureCategory === exposureCategory;
+  });
+}
+
 function toScoredCandidate(
   entry: ScoredOpportunity,
   opportunity: Opportunity,
@@ -70,31 +91,157 @@ function toScoredCandidate(
     opportunityId: entry.opportunityId,
     protocolId: entry.protocolId,
     protocolName: entry.protocolName,
-    asset: entry.asset as SupportedAsset,
+    asset: opportunity.asset as SupportedAsset,
     exposureCategory: opportunity.exposureCategory,
     score: entry.scoring.score,
     rank: entry.rank,
   };
 }
 
-function selectCandidates(
+function distributeIntegerSlots(
+  buckets: readonly ActiveBucket[],
+  totalSlots: number,
+): Map<ExposureCategory, number> {
+  const slots = new Map<ExposureCategory, number>();
+
+  if (buckets.length === 0 || totalSlots <= 0) {
+    return slots;
+  }
+
+  if (buckets.length === 1) {
+    const onlyBucket = buckets[0];
+    if (onlyBucket !== undefined) {
+      slots.set(onlyBucket.category, totalSlots);
+    }
+    return slots;
+  }
+
+  const totalTarget = buckets.reduce((sum, bucket) => sum + bucket.target, 0);
+
+  if (totalTarget <= 0) {
+    const equalSlots = Math.floor(totalSlots / buckets.length);
+    let remainder = totalSlots - equalSlots * buckets.length;
+
+    for (const bucket of buckets) {
+      const extra = remainder > 0 ? 1 : 0;
+      if (remainder > 0) {
+        remainder -= 1;
+      }
+      slots.set(bucket.category, equalSlots + extra);
+    }
+
+    return slots;
+  }
+
+  if (buckets.length <= totalSlots) {
+    const remaining = totalSlots - buckets.length;
+
+    for (const bucket of buckets) {
+      slots.set(bucket.category, 1);
+    }
+
+    if (remaining > 0) {
+      const ideals = buckets.map((bucket) => ({
+        category: bucket.category,
+        ideal: (remaining * bucket.target) / totalTarget,
+      }));
+      const allocations = ideals.map((entry) => ({
+        category: entry.category,
+        extra: Math.floor(entry.ideal),
+        remainder: entry.ideal - Math.floor(entry.ideal),
+      }));
+
+      for (const entry of allocations) {
+        slots.set(
+          entry.category,
+          (slots.get(entry.category) ?? 0) + entry.extra,
+        );
+      }
+
+      let leftover =
+        remaining - allocations.reduce((sum, entry) => sum + entry.extra, 0);
+      const byRemainder = [...allocations].sort(
+        (left, right) => right.remainder - left.remainder,
+      );
+
+      for (const entry of byRemainder) {
+        if (leftover <= 0) {
+          break;
+        }
+
+        slots.set(entry.category, (slots.get(entry.category) ?? 0) + 1);
+        leftover -= 1;
+      }
+    }
+
+    return slots;
+  }
+
+  const ideals = buckets.map((bucket) => ({
+    category: bucket.category,
+    ideal: (totalSlots * bucket.target) / totalTarget,
+  }));
+  const allocations = ideals.map((entry) => ({
+    category: entry.category,
+    slots: Math.floor(entry.ideal),
+    remainder: entry.ideal - Math.floor(entry.ideal),
+  }));
+
+  for (const entry of allocations) {
+    slots.set(entry.category, entry.slots);
+  }
+
+  let leftover =
+    totalSlots - allocations.reduce((sum, entry) => sum + entry.slots, 0);
+  const byRemainder = [...allocations].sort(
+    (left, right) => right.remainder - left.remainder,
+  );
+
+  for (const entry of byRemainder) {
+    if (leftover <= 0) {
+      break;
+    }
+
+    slots.set(entry.category, (slots.get(entry.category) ?? 0) + 1);
+    leftover -= 1;
+  }
+
+  return slots;
+}
+
+function computeBucketSlots(
+  activeBuckets: readonly ActiveBucket[],
+  maxActiveAllocations: number,
+): Map<ExposureCategory, number> {
+  return distributeIntegerSlots(activeBuckets, maxActiveAllocations);
+}
+
+function selectBucketCandidates(
   ranked: readonly ScoredOpportunity[],
   opportunityById: Map<string, Opportunity>,
   exposureCategory: ExposureCategory,
-  maxActiveAllocations: number,
+  maxSlots: number,
   excludedOpportunityIds: ReadonlySet<string>,
+  usedProtocolIds: ReadonlySet<string>,
 ): InternalSelectedCandidate[] {
   const selected: InternalSelectedCandidate[] = [];
-  const seenProtocols = new Set<string>();
+
+  if (maxSlots <= 0) {
+    return selected;
+  }
 
   for (const entry of [...ranked].sort(
     (left, right) => left.rank - right.rank,
   )) {
-    if (selected.length >= maxActiveAllocations) {
+    if (selected.length >= maxSlots) {
       break;
     }
 
     if (excludedOpportunityIds.has(entry.opportunityId)) {
+      continue;
+    }
+
+    if (usedProtocolIds.has(entry.protocolId)) {
       continue;
     }
 
@@ -108,19 +255,48 @@ function selectCandidates(
       continue;
     }
 
-    if (seenProtocols.has(entry.protocolId)) {
+    selected.push(toScoredCandidate(entry, opportunity));
+  }
+
+  return selected;
+}
+
+function selectMultiBucketCandidates(
+  ranked: readonly ScoredOpportunity[],
+  opportunityById: Map<string, Opportunity>,
+  bucketSlots: ReadonlyMap<ExposureCategory, number>,
+  excludedOpportunityIds: ReadonlySet<string>,
+): InternalSelectedCandidate[] {
+  const selected: InternalSelectedCandidate[] = [];
+  const usedProtocolIds = new Set<string>();
+
+  for (const category of BUCKET_ORDER) {
+    const maxSlots = bucketSlots.get(category) ?? 0;
+
+    if (maxSlots <= 0) {
       continue;
     }
 
-    selected.push(toScoredCandidate(entry, opportunity));
-    seenProtocols.add(entry.protocolId);
+    const bucketSelected = selectBucketCandidates(
+      ranked,
+      opportunityById,
+      category,
+      maxSlots,
+      excludedOpportunityIds,
+      usedProtocolIds,
+    );
+
+    for (const candidate of bucketSelected) {
+      selected.push(candidate);
+      usedProtocolIds.add(candidate.protocolId);
+    }
   }
 
   return selected;
 }
 
 function computeScoreProportionalWeights(
-  candidates: InternalSelectedCandidate[],
+  candidates: readonly InternalSelectedCandidate[],
 ): Map<string, number> {
   const weights = new Map<string, number>();
 
@@ -146,6 +322,37 @@ function computeScoreProportionalWeights(
   const equalWeight = roundInternal(1 / candidates.length);
   for (const candidate of candidates) {
     weights.set(candidate.opportunityId, equalWeight);
+  }
+
+  return weights;
+}
+
+function computeMultiBucketRelativeWeights(
+  selected: readonly InternalSelectedCandidate[],
+  bucketTargets: ReadonlyMap<ExposureCategory, number>,
+): Map<string, number> {
+  const weights = new Map<string, number>();
+  const candidatesByBucket = new Map<ExposureCategory, InternalSelectedCandidate[]>();
+
+  for (const candidate of selected) {
+    const bucketCandidates =
+      candidatesByBucket.get(candidate.exposureCategory) ?? [];
+    bucketCandidates.push(candidate);
+    candidatesByBucket.set(candidate.exposureCategory, bucketCandidates);
+  }
+
+  for (const [category, candidates] of candidatesByBucket) {
+    const bucketTarget = bucketTargets.get(category) ?? 0;
+    const withinBucketWeights = computeScoreProportionalWeights(candidates);
+
+    for (const candidate of candidates) {
+      const withinBucketWeight =
+        withinBucketWeights.get(candidate.opportunityId) ?? 0;
+      weights.set(
+        candidate.opportunityId,
+        roundInternal(bucketTarget * withinBucketWeight),
+      );
+    }
   }
 
   return weights;
@@ -377,6 +584,156 @@ function applyRoundedWeights(
   });
 }
 
+function getSelectedByBucket(
+  selected: readonly InternalSelectedCandidate[],
+): Map<ExposureCategory, InternalSelectedCandidate[]> {
+  const byBucket = new Map<ExposureCategory, InternalSelectedCandidate[]>();
+
+  for (const candidate of selected) {
+    const bucketCandidates =
+      byBucket.get(candidate.exposureCategory) ?? [];
+    bucketCandidates.push(candidate);
+    byBucket.set(candidate.exposureCategory, bucketCandidates);
+  }
+
+  return byBucket;
+}
+
+function recordBucketSlotAllocation(
+  activeBuckets: readonly ActiveBucket[],
+  bucketSlots: ReadonlyMap<ExposureCategory, number>,
+  maxActiveAllocations: number,
+  steps: ConstructionStep[],
+  explanations: ConstructionExplanation[],
+): void {
+  const slotSummary = activeBuckets
+    .map(
+      (bucket) =>
+        `${bucket.category}=${bucketSlots.get(bucket.category) ?? 0}`,
+    )
+    .join(", ");
+
+  steps.push({
+    id: "bucketSlotAllocation",
+    description: `Allocated ${maxActiveAllocations} global slots across exposure buckets (${slotSummary}).`,
+    details: {
+      maxActiveAllocations,
+    },
+  });
+
+  explanations.push({
+    summary: "Allocated candidate slots across exposure buckets.",
+    details: [
+      `Global maxActiveAllocations: ${maxActiveAllocations}.`,
+      `Bucket slot allocation: ${slotSummary}.`,
+      ...activeBuckets.map(
+        (bucket) =>
+          `${bucket.category} target exposure: ${bucket.target}; slots: ${bucketSlots.get(bucket.category) ?? 0}.`,
+      ),
+    ],
+  });
+}
+
+function recordSelectedCandidatesByBucket(
+  selected: readonly InternalSelectedCandidate[],
+  steps: ConstructionStep[],
+  explanations: ConstructionExplanation[],
+): void {
+  const byBucket = getSelectedByBucket(selected);
+
+  for (const [category, candidates] of byBucket) {
+    const opportunityIds = candidates
+      .map((candidate) => candidate.opportunityId)
+      .join(", ");
+
+    steps.push({
+      id: "bucketCandidatesSelected",
+      description: `Selected ${candidates.length} ${category} candidate(s): ${opportunityIds}.`,
+      details: {
+        bucket: category,
+        count: candidates.length,
+      },
+    });
+  }
+
+  if (selected.length > 0) {
+    explanations.push({
+      summary: "Selected candidates per exposure bucket.",
+      details: [...byBucket.entries()].map(
+        ([category, candidates]) =>
+          `${category}: ${candidates.map((candidate) => candidate.opportunityId).join(", ")}.`,
+      ),
+    });
+  }
+}
+
+function moveBucketTargetToLiquidityBuffer(
+  category: ExposureCategory,
+  bucketTarget: number,
+  targetLiquidityBufferWeight: number,
+  bucketTargets: Map<ExposureCategory, number>,
+  steps: ConstructionStep[],
+  explanations: ConstructionExplanation[],
+  reason: string,
+): number {
+  bucketTargets.delete(category);
+
+  steps.push({
+    id: "bucketEmptiedDueToConstraints",
+    description: `${category} bucket target (${bucketTarget}) moved to liquidity buffer because ${reason}.`,
+    details: {
+      bucket: category,
+      bucketTarget,
+    },
+  });
+
+  explanations.push({
+    summary: `${category} bucket weight moved to liquidity buffer.`,
+    details: [
+      reason,
+      `Moved ${bucketTarget} from ${category} to liquidity buffer.`,
+    ],
+  });
+
+  return roundInternal(targetLiquidityBufferWeight + bucketTarget);
+}
+
+function reconcileEmptyBuckets(
+  activeBuckets: readonly ActiveBucket[],
+  bucketSlots: ReadonlyMap<ExposureCategory, number>,
+  selected: readonly InternalSelectedCandidate[],
+  bucketTargets: Map<ExposureCategory, number>,
+  targetLiquidityBufferWeight: number,
+  steps: ConstructionStep[],
+  explanations: ConstructionExplanation[],
+): number {
+  let updatedLiquidityBufferWeight = targetLiquidityBufferWeight;
+  const selectedByBucket = getSelectedByBucket(selected);
+
+  for (const bucket of activeBuckets) {
+    const requestedSlots = bucketSlots.get(bucket.category) ?? 0;
+    const selectedInBucket = selectedByBucket.get(bucket.category) ?? [];
+
+    if (requestedSlots > 0 && selectedInBucket.length === 0) {
+      const bucketTarget = bucketTargets.get(bucket.category) ?? bucket.target;
+
+      if (bucketTarget > 0) {
+        updatedLiquidityBufferWeight = moveBucketTargetToLiquidityBuffer(
+          bucket.category,
+          bucketTarget,
+          updatedLiquidityBufferWeight,
+          bucketTargets,
+          steps,
+          explanations,
+          "no eligible candidates remained for the bucket",
+        );
+      }
+    }
+  }
+
+  return updatedLiquidityBufferWeight;
+}
+
 function buildEmptyCandidateUniverseResult(
   gasReserveWeight: number,
   portfolioValueUsd: number,
@@ -504,39 +861,131 @@ export function constructPortfolio(
     policy.targetExposure.liquidityBuffer,
   );
   let lendingTarget = roundInternal(policy.targetExposure.lending);
-  const yieldTarget = roundInternal(policy.targetExposure.yieldEnhancement);
+  let yieldTarget = roundInternal(policy.targetExposure.yieldEnhancement);
 
-  const lendingCandidatesAvailable = ranking.ranked.some((entry) => {
-    const opportunity = opportunityById.get(entry.opportunityId);
-    return opportunity?.exposureCategory === "lending";
-  });
-  const yieldCandidatesAvailable = ranking.ranked.some((entry) => {
-    const opportunity = opportunityById.get(entry.opportunityId);
-    return opportunity?.exposureCategory === "yieldEnhancement";
-  });
+  const lendingCandidatesAvailable = hasCandidatesForBucket(
+    ranking,
+    opportunityById,
+    "lending",
+  );
+  const yieldCandidatesAvailable = hasCandidatesForBucket(
+    ranking,
+    opportunityById,
+    "yieldEnhancement",
+  );
 
   if (yieldTarget > 0 && !yieldCandidatesAvailable) {
-    lendingTarget = roundInternal(lendingTarget + yieldTarget);
-    explanations.push({
-      summary: "Yield enhancement target reassigned to lending.",
-      details: [
-        "No eligible yieldEnhancement candidates were available.",
-        `Adjusted lending target is now ${lendingTarget}.`,
-      ],
-    });
-    steps.push({
-      id: "yieldEnhancementReassigned",
-      description:
-        "Reassigned yieldEnhancement target exposure to lending because no eligible candidates exist.",
-      details: {
-        lendingTarget,
-      },
+    if (lendingCandidatesAvailable) {
+      lendingTarget = roundInternal(lendingTarget + yieldTarget);
+      yieldTarget = 0;
+      explanations.push({
+        summary: "Yield enhancement target reassigned to lending.",
+        details: [
+          "No eligible yieldEnhancement candidates were available.",
+          `Adjusted lending target is now ${lendingTarget}.`,
+        ],
+      });
+      steps.push({
+        id: "yieldEnhancementReassigned",
+        description:
+          "Reassigned yieldEnhancement target exposure to lending because no eligible candidates exist.",
+        details: {
+          lendingTarget,
+        },
+      });
+    } else {
+      targetLiquidityBufferWeight = roundInternal(
+        targetLiquidityBufferWeight + yieldTarget,
+      );
+      yieldTarget = 0;
+      explanations.push({
+        summary: "Yield enhancement target reassigned to liquidity buffer.",
+        details: [
+          "No eligible yieldEnhancement or lending candidates were available.",
+          `Adjusted liquidity buffer target is now ${targetLiquidityBufferWeight}.`,
+        ],
+      });
+      steps.push({
+        id: "yieldEnhancementReassignedToLiquidityBuffer",
+        description:
+          "Reassigned yieldEnhancement target exposure to liquidity buffer because no eligible candidates exist.",
+        details: {
+          liquidityBufferTarget: targetLiquidityBufferWeight,
+        },
+      });
+    }
+  }
+
+  if (lendingTarget > 0 && !lendingCandidatesAvailable) {
+    if (yieldTarget > 0 && yieldCandidatesAvailable) {
+      yieldTarget = roundInternal(yieldTarget + lendingTarget);
+      lendingTarget = 0;
+      explanations.push({
+        summary: "Lending target reassigned to yield enhancement.",
+        details: [
+          "No eligible lending candidates were available.",
+          `Adjusted yieldEnhancement target is now ${yieldTarget}.`,
+        ],
+      });
+      steps.push({
+        id: "lendingReassignedToYieldEnhancement",
+        description:
+          "Reassigned lending target exposure to yieldEnhancement because no eligible lending candidates exist.",
+        details: {
+          yieldTarget,
+        },
+      });
+    } else {
+      targetLiquidityBufferWeight = roundInternal(
+        targetLiquidityBufferWeight + lendingTarget,
+      );
+      lendingTarget = 0;
+      explanations.push({
+        summary: "Lending target reassigned to liquidity buffer.",
+        details: [
+          "No eligible lending candidates were available.",
+          `Adjusted liquidity buffer target is now ${targetLiquidityBufferWeight}.`,
+        ],
+      });
+      steps.push({
+        id: "lendingReassignedToLiquidityBuffer",
+        description:
+          "Reassigned lending target exposure to liquidity buffer because no eligible lending candidates exist.",
+        details: {
+          liquidityBufferTarget: targetLiquidityBufferWeight,
+        },
+      });
+    }
+  }
+
+  const activeBuckets: ActiveBucket[] = [];
+
+  if (lendingTarget > 0 && lendingCandidatesAvailable) {
+    activeBuckets.push({ category: "lending", target: lendingTarget });
+  }
+
+  if (yieldTarget > 0 && yieldCandidatesAvailable) {
+    activeBuckets.push({
+      category: "yieldEnhancement",
+      target: yieldTarget,
     });
   }
 
-  if (!lendingCandidatesAvailable && lendingTarget > 0) {
-    targetLiquidityBufferWeight = roundInternal(
-      targetLiquidityBufferWeight + lendingTarget,
+  const bucketTargets = new Map<ExposureCategory, number>(
+    activeBuckets.map((bucket) => [bucket.category, bucket.target]),
+  );
+
+  const maxActiveAllocations =
+    policy.allocationConstraints.maxActiveAllocations;
+  const bucketSlots = computeBucketSlots(activeBuckets, maxActiveAllocations);
+
+  if (activeBuckets.length > 0) {
+    recordBucketSlotAllocation(
+      activeBuckets,
+      bucketSlots,
+      maxActiveAllocations,
+      steps,
+      explanations,
     );
   }
 
@@ -549,8 +998,6 @@ export function constructPortfolio(
   }
 
   const excludedOpportunityIds = new Set<string>();
-  const maxActiveAllocations =
-    policy.allocationConstraints.maxActiveAllocations;
   const minAllocationSize = policy.allocationConstraints.minAllocationSize;
   const maxProtocolExposure = policy.allocationConstraints.maxProtocolExposure;
   const maxStablecoinExposure =
@@ -565,17 +1012,26 @@ export function constructPortfolio(
       selected.map((candidate) => candidate.opportunityId),
     );
 
-    selected = selectCandidates(
+    selected = selectMultiBucketCandidates(
       ranking.ranked,
       opportunityById,
-      "lending",
-      maxActiveAllocations,
+      bucketSlots,
       excludedOpportunityIds,
     );
 
     if (selected.length === 0) {
       break;
     }
+
+    targetLiquidityBufferWeight = reconcileEmptyBuckets(
+      activeBuckets,
+      bucketSlots,
+      selected,
+      bucketTargets,
+      targetLiquidityBufferWeight,
+      steps,
+      explanations,
+    );
 
     const promoted = selected.find(
       (candidate) => !previousSelectedIds.has(candidate.opportunityId),
@@ -590,7 +1046,7 @@ export function constructPortfolio(
       });
     }
 
-    relativeWeights = computeScoreProportionalWeights(selected);
+    relativeWeights = computeMultiBucketRelativeWeights(selected, bucketTargets);
     applyProtocolExposureCaps(
       selected,
       relativeWeights,
@@ -612,8 +1068,16 @@ export function constructPortfolio(
     );
 
     if (belowMin === undefined) {
+      recordSelectedCandidatesByBucket(selected, steps, explanations);
       break selectionLoop;
     }
+
+    const emptiedBucket = belowMin.exposureCategory;
+    const remainingInBucket = selected.filter(
+      (candidate) =>
+        candidate.exposureCategory === emptiedBucket &&
+        candidate.opportunityId !== belowMin.opportunityId,
+    );
 
     excludedOpportunityIds.add(belowMin.opportunityId);
     steps.push({
@@ -624,6 +1088,22 @@ export function constructPortfolio(
         minAllocationSize,
       },
     });
+
+    if (remainingInBucket.length === 0) {
+      const bucketTarget = bucketTargets.get(emptiedBucket) ?? 0;
+
+      if (bucketTarget > 0) {
+        targetLiquidityBufferWeight = moveBucketTargetToLiquidityBuffer(
+          emptiedBucket,
+          bucketTarget,
+          targetLiquidityBufferWeight,
+          bucketTargets,
+          steps,
+          explanations,
+          "the bucket lost all positions after constraint handling",
+        );
+      }
+    }
   }
 
   let positions = buildFinalPositions(

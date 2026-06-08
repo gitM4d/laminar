@@ -88,6 +88,26 @@ function buildBalancedPipelineRanking(): OpportunityRanking {
   });
 }
 
+function buildYieldFocusedPipelineRanking(): OpportunityRanking {
+  const policy = generatePolicy("Yield Focused");
+  const trustScores = scoreOpportunitiesTrust(MOCK_OPPORTUNITIES, { asOf });
+  const liquidityScores = scoreOpportunitiesLiquidity(MOCK_OPPORTUNITIES);
+  const riskAssessments = assessOpportunitiesRisk(
+    MOCK_OPPORTUNITIES,
+    policy,
+    trustScores,
+    liquidityScores,
+  );
+
+  return rankOpportunities({
+    opportunities: MOCK_OPPORTUNITIES,
+    policy,
+    trustScores,
+    liquidityScores,
+    riskAssessments,
+  });
+}
+
 describe("constructPortfolio", () => {
   it("requires portfolioValueUsd > 0", () => {
     const policy = generatePolicy("Balanced");
@@ -536,5 +556,212 @@ describe("constructPortfolio", () => {
     const factor = 10 ** ROUNDING_DECIMALS;
 
     expect(Math.round(total * factor) / factor).toBe(1);
+  });
+
+  it("selects lending and yieldEnhancement for Yield Focused when both buckets exist", () => {
+    const policy = generatePolicy("Yield Focused");
+    const ranking = buildYieldFocusedPipelineRanking();
+
+    const result = constructPortfolio({
+      policy,
+      ranking,
+      opportunities: MOCK_OPPORTUNITIES,
+      portfolioValueUsd: 10_000,
+    });
+
+    const strategyPositions = result.positions.filter(
+      (position) => position.type === "strategy",
+    );
+    const categories = strategyPositions.map(
+      (position) => position.exposureCategory,
+    );
+
+    expect(strategyPositions).toHaveLength(3);
+    expect(categories).toContain("lending");
+    expect(categories).toContain("yieldEnhancement");
+    expect(
+      strategyPositions.some(
+        (position) => position.opportunityId === "aerodrome-usdc-eurc-base",
+      ),
+    ).toBe(true);
+    expect(
+      result.constructionSteps.some((step) => step.id === "bucketSlotAllocation"),
+    ).toBe(true);
+    expect(
+      result.constructionSteps.filter(
+        (step) => step.id === "bucketCandidatesSelected",
+      ).length,
+    ).toBeGreaterThanOrEqual(2);
+  });
+
+  it("selects lending and yieldEnhancement for Balanced when yield candidate exists", () => {
+    const lending = MOCK_OPPORTUNITIES.find(
+      (opportunity) => opportunity.id === "morpho-usdc-base",
+    );
+    const yieldOpportunity = MOCK_OPPORTUNITIES.find(
+      (opportunity) => opportunity.id === "aerodrome-usdc-eurc-base",
+    );
+
+    expect(lending).toBeDefined();
+    expect(yieldOpportunity).toBeDefined();
+
+    const opportunities = [
+      lending as NonNullable<typeof lending>,
+      yieldOpportunity as NonNullable<typeof yieldOpportunity>,
+    ];
+    const ranking = buildRanking(opportunities, [90, 80]);
+    const policy = generatePolicy("Balanced");
+
+    const result = constructPortfolio({
+      policy,
+      ranking,
+      opportunities,
+      portfolioValueUsd: 10_000,
+    });
+
+    const strategyPositions = result.positions.filter(
+      (position) => position.type === "strategy",
+    );
+
+    expect(strategyPositions).toHaveLength(2);
+    expect(
+      strategyPositions.map((position) => position.exposureCategory).sort(),
+    ).toEqual(["lending", "yieldEnhancement"]);
+    expect(
+      result.constructionSteps.some((step) => step.id === "bucketSlotAllocation"),
+    ).toBe(true);
+    expect(
+      result.constructionSteps.some(
+        (step) =>
+          step.id === "bucketCandidatesSelected" &&
+          step.description.includes("yieldEnhancement"),
+      ),
+    ).toBe(true);
+  });
+
+  it("selects lending only for Conservative and preserves liquidity buffer", () => {
+    const policy = generatePolicy("Conservative");
+    const ranking = buildRanking(
+      [
+        MOCK_OPPORTUNITIES.find(
+          (opportunity) => opportunity.id === "aave-prime-usdc-base",
+        ) as NonNullable<(typeof MOCK_OPPORTUNITIES)[number]>,
+      ],
+      [1],
+    );
+
+    const result = constructPortfolio({
+      policy,
+      ranking,
+      opportunities: [
+        MOCK_OPPORTUNITIES.find(
+          (opportunity) => opportunity.id === "aave-prime-usdc-base",
+        ) as NonNullable<(typeof MOCK_OPPORTUNITIES)[number]>,
+      ],
+      portfolioValueUsd: 10_000,
+    });
+
+    const strategyPositions = result.positions.filter(
+      (position) => position.type === "strategy",
+    );
+    const buffer = result.positions.find(
+      (position) => position.type === "liquidityBuffer",
+    );
+
+    expect(
+      strategyPositions.every(
+        (position) => position.exposureCategory === "lending",
+      ),
+    ).toBe(true);
+    expect(buffer).toBeDefined();
+    expect(buffer?.weight).toBeGreaterThanOrEqual(0.1);
+    expect(
+      result.constructionSteps.some(
+        (step) =>
+          step.id === "bucketSlotAllocation" &&
+          step.description.includes("lending=3"),
+      ),
+    ).toBe(true);
+  });
+
+  it("reassigns missing lending bucket to yieldEnhancement when yield candidates exist", () => {
+    const yieldOpportunity = MOCK_OPPORTUNITIES.find(
+      (opportunity) => opportunity.id === "aerodrome-usdc-eurc-base",
+    );
+
+    expect(yieldOpportunity).toBeDefined();
+
+    const policy: PortfolioPolicy = {
+      ...generatePolicy("Yield Focused"),
+      targetExposure: {
+        lending: 0.6,
+        yieldEnhancement: 0.4,
+        liquidityBuffer: 0,
+      },
+    };
+    const ranking = buildRanking(
+      [yieldOpportunity as NonNullable<typeof yieldOpportunity>],
+      [1],
+    );
+
+    const result = constructPortfolio({
+      policy,
+      ranking,
+      opportunities: [yieldOpportunity as NonNullable<typeof yieldOpportunity>],
+      portfolioValueUsd: 10_000,
+    });
+
+    expect(
+      result.constructionSteps.some(
+        (step) => step.id === "lendingReassignedToYieldEnhancement",
+      ),
+    ).toBe(true);
+    expect(
+      result.positions.some(
+        (position) =>
+          position.type === "strategy" &&
+          position.opportunityId === "aerodrome-usdc-eurc-base",
+      ),
+    ).toBe(true);
+  });
+
+  it("enforces maxActiveAllocations globally across buckets", () => {
+    const policy = generatePolicy("Yield Focused");
+    const ranking = buildYieldFocusedPipelineRanking();
+
+    const result = constructPortfolio({
+      policy,
+      ranking,
+      opportunities: MOCK_OPPORTUNITIES,
+      portfolioValueUsd: 10_000,
+    });
+
+    const strategyPositions = result.positions.filter(
+      (position) => position.type === "strategy",
+    );
+
+    expect(strategyPositions.length).toBeLessThanOrEqual(
+      policy.allocationConstraints.maxActiveAllocations,
+    );
+  });
+
+  it("enforces one opportunity per protocol globally across buckets", () => {
+    const policy = generatePolicy("Yield Focused");
+    const ranking = buildYieldFocusedPipelineRanking();
+
+    const result = constructPortfolio({
+      policy,
+      ranking,
+      opportunities: MOCK_OPPORTUNITIES,
+      portfolioValueUsd: 10_000,
+    });
+
+    const strategyPositions = result.positions.filter(
+      (position) => position.type === "strategy",
+    );
+
+    expect(
+      new Set(strategyPositions.map((position) => position.protocolId)).size,
+    ).toBe(strategyPositions.length);
   });
 });
