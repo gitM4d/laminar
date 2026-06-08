@@ -129,6 +129,46 @@ Runs typecheck, lint, tests, and API contract validation.
 npm run qa:sensitivity
 ```
 
+## Protocol adapters (experimental)
+
+Sprint 17 introduces the first read-only protocol adapter spike for Aave V3 on
+Base. It is **not** wired into the API or frontend default flow; the default
+data provider remains `MockLaminarDataProvider`.
+
+Run the read-only adapter probe:
+
+```bash
+npm run adapter:aave:base
+```
+
+### RPC configuration
+
+The adapter optionally reads an RPC URL from environment variables (precedence
+`AAVE_BASE_RPC_URL`, then `BASE_RPC_URL`). RPC is **not required**.
+
+```bash
+# .env (optional)
+AAVE_BASE_RPC_URL=https://base-mainnet.example/v2/<key>
+BASE_RPC_URL=https://base-mainnet.example/v2/<key>
+```
+
+### Adapter modes
+
+- **Static fallback mode** (no RPC configured): `getHealth()` returns a healthy
+  static status and `discoverMarkets()` returns deterministic static markets
+  (`source = "static-fallback"`).
+- **RPC read-only mode** (RPC configured): `getHealth()` performs a minimal
+  read-only connectivity check (`getBlockNumber`) and discovered markets report
+  `source = "static-fallback-rpc-verified"`.
+
+### Warnings
+
+- **APY/TVL are static placeholders in Sprint 17**, even when RPC health
+  succeeds. Real Aave reserve math is not implemented yet.
+- Trust/liquidity metadata for Aave is curated/static in this sprint.
+- The adapter is **read-only**: no wallet, no private key, no signer, and
+  **no transactions are created**.
+
 ## API documentation
 
 - API guide: [docs/api/README.md](docs/api/README.md)
@@ -150,6 +190,7 @@ npm run qa:sensitivity
 ```text
 src/core/     Domain pipeline and public core API
 src/core/providers/  Read-only data provider interfaces (mock default)
+src/adapters/ Read-only protocol adapters (Aave Base spike, experimental)
 src/api/      Local HTTP API
 src/demo/     CLI demo
 frontend/     Minimal React prototype UI
