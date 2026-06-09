@@ -6,6 +6,7 @@
   "scripts": {
     "api": "tsx src/api/server.ts",
     "adapter:aave:base": "tsx src/tools/aaveBaseAdapterProbe.ts",
+    "recommendation:aave": "tsx src/tools/aaveRecommendationProbe.ts",
     "api:contract": "tsx src/api/validateContract.ts",
     "check": "npm run typecheck && npm run lint && npm run test && npm run api:contract",
     "demo": "tsx src/demo/intentToPolicyDemo.ts",

@@ -33,6 +33,12 @@ export type RecommendationDiagnostics = {
   warnings: string[];
   generatedAt: string;
   portfolioValueUsd: number;
+  /** Short machine-readable provider type identifier. */
+  providerType: string;
+  /** Human-readable provider display name. */
+  providerName: string;
+  /** Number of opportunities discovered by the provider. */
+  opportunityCount: number;
 };
 
 export type PortfolioRecommendationResult = {

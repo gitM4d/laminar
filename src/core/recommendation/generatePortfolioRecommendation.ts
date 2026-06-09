@@ -184,6 +184,10 @@ export function generatePortfolioRecommendation(
   completeStep(pipelineSteps, "generatePolicy");
 
   const dataProvider = input.dataProvider ?? new MockLaminarDataProvider();
+  const providerInfo = dataProvider.getProviderInfo?.() ?? {
+    providerType: "unknown",
+    providerName: "unknown",
+  };
   const opportunities = dataProvider.discoverOpportunities();
   completeStep(pipelineSteps, "discoverOpportunities");
 
@@ -267,6 +271,9 @@ export function generatePortfolioRecommendation(
       warnings,
       generatedAt,
       portfolioValueUsd: input.portfolioValueUsd,
+      providerType: providerInfo.providerType,
+      providerName: providerInfo.providerName,
+      opportunityCount: opportunities.length,
     },
   };
 }

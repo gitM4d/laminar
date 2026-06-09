@@ -12,7 +12,7 @@ import {
   UnknownProtocolTrustProfileError,
 } from "../trust/scoreOpportunityTrust.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
-import type { LaminarDataProvider } from "./types.js";
+import type { LaminarDataProvider, ProviderInfo } from "./types.js";
 
 export class MockLaminarDataProvider implements LaminarDataProvider {
   private readonly opportunities: readonly Opportunity[];
@@ -45,6 +45,13 @@ export class MockLaminarDataProvider implements LaminarDataProvider {
       opportunityId,
       this.liquidityProfiles,
     );
+  }
+
+  getProviderInfo(): ProviderInfo {
+    return {
+      providerType: "MockLaminarDataProvider",
+      providerName: "MockLaminarDataProvider",
+    };
   }
 }
 

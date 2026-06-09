@@ -129,6 +129,52 @@ Runs typecheck, lint, tests, and API contract validation.
 npm run qa:sensitivity
 ```
 
+## Real Provider Mode (experimental)
+
+The Aave Base adapter can be used as an optional data provider for the full
+recommendation pipeline. The default provider (`MockLaminarDataProvider`) is
+**not changed**.
+
+### Mode A — default mock mode
+
+```ts
+createLaminarRecommendation({ intent, portfolioValueUsd });
+```
+
+Uses `MockLaminarDataProvider`. All data is static. Safe for development and
+testing with no network required.
+
+### Mode B — Aave provider opt-in
+
+```ts
+const provider = await createAaveBaseLaminarDataProviderSnapshot();
+createLaminarRecommendation({ intent, portfolioValueUsd, dataProvider: provider });
+```
+
+Uses `AaveBaseLaminarDataProvider`. Runs the full Laminar pipeline (scoring,
+ranking, construction, snapshot, execution plan) with:
+
+- **Supply APY**: real Aave `liquidityRate` APR (approximation; incentives
+  excluded).
+- **TVL**: static placeholder.
+- **Trust/liquidity profiles**: curated/static.
+- **Reserve assets**: discovered on-chain (USDC, EURC on Base).
+
+CLI probe (no frontend, no API changes):
+
+```bash
+npm run recommendation:aave
+```
+
+### Limitations
+
+- APY is the Aave `liquidityRate` APR used as an APY approximation.
+- Incentives/reward emissions are not included.
+- TVL is a static placeholder.
+- Trust and liquidity profiles are curated/static, not sourced on-chain.
+- The API/frontend default provider remains `MockLaminarDataProvider`.
+- No transactions are created.
+
 ## Protocol adapters (experimental)
 
 The read-only protocol adapter for Aave V3 on Base is **not** wired into the API
