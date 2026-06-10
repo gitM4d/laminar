@@ -9,6 +9,7 @@
     "adapter:morpho:base": "tsx src/tools/morphoBaseAdapterProbe.ts",
     "recommendation:aave": "tsx src/tools/aaveRecommendationProbe.ts",
     "recommendation:morpho": "tsx src/tools/morphoRecommendationProbe.ts",
+    "recommendation:combined": "tsx src/tools/recommendationCombinedProbe.ts",
     "api:contract": "tsx src/api/validateContract.ts",
     "check": "npm run typecheck && npm run lint && npm run test && npm run api:contract",
     "demo": "tsx src/demo/intentToPolicyDemo.ts",
