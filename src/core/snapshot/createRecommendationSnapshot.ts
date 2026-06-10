@@ -4,6 +4,7 @@ import type {
   SnapshotExplanation,
   SnapshotMetric,
   SnapshotPosition,
+  SnapshotTrustHighlight,
   SnapshotWarning,
 } from "./types.js";
 
@@ -286,6 +287,41 @@ function buildWarnings(
   return warnings;
 }
 
+function buildTrustHighlights(
+  recommendation: PortfolioRecommendationResult,
+): SnapshotTrustHighlight[] {
+  const strategyProtocolIds = new Set<string>();
+  for (const position of recommendation.portfolioConstruction.positions) {
+    if (position.type === "strategy") {
+      strategyProtocolIds.add(position.protocolId);
+    }
+  }
+
+  const explanationByProtocol = new Map(
+    recommendation.trustExplanations.map((explanation) => [
+      explanation.protocolId,
+      explanation,
+    ]),
+  );
+
+  const highlights: SnapshotTrustHighlight[] = [];
+  for (const protocolId of strategyProtocolIds) {
+    const explanation = explanationByProtocol.get(protocolId);
+    if (explanation === undefined) {
+      continue;
+    }
+
+    highlights.push({
+      protocolId: explanation.protocolId,
+      protocolName: explanation.protocolName,
+      trustScore: explanation.trustScore,
+      summary: explanation.summary,
+    });
+  }
+
+  return highlights;
+}
+
 function buildExplanations(
   recommendation: PortfolioRecommendationResult,
 ): SnapshotExplanation[] {
@@ -328,6 +364,7 @@ export function createRecommendationSnapshot(
     generatedAt: recommendation.diagnostics.generatedAt,
     positions: mapPositions(recommendation),
     metrics: buildMetrics(recommendation),
+    trustHighlights: buildTrustHighlights(recommendation),
     warnings: buildWarnings(recommendation),
     explanations: buildExplanations(recommendation),
     source: {

@@ -38,6 +38,7 @@ describe("createRecommendationSnapshot", () => {
     expect(snapshot.portfolioValueUsd).toBe(10_000);
     expect(snapshot.positions.length).toBeGreaterThan(0);
     expect(snapshot.explanations).toHaveLength(4);
+    expect(snapshot.trustHighlights.length).toBeGreaterThan(0);
   });
 
   it("includes protocol, asset, weight, USD, and percent on strategy positions", () => {
@@ -311,6 +312,68 @@ describe("createRecommendationSnapshot", () => {
     expect(getMetricValue(snapshot, "selectedProfile")).toBe("Balanced");
     expect(getMetricValue(snapshot, "numberOfStrategyPositions")).toBe(2);
     expect(getMetricValue(snapshot, "numberOfRejectedOpportunities")).toBe(4);
+  });
+
+  it("includes trustHighlights for strategy protocols only with no duplicates", () => {
+    const recommendation = balancedRecommendation();
+    const snapshot = createRecommendationSnapshot(recommendation);
+    const strategyProtocolIds = [
+      ...new Set(
+        recommendation.portfolioConstruction.positions
+          .filter((position) => position.type === "strategy")
+          .map((position) => position.protocolId),
+      ),
+    ];
+    const highlightProtocolIds = snapshot.trustHighlights.map(
+      (highlight) => highlight.protocolId,
+    );
+
+    expect(highlightProtocolIds.sort()).toEqual(strategyProtocolIds.sort());
+    expect(new Set(highlightProtocolIds).size).toBe(highlightProtocolIds.length);
+    for (const highlight of snapshot.trustHighlights) {
+      expect(highlight.trustScore).toBeGreaterThan(0);
+      expect(highlight.summary.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("does not include trustHighlights for protocols with only rejected opportunities", async () => {
+    const { createAaveBaseLaminarDataProviderSnapshot } = await import(
+      "../providers/AaveBaseLaminarDataProvider.js"
+    );
+    const { createMorphoBaseLaminarDataProviderSnapshot } = await import(
+      "../providers/MorphoBaseLaminarDataProvider.js"
+    );
+    const { createMoonwellBaseLaminarDataProviderSnapshot } = await import(
+      "../providers/MoonwellBaseLaminarDataProvider.js"
+    );
+    const { CombinedLaminarDataProvider } = await import(
+      "../providers/CombinedLaminarDataProvider.js"
+    );
+
+    const [aave, morpho, moonwell] = await Promise.all([
+      createAaveBaseLaminarDataProviderSnapshot({ env: {} }),
+      createMorphoBaseLaminarDataProviderSnapshot({ disableApi: true }),
+      createMoonwellBaseLaminarDataProviderSnapshot({ disableApi: true }),
+    ]);
+    const combined = new CombinedLaminarDataProvider([aave, morpho, moonwell]);
+    const recommendation = generatePortfolioRecommendation({
+      intent: { risk: 5, liquidity: 6, returnPreference: 5 },
+      portfolioValueUsd: 10_000,
+      asOf,
+      dataProvider: combined,
+    });
+    const snapshot = createRecommendationSnapshot(recommendation);
+
+    expect(
+      recommendation.opportunityRanking.rejected.some(
+        (entry) => entry.protocolId === "moonwell",
+      ),
+    ).toBe(true);
+    expect(
+      snapshot.trustHighlights.some(
+        (highlight) => highlight.protocolId === "moonwell",
+      ),
+    ).toBe(false);
   });
 
   it("includes policyVersion and pipeline steps count in source", () => {

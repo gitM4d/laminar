@@ -1,9 +1,32 @@
 import "dotenv/config";
 import { createLaminarRecommendation } from "../core/index.js";
 import { createAaveBaseLaminarDataProviderSnapshot } from "../core/providers/AaveBaseLaminarDataProvider.js";
+import type { ProtocolTrustExplanation } from "../core/trust/buildTrustExplanation.js";
 
 const DEFAULT_INTENT = { risk: 5, liquidity: 6, returnPreference: 5 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
+
+function formatAuditTier(tier: string, count: number): string {
+  return count === 0 ? "none (0)" : `${tier} (${count.toString()})`;
+}
+
+function printTrustSummary(
+  trustExplanations: readonly ProtocolTrustExplanation[],
+): void {
+  console.log("Trust Summary:");
+  for (const explanation of trustExplanations) {
+    const details = explanation.trustExplanation;
+    console.log(`${explanation.protocolName}`);
+    console.log(`  score: ${explanation.trustScore.toFixed(2)}`);
+    console.log(`  age: ${details.protocolAgeYears.toFixed(1)} years`);
+    console.log(
+      `  audits: ${formatAuditTier(details.auditTier, details.auditCount)}`,
+    );
+    console.log(`  incidents: ${details.historicalIncidents.toString()}`);
+    console.log(`  tvl: ${details.tvlBucket}`);
+  }
+  console.log("");
+}
 
 async function main(): Promise<void> {
   console.log("Laminar — Aave Base Real Provider Recommendation");
@@ -62,6 +85,8 @@ async function main(): Promise<void> {
     );
   }
   console.log("");
+
+  printTrustSummary(recommendation.trustExplanations);
 
   console.log(`Ranked opportunities (${recommendation.opportunityRanking.ranked.length.toString()}):`);
   for (const ranked of recommendation.opportunityRanking.ranked) {

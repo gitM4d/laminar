@@ -37,6 +37,13 @@ export type SnapshotExplanation = {
   summary: string;
 };
 
+export type SnapshotTrustHighlight = {
+  protocolId: string;
+  protocolName: string;
+  trustScore: number;
+  summary: string;
+};
+
 export type RecommendationSnapshotSource = {
   recommendationId?: string;
   policyVersion: number;
@@ -49,6 +56,7 @@ export type RecommendationSnapshot = {
   generatedAt: string;
   positions: SnapshotPosition[];
   metrics: SnapshotMetric[];
+  trustHighlights: SnapshotTrustHighlight[];
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
   source: RecommendationSnapshotSource;

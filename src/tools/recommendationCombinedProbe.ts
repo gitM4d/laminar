@@ -6,6 +6,7 @@ import { createMoonwellBaseLaminarDataProviderSnapshot } from "../core/providers
 import { CombinedLaminarDataProvider } from "../core/providers/CombinedLaminarDataProvider.js";
 import type { LaminarDataProvider } from "../core/providers/types.js";
 import type { Opportunity } from "../core/opportunity/types.js";
+import type { ProtocolTrustExplanation } from "../core/trust/buildTrustExplanation.js";
 
 const DEFAULT_INTENT = { risk: 5, liquidity: 6, returnPreference: 5 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
@@ -17,6 +18,28 @@ function protocolNameForOpportunity(
 ): string {
   const match = opportunities.find((o) => o.id === opportunityId);
   return match?.protocolName ?? "Unknown";
+}
+
+function formatAuditTier(tier: string, count: number): string {
+  return count === 0 ? "none (0)" : `${tier} (${count.toString()})`;
+}
+
+function printTrustSummary(
+  trustExplanations: readonly ProtocolTrustExplanation[],
+): void {
+  console.log("Trust Summary:");
+  for (const explanation of trustExplanations) {
+    const details = explanation.trustExplanation;
+    console.log(`${explanation.protocolName}`);
+    console.log(`  score: ${explanation.trustScore.toFixed(2)}`);
+    console.log(`  age: ${details.protocolAgeYears.toFixed(1)} years`);
+    console.log(
+      `  audits: ${formatAuditTier(details.auditTier, details.auditCount)}`,
+    );
+    console.log(`  incidents: ${details.historicalIncidents.toString()}`);
+    console.log(`  tvl: ${details.tvlBucket}`);
+  }
+  console.log("");
 }
 
 async function main(): Promise<void> {
@@ -108,6 +131,8 @@ async function main(): Promise<void> {
     );
   }
   console.log("");
+
+  printTrustSummary(recommendation.trustExplanations);
 
   // ── Ranked opportunities by protocol ───────────────────────────────────────
   console.log("Ranked opportunities by protocol:");

@@ -20,6 +20,7 @@ import {
   scoreOpportunitiesTrust,
   UnknownProtocolTrustProfileError,
 } from "../trust/scoreOpportunityTrust.js";
+import { buildTrustExplanation } from "../trust/buildTrustExplanation.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type {
   GeneratePortfolioRecommendationInput,
@@ -141,6 +142,15 @@ function scoreTrustWithConsistencyCheck(
   }
 }
 
+function buildTrustExplanationsFromProfiles(
+  trustProfiles: Record<string, ProtocolTrustProfile>,
+  asOf: Date,
+): PortfolioRecommendationResult["trustExplanations"] {
+  return Object.values(trustProfiles).map((profile) =>
+    buildTrustExplanation(profile, asOf),
+  );
+}
+
 function scoreLiquidityWithConsistencyCheck(
   opportunities: PortfolioRecommendationResult["opportunities"],
   liquidityProfiles: Record<string, OpportunityLiquidityProfile>,
@@ -200,10 +210,15 @@ export function generatePortfolioRecommendation(
     dataProvider,
   );
 
+  const trustAsOf = input.asOf ?? new Date(generatedAt);
   const trustScores = scoreTrustWithConsistencyCheck(
     opportunities,
-    input.asOf ?? new Date(generatedAt),
+    trustAsOf,
     trustProfiles,
+  );
+  const trustExplanations = buildTrustExplanationsFromProfiles(
+    trustProfiles,
+    trustAsOf,
   );
   completeStep(pipelineSteps, "scoreTrust");
 
@@ -262,6 +277,7 @@ export function generatePortfolioRecommendation(
     policy,
     opportunities,
     trustScores,
+    trustExplanations,
     liquidityScores,
     riskAssessments,
     opportunityRanking,
@@ -274,6 +290,7 @@ export function generatePortfolioRecommendation(
       providerType: providerInfo.providerType,
       providerName: providerInfo.providerName,
       opportunityCount: opportunities.length,
+      trustExplained: true,
     },
   };
 }

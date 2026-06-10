@@ -5,7 +5,10 @@ import {
   RecommendationDataConsistencyError,
 } from "../recommendation/generatePortfolioRecommendation.js";
 import { MockLaminarDataProvider } from "./MockLaminarDataProvider.js";
-import { createAaveBaseLaminarDataProviderSnapshot } from "./AaveBaseLaminarDataProvider.js";
+import {
+  AAVE_BASE_CURATED_TRUST_PROFILE,
+  createAaveBaseLaminarDataProviderSnapshot,
+} from "./AaveBaseLaminarDataProvider.js";
 
 const asOf = new Date("2026-06-01T00:00:00.000Z");
 
@@ -38,6 +41,32 @@ describe("AaveBaseLaminarDataProvider snapshot", () => {
       provider.getLiquidityProfile("aave-usdc-base").withdrawalConstraintType,
     ).toBe("none");
     expect(provider.getLiquidityProfile("aave-usdc-base").hasLockup).toBe(false);
+  });
+
+  it("exposes Aave trust explanation without changing the trust score", async () => {
+    const provider = await createAaveBaseLaminarDataProviderSnapshot({
+      env: {},
+    });
+
+    const result = createLaminarRecommendation({
+      intent: balancedIntent,
+      portfolioValueUsd: 10_000,
+      asOf,
+      dataProvider: provider,
+    });
+
+    const explanation = result.recommendation.trustExplanations.find(
+      (entry) => entry.protocolId === "aave",
+    );
+    const trustScore = result.recommendation.trustScores.find(
+      (entry) => entry.protocolId === "aave",
+    )?.trust.trustScore;
+
+    expect(explanation?.trustScore).toBe(trustScore);
+    expect(explanation?.trustExplanation.auditTier).toBe("tier1");
+    expect(explanation?.trustExplanation.auditCount).toBe(
+      AAVE_BASE_CURATED_TRUST_PROFILE.audits.length,
+    );
   });
 
   it("produces a usable recommendation when passed into the pipeline", async () => {

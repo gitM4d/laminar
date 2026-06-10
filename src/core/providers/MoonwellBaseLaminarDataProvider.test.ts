@@ -94,6 +94,34 @@ describe("MoonwellBaseLaminarDataProvider", () => {
     }
   });
 
+  it("exposes Moonwell trust explanation without changing the trust score", async () => {
+    const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
+      disableApi: true,
+      now: () => asOf,
+    });
+
+    const result = createLaminarRecommendation({
+      intent: yieldFocusedIntent,
+      portfolioValueUsd: 10_000,
+      asOf,
+      dataProvider: provider,
+    });
+
+    const explanation = result.recommendation.trustExplanations.find(
+      (entry) => entry.protocolId === "moonwell",
+    );
+    const trustScore = result.recommendation.trustScores.find(
+      (entry) => entry.protocolId === "moonwell",
+    )?.trust.trustScore;
+
+    expect(explanation?.trustScore).toBe(trustScore);
+    expect(explanation?.trustExplanation.auditTier).toBe("tier2");
+    expect(explanation?.trustExplanation.auditCount).toBe(
+      MOONWELL_BASE_CURATED_TRUST_PROFILE.audits.length,
+    );
+    expect(explanation?.trustExplanation.tvlBucket).toBe("medium");
+  });
+
   it("throws a consistency error for an unknown trust profile", async () => {
     const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
       disableApi: true,

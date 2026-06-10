@@ -8,6 +8,7 @@ import type { ProfileName } from "../profile/types.js";
 import type { AssessedOpportunityRisk } from "../risk/types.js";
 import type { OpportunityRanking } from "../scoring/types.js";
 import type { LaminarDataProvider } from "../providers/types.js";
+import type { ProtocolTrustExplanation } from "../trust/buildTrustExplanation.js";
 import type { ScoredOpportunityTrust } from "../trust/types.js";
 
 export type GeneratePortfolioRecommendationInput = {
@@ -39,6 +40,8 @@ export type RecommendationDiagnostics = {
   providerName: string;
   /** Number of opportunities discovered by the provider. */
   opportunityCount: number;
+  /** True when protocol trust explanations were built from the same inputs as trust scoring. */
+  trustExplained: boolean;
 };
 
 export type PortfolioRecommendationResult = {
@@ -48,6 +51,7 @@ export type PortfolioRecommendationResult = {
   policy: PortfolioPolicy;
   opportunities: readonly Opportunity[];
   trustScores: ScoredOpportunityTrust[];
+  trustExplanations: ProtocolTrustExplanation[];
   liquidityScores: ScoredOpportunityLiquidity[];
   riskAssessments: AssessedOpportunityRisk[];
   opportunityRanking: OpportunityRanking;
