@@ -195,7 +195,15 @@ The matrix compares four providers by default:
 - **MockLaminarDataProvider** — default product mode (all static data)
 - **AaveBaseLaminarDataProvider** — experimental Aave Base provider
 - **MorphoBaseLaminarDataProvider** — experimental Morpho Base provider
-- **CombinedLaminarDataProvider** — Aave + Morpho combined universe
+- **CombinedLaminarDataProvider (Combined V2)** — Aave + Morpho + Moonwell
+  combined universe
+
+> **Combined V1 vs V2:** the matrix previously combined only Aave + Morpho.
+> It now combines Aave + Morpho + Moonwell ("Combined V2"). We **replaced** the
+> old Combined rather than keeping both: the Combined provider is generic
+> ("aggregate every real provider"), so two near-identical Combined rows would
+> only widen the tables without adding signal. The provider type is unchanged
+> (`CombinedLaminarDataProvider`); only its sub-provider list grew.
 
 The CLI prints two tables:
 
@@ -212,7 +220,9 @@ Data quality labels:
 | Aave (fallback) | static-fallback | static-fallback | curated | curated |
 | Morpho (API) | real-api | real-api | curated | curated |
 | Morpho (fallback) | static-fallback | static-fallback | curated | curated |
-| Combined | mixed-real | mixed-real | curated | curated |
+| Moonwell (API) | real-api | real-api | curated | curated |
+| Moonwell (fallback) | static-fallback | static-fallback | curated | curated |
+| Combined V2 | mixed-real | mixed-real | curated | curated |
 
 Difference summaries compare each real provider against Mock:
 
@@ -232,7 +242,12 @@ Notes:
 - Without RPC, Aave falls back to static markets and is labeled accordingly.
 - Morpho APY/TVL are real when the Morpho API is reachable; static fallback
   otherwise (`MORPHO_BASE_API_URL` or the public default).
-- Combined reuses the same Aave/Morpho snapshots (no duplicate external calls).
+- Moonwell APY/TVL are real when `MOONWELL_BASE_API_URL` is set; static fallback
+  otherwise. Moonwell's curated trust (~73.7) clears Yield Focused (65) but is
+  below Balanced (75)/Conservative (85), so its opportunities may be filtered in
+  stricter scenarios (data quality is reported regardless of eligibility).
+- Combined V2 reuses the same Aave/Morpho/Moonwell snapshots (no duplicate
+  external calls) and merges their opportunities behind one provider.
 - Trust/liquidity profiles remain curated for all real providers.
 
 ## Protocol adapters (experimental)
@@ -418,8 +433,47 @@ npm run recommendation:moonwell
 - The adapter is **read-only**: no wallet, no private key, no signer, and
   **no transactions are created**.
 - The API/frontend default provider remains `MockLaminarDataProvider`.
-- Moonwell is **not** integrated into `compare:providers` or the Combined
-  provider yet (intentionally out of scope for this spike).
+- Moonwell is integrated into `compare:providers` and the Combined provider via
+  **Combined V2** (see below).
+
+## Combined Provider (experimental)
+
+`CombinedLaminarDataProvider` aggregates an arbitrary list of real providers into
+a single read-only universe. As of **Combined V2** it combines:
+
+**Combined V2 = Aave + Morpho + Moonwell**
+
+```bash
+npm run recommendation:combined
+```
+
+The probe reports provider count, opportunity count, opportunities/ranking/
+positions **grouped by protocol**, and allocation by protocol (including
+liquidity buffer and gas reserve).
+
+How it works:
+
+- The provider takes a list of sub-providers and concatenates their
+  opportunities. There is **no protocol-specific logic** in the combined
+  provider — each sub-provider owns its data.
+- `getTrustProfile` / `getLiquidityProfile` delegate to whichever sub-provider
+  owns the protocol / opportunity.
+- Duplicate opportunity ids across sub-providers are a hard error
+  (`RecommendationDataConsistencyError`), validated eagerly at construction.
+
+Limitations:
+
+- **Trust/liquidity are curated/static** for every protocol (not on-chain).
+- **Moonwell may be in static fallback** unless `MOONWELL_BASE_API_URL` is set
+  (Aave needs RPC, Morpho uses its public API). APY/TVL realism therefore
+  depends on each sub-provider's data availability; the combined data quality is
+  `mixed-real` when any sub-provider has real data, else `mixed-fallback`.
+- Under a **Balanced** intent, Moonwell's curated trust (~73.7) is below the
+  Balanced minTrustScore (75), so Moonwell opportunities are typically filtered
+  and the combined allocation matches the previous Aave + Morpho behavior. This
+  is an observed outcome of the risk engine — no logic was changed to force it.
+- The combined provider is **read-only and experimental**; the API/frontend
+  default remains `MockLaminarDataProvider`.
 
 ## API documentation
 

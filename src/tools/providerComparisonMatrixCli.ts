@@ -48,7 +48,13 @@ async function main(): Promise<void> {
     "- Morpho APY/TVL are real when the Morpho API is reachable; static fallback otherwise.",
   );
   console.log(
-    "- Combined merges Aave + Morpho opportunities; trust/liquidity profiles remain curated.",
+    "- Combined V2 merges Aave + Morpho + Moonwell opportunities; trust/liquidity profiles remain curated.",
+  );
+  console.log(
+    "- Moonwell APY/TVL are real when MOONWELL_BASE_API_URL is set; static fallback otherwise.",
+  );
+  console.log(
+    "- Moonwell's curated trust (~73.7) clears Yield Focused (65) but not Balanced (75)/Conservative (85), so it may be filtered in stricter scenarios.",
   );
 }
 

@@ -6,6 +6,10 @@ import type {
   MorphoApiClient,
   MorphoApiVaultsResponse,
 } from "../adapters/morpho/morphoTypes.js";
+import type {
+  MoonwellApiClient,
+  MoonwellApiMarketsResponse,
+} from "../adapters/moonwell/moonwellTypes.js";
 import {
   DEFAULT_SENSITIVITY_AS_OF,
   SENSITIVITY_SCENARIOS,
@@ -22,6 +26,8 @@ import {
   resolveAaveDataQuality,
   resolveAaveDataSourceLabel,
   resolveCombinedDataQuality,
+  resolveMoonwellDataQuality,
+  resolveMoonwellDataSourceLabel,
   resolveMorphoDataQuality,
   resolveMorphoDataSourceLabel,
   runProviderComparisonMatrix,
@@ -119,6 +125,38 @@ function buildMockMorphoClient(): MorphoApiClient {
   };
 }
 
+const sampleMoonwellMarketsResponse: MoonwellApiMarketsResponse = {
+  markets: [
+    {
+      marketAddress: "0xMW_USDC",
+      underlyingSymbol: "USDC",
+      underlyingDecimals: 6,
+      supplyApy: 0.0512,
+      totalSupplyUsd: 40_000_000,
+    },
+    {
+      marketAddress: "0xMW_EURC",
+      underlyingSymbol: "EURC",
+      underlyingDecimals: 6,
+      supplyApy: 0.0345,
+      totalSupplyUsd: 5_000_000,
+    },
+    {
+      marketAddress: "0xMW_DAI",
+      underlyingSymbol: "DAI",
+      underlyingDecimals: 18,
+      supplyApy: 0.0431,
+      totalSupplyUsd: 8_000_000,
+    },
+  ],
+};
+
+function buildMockMoonwellClient(): MoonwellApiClient {
+  return {
+    getMarkets: async () => sampleMoonwellMarketsResponse,
+  };
+}
+
 const mockSummary: ProviderComparisonSummary = {
   scenarioName: "Balanced default",
   selectedProfile: "Balanced",
@@ -172,11 +210,11 @@ const combinedSummary: ProviderComparisonSummary = {
   portfolioExpectedApy: 0.02,
   expectedApy: 0.041,
   topStrategyPositionLabel: "Morpho USDC",
-  providerName: "Combined Aave + Morpho (experimental)",
+  providerName: "Combined Aave + Morpho + Moonwell (experimental)",
   providerType: "CombinedLaminarDataProvider",
-  opportunityCount: 4,
+  opportunityCount: 7,
   dataSourceLabel:
-    "Aave: on-chain (RPC configured); Morpho: api (Morpho GraphQL configured)",
+    "Aave: on-chain (RPC configured); Morpho: api (Morpho GraphQL configured); Moonwell: api (Moonwell data API configured)",
 };
 
 describe("providerComparisonMatrix helpers", () => {
@@ -262,22 +300,67 @@ describe("providerComparisonMatrix helpers", () => {
     expect(quality.tvlData).toBe("static-fallback");
   });
 
-  it("resolveCombinedDataQuality reports mixed-real when sub-providers are real", () => {
+  it("resolveMoonwellDataSourceLabel reports static fallback when API disabled", () => {
+    expect(resolveMoonwellDataSourceLabel({ disableApi: true })).toBe(
+      "static-fallback (API disabled)",
+    );
+  });
+
+  it("resolveMoonwellDataSourceLabel reports static fallback with no API configured", () => {
+    expect(resolveMoonwellDataSourceLabel({ env: {} })).toBe(
+      "static-fallback (no API configured)",
+    );
+  });
+
+  it("resolveMoonwellDataQuality reports real-api when API configured", () => {
+    const quality = resolveMoonwellDataQuality({
+      apiUrl: "https://example.invalid/moonwell",
+    });
+
+    expect(quality.apyData).toBe("real-api");
+    expect(quality.tvlData).toBe("real-api");
+    expect(quality.trustData).toBe("curated");
+    expect(quality.liquidityData).toBe("curated");
+  });
+
+  it("resolveMoonwellDataQuality reports static-fallback when API disabled", () => {
+    const quality = resolveMoonwellDataQuality({ disableApi: true });
+
+    expect(quality.apyData).toBe("static-fallback");
+    expect(quality.tvlData).toBe("static-fallback");
+  });
+
+  it("resolveCombinedDataQuality reports mixed-real when sub-providers are real (V2)", () => {
     const quality = resolveCombinedDataQuality(
       resolveAaveDataQuality({ rpcUrl: "https://example.invalid/rpc" }),
       resolveMorphoDataQuality({ apiUrl: "https://example.invalid/graphql" }),
+      resolveMoonwellDataQuality({ apiUrl: "https://example.invalid/moonwell" }),
     );
 
     expect(quality.apyData).toBe("mixed-real");
     expect(quality.tvlData).toBe("mixed-real");
     expect(quality.trustData).toBe("curated");
     expect(quality.liquidityData).toBe("curated");
+    expect(quality.providerName).toBe(
+      "Combined Aave + Morpho + Moonwell (experimental)",
+    );
   });
 
-  it("resolveCombinedDataQuality reports mixed-fallback when both sub-providers fallback", () => {
+  it("resolveCombinedDataQuality stays mixed-real when only some sub-providers are real", () => {
+    const quality = resolveCombinedDataQuality(
+      resolveAaveDataQuality({ rpcUrl: "https://example.invalid/rpc" }),
+      resolveMorphoDataQuality({ disableApi: true }),
+      resolveMoonwellDataQuality({ disableApi: true }),
+    );
+
+    expect(quality.apyData).toBe("mixed-real");
+  });
+
+  it("resolveCombinedDataQuality reports mixed-fallback when all sub-providers fallback (V2)", () => {
     const quality = resolveCombinedDataQuality(
       resolveAaveDataQuality({ env: {} }),
       resolveMorphoDataQuality({ disableApi: true }),
+      resolveMoonwellDataQuality({ disableApi: true }),
     );
 
     expect(quality.apyData).toBe("mixed-fallback");
@@ -366,6 +449,10 @@ describe("runProviderComparisonMatrix", () => {
       apiUrl: "https://example.invalid/graphql",
       client: buildMockMorphoClient(),
     },
+    moonwellSnapshotOptions: {
+      apiUrl: "https://example.invalid/moonwell",
+      client: buildMockMoonwellClient(),
+    },
   };
 
   it("runs all sensitivity scenarios for four providers without live RPC/API", async () => {
@@ -389,7 +476,7 @@ describe("runProviderComparisonMatrix", () => {
     );
   });
 
-  it("Combined provider opportunityCount equals Aave + Morpho per scenario", async () => {
+  it("Combined V2 opportunityCount equals Aave + Morpho + Moonwell per scenario", async () => {
     const matrix = await runProviderComparisonMatrix({
       asOf: DEFAULT_SENSITIVITY_AS_OF,
       ...snapshotOptions,
@@ -412,10 +499,14 @@ describe("runProviderComparisonMatrix", () => {
           entry.providerType === "CombinedLaminarDataProvider",
       );
 
-      expect(combinedResult?.summary.opportunityCount).toBe(
+      // Moonwell static fallback (no moonwellSnapshotOptions in this matrix run
+      // would be 3); with the mock client it discovers 3 markets.
+      const combinedExpected =
         (aaveResult?.summary.opportunityCount ?? 0) +
-          (morphoResult?.summary.opportunityCount ?? 0),
-      );
+        (morphoResult?.summary.opportunityCount ?? 0) +
+        3;
+
+      expect(combinedResult?.summary.opportunityCount).toBe(combinedExpected);
     }
   });
 
@@ -518,7 +609,7 @@ describe("runProviderComparisonMatrix", () => {
       SENSITIVITY_SCENARIOS.length,
     );
     expect(matrix.differences.combinedVsMock[0]?.realProviderName).toBe(
-      "Combined Aave + Morpho (experimental)",
+      "Combined Aave + Morpho + Moonwell (experimental)",
     );
   });
 

@@ -1,5 +1,6 @@
 import { resolveAaveBaseRpcUrl } from "../adapters/aave/aaveBaseConfig.js";
 import { resolveMorphoBaseApiUrl } from "../adapters/morpho/morphoBaseConfig.js";
+import { resolveMoonwellBaseApiUrl } from "../adapters/moonwell/moonwellBaseConfig.js";
 import { createLaminarRecommendation } from "../core/index.js";
 import type { LaminarDataProvider } from "../core/providers/types.js";
 import { MockLaminarDataProvider } from "../core/providers/MockLaminarDataProvider.js";
@@ -11,6 +12,10 @@ import {
   createMorphoBaseLaminarDataProviderSnapshot,
   type MorphoBaseProviderSnapshotOptions,
 } from "../core/providers/MorphoBaseLaminarDataProvider.js";
+import {
+  createMoonwellBaseLaminarDataProviderSnapshot,
+  type MoonwellBaseProviderSnapshotOptions,
+} from "../core/providers/MoonwellBaseLaminarDataProvider.js";
 import { CombinedLaminarDataProvider } from "../core/providers/CombinedLaminarDataProvider.js";
 import type { LaminarRecommendationResult } from "../core/types.js";
 import type { UserIntent } from "../core/intent/types.js";
@@ -113,6 +118,7 @@ export type ProviderComparisonMatrixOptions = {
   scenarios?: SensitivityScenarioInput[];
   aaveSnapshotOptions?: AaveBaseProviderSnapshotOptions;
   morphoSnapshotOptions?: MorphoBaseProviderSnapshotOptions;
+  moonwellSnapshotOptions?: MoonwellBaseProviderSnapshotOptions;
 };
 
 const MOCK_DATA_QUALITY: ProviderDataQuality = {
@@ -207,36 +213,83 @@ export function resolveMorphoDataQuality(
   };
 }
 
-export function resolveCombinedDataQuality(
-  aaveQuality: ProviderDataQuality,
-  morphoQuality: ProviderDataQuality,
-): ProviderDataQuality {
-  const aaveReal =
-    aaveQuality.apyData !== "static-fallback" &&
-    aaveQuality.tvlData !== "static-fallback";
-  const morphoReal =
-    morphoQuality.apyData !== "static-fallback" &&
-    morphoQuality.tvlData !== "static-fallback";
+export function resolveMoonwellDataSourceLabel(
+  options: MoonwellBaseProviderSnapshotOptions = {},
+): string {
+  if (options.disableApi === true) {
+    return "static-fallback (API disabled)";
+  }
 
-  const apyData: ProviderDataQualityLabel =
-    aaveReal && morphoReal
-      ? "mixed-real"
-      : aaveReal || morphoReal
-        ? "mixed-real"
-        : "mixed-fallback";
+  const apiUrl =
+    options.apiUrl ?? resolveMoonwellBaseApiUrl(options.env ?? process.env);
+
+  return apiUrl !== undefined
+    ? "api (Moonwell data API configured)"
+    : "static-fallback (no API configured)";
+}
+
+export function resolveMoonwellDataQuality(
+  options: MoonwellBaseProviderSnapshotOptions = {},
+): ProviderDataQuality {
+  const isFallback =
+    options.disableApi === true ||
+    (options.apiUrl ?? resolveMoonwellBaseApiUrl(options.env ?? process.env)) ===
+      undefined;
+
+  return {
+    providerType: "MoonwellBaseLaminarDataProvider",
+    providerName: "Moonwell Base (experimental)",
+    apyData: isFallback ? "static-fallback" : "real-api",
+    tvlData: isFallback ? "static-fallback" : "real-api",
+    trustData: "curated",
+    liquidityData: "curated",
+    dataSourceLabel: resolveMoonwellDataSourceLabel(options),
+  };
+}
+
+/** Short protocol label from a curated provider name (e.g. "Aave Base (...)" → "Aave"). */
+function shortProviderName(providerName: string): string {
+  return providerName.split(" ")[0] ?? providerName;
+}
+
+/**
+ * Aggregates the data quality of an arbitrary set of sub-providers into a single
+ * Combined data quality. Accepts any number of sub-provider qualities so the
+ * Combined universe can grow (Aave + Morpho + Moonwell + …) without changes.
+ *
+ * - apy/tvl are "mixed-real" if ANY sub-provider has real (non-fallback) data,
+ *   otherwise "mixed-fallback".
+ * - trust/liquidity remain "curated" (every real provider curates these).
+ */
+export function resolveCombinedDataQuality(
+  ...qualities: ProviderDataQuality[]
+): ProviderDataQuality {
+  const someReal = qualities.some(
+    (quality) =>
+      quality.apyData !== "static-fallback" &&
+      quality.tvlData !== "static-fallback",
+  );
+
+  const apyData: ProviderDataQualityLabel = someReal
+    ? "mixed-real"
+    : "mixed-fallback";
   const tvlData: ProviderDataQualityLabel = apyData;
 
   const labels: string[] = [];
-  if (aaveQuality.dataSourceLabel !== undefined) {
-    labels.push(`Aave: ${aaveQuality.dataSourceLabel}`);
+  for (const quality of qualities) {
+    if (quality.dataSourceLabel !== undefined) {
+      labels.push(`${shortProviderName(quality.providerName)}: ${quality.dataSourceLabel}`);
+    }
   }
-  if (morphoQuality.dataSourceLabel !== undefined) {
-    labels.push(`Morpho: ${morphoQuality.dataSourceLabel}`);
-  }
+
+  const providerName =
+    qualities.length > 0
+      ? `Combined ${qualities.map((quality) => shortProviderName(quality.providerName)).join(" + ")} (experimental)`
+      : "Combined (experimental)";
 
   return {
     providerType: "CombinedLaminarDataProvider",
-    providerName: "Combined Aave + Morpho (experimental)",
+    providerName,
     apyData,
     tvlData,
     trustData: "curated",
@@ -541,6 +594,7 @@ export async function runProviderComparisonMatrix(
   const scenarios = options.scenarios ?? SENSITIVITY_SCENARIOS;
   const aaveSnapshotOptions = options.aaveSnapshotOptions ?? {};
   const morphoSnapshotOptions = options.morphoSnapshotOptions ?? {};
+  const moonwellSnapshotOptions = options.moonwellSnapshotOptions ?? {};
 
   const mockProvider = new MockLaminarDataProvider();
   const aaveProvider = await createAaveBaseLaminarDataProviderSnapshot(
@@ -549,16 +603,25 @@ export async function runProviderComparisonMatrix(
   const morphoProvider = await createMorphoBaseLaminarDataProviderSnapshot(
     morphoSnapshotOptions,
   );
+  const moonwellProvider = await createMoonwellBaseLaminarDataProviderSnapshot(
+    moonwellSnapshotOptions,
+  );
+  // Combined V2: aggregates every real provider (Aave + Morpho + Moonwell).
   const combinedProvider = new CombinedLaminarDataProvider([
     aaveProvider,
     morphoProvider,
+    moonwellProvider,
   ]);
 
   const aaveDataQuality = resolveAaveDataQuality(aaveSnapshotOptions);
   const morphoDataQuality = resolveMorphoDataQuality(morphoSnapshotOptions);
+  const moonwellDataQuality = resolveMoonwellDataQuality(
+    moonwellSnapshotOptions,
+  );
   const combinedDataQuality = resolveCombinedDataQuality(
     aaveDataQuality,
     morphoDataQuality,
+    moonwellDataQuality,
   );
 
   const providerDefinitions: ProviderDefinition[] = [
@@ -588,7 +651,7 @@ export async function runProviderComparisonMatrix(
     },
     {
       providerType: "CombinedLaminarDataProvider",
-      providerName: "Combined Aave + Morpho (experimental)",
+      providerName: combinedDataQuality.providerName,
       provider: combinedProvider,
       dataQuality: combinedDataQuality,
       ...(combinedDataQuality.dataSourceLabel !== undefined

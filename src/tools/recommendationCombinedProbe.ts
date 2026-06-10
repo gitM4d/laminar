@@ -2,39 +2,61 @@ import "dotenv/config";
 import { createLaminarRecommendation } from "../core/index.js";
 import { createAaveBaseLaminarDataProviderSnapshot } from "../core/providers/AaveBaseLaminarDataProvider.js";
 import { createMorphoBaseLaminarDataProviderSnapshot } from "../core/providers/MorphoBaseLaminarDataProvider.js";
+import { createMoonwellBaseLaminarDataProviderSnapshot } from "../core/providers/MoonwellBaseLaminarDataProvider.js";
 import { CombinedLaminarDataProvider } from "../core/providers/CombinedLaminarDataProvider.js";
+import type { LaminarDataProvider } from "../core/providers/types.js";
+import type { Opportunity } from "../core/opportunity/types.js";
 
 const DEFAULT_INTENT = { risk: 5, liquidity: 6, returnPreference: 5 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
 
+/** Resolves the owning protocol name for an opportunity id (prefix-based). */
+function protocolNameForOpportunity(
+  opportunityId: string,
+  opportunities: readonly Opportunity[],
+): string {
+  const match = opportunities.find((o) => o.id === opportunityId);
+  return match?.protocolName ?? "Unknown";
+}
+
 async function main(): Promise<void> {
-  console.log("Laminar — Combined Real Provider Recommendation");
-  console.log("================================================");
+  console.log("Laminar — Combined V2 Real Provider Recommendation");
+  console.log("==================================================");
   console.log(
-    "Building provider snapshots (read-only: Aave Base + Morpho Base)...",
+    "Building provider snapshots (read-only: Aave + Morpho + Moonwell)...",
   );
   console.log("");
 
-  const [aaveProvider, morphoProvider] = await Promise.all([
+  const [aaveProvider, morphoProvider, moonwellProvider] = await Promise.all([
     createAaveBaseLaminarDataProviderSnapshot(),
     createMorphoBaseLaminarDataProviderSnapshot(),
+    createMoonwellBaseLaminarDataProviderSnapshot(),
   ]);
 
-  const combined = new CombinedLaminarDataProvider([
-    aaveProvider,
-    morphoProvider,
-  ]);
+  const subProviders: { label: string; provider: LaminarDataProvider }[] = [
+    { label: "Aave", provider: aaveProvider },
+    { label: "Morpho", provider: morphoProvider },
+    { label: "Moonwell", provider: moonwellProvider },
+  ];
+
+  const combined = new CombinedLaminarDataProvider(
+    subProviders.map((sub) => sub.provider),
+  );
 
   const providerInfo = combined.getProviderInfo();
   console.log(`Provider: ${providerInfo.providerType}`);
+  console.log(`Provider name: ${providerInfo.providerName}`);
+  console.log(`Provider count: ${subProviders.length.toString()}`);
+  console.log("");
 
-  console.log("Underlying providers:");
-  for (const sub of [aaveProvider, morphoProvider]) {
-    const info = sub.getProviderInfo?.();
-    if (info !== undefined) {
-      console.log(`  - ${info.providerName}`);
-    }
+  console.log("Opportunities per protocol:");
+  let total = 0;
+  for (const sub of subProviders) {
+    const count = sub.provider.discoverOpportunities().length;
+    total += count;
+    console.log(`  ${sub.label}: ${count.toString()}`);
   }
+  console.log(`  Total: ${total.toString()}`);
   console.log("");
 
   const opportunities = combined.discoverOpportunities();
@@ -87,31 +109,59 @@ async function main(): Promise<void> {
   }
   console.log("");
 
-  console.log(
-    `Ranked opportunities (${recommendation.opportunityRanking.ranked.length.toString()}):`,
-  );
-  for (const ranked of recommendation.opportunityRanking.ranked) {
-    console.log(
-      `  ${ranked.opportunityId} — score ${ranked.scoring.score.toFixed(4)}, APY ${(ranked.scoring.apyDecimal * 100).toFixed(3)}%`,
+  // ── Ranked opportunities by protocol ───────────────────────────────────────
+  console.log("Ranked opportunities by protocol:");
+  for (const sub of subProviders) {
+    const rankedForProtocol = recommendation.opportunityRanking.ranked.filter(
+      (ranked) =>
+        protocolNameForOpportunity(ranked.opportunityId, opportunities) ===
+        sub.label,
     );
+    console.log(`  ${sub.label} (${rankedForProtocol.length.toString()}):`);
+    for (const ranked of rankedForProtocol) {
+      console.log(
+        `    ${ranked.opportunityId} — score ${ranked.scoring.score.toFixed(4)}, APY ${(ranked.scoring.apyDecimal * 100).toFixed(3)}%`,
+      );
+    }
   }
   console.log("");
 
+  // ── Portfolio positions by protocol ────────────────────────────────────────
   const strategyPositions = snapshot.positions.filter(
     (p) => p.type === "strategy",
   );
   console.log(
-    `Portfolio positions (${snapshot.positions.length.toString()} total, ${strategyPositions.length.toString()} strategy):`,
+    `Portfolio positions by protocol (${strategyPositions.length.toString()} strategy of ${snapshot.positions.length.toString()} total):`,
   );
-  for (const position of snapshot.positions) {
-    const label =
-      position.type === "strategy"
-        ? `${position.label} (${position.asset})`
-        : position.label;
-    console.log(
-      `  [${position.type}] ${label} — ${position.allocationPercent.toFixed(1)}% ($${position.allocationUsd.toFixed(2)})`,
+  for (const sub of subProviders) {
+    const positionsForProtocol = strategyPositions.filter(
+      (p) => p.protocolName === sub.label,
     );
+    console.log(`  ${sub.label} (${positionsForProtocol.length.toString()}):`);
+    for (const position of positionsForProtocol) {
+      console.log(
+        `    ${position.label} (${position.asset}) — ${position.allocationPercent.toFixed(1)}% ($${position.allocationUsd.toFixed(2)})`,
+      );
+    }
   }
+  console.log("");
+
+  // ── Allocation by protocol ─────────────────────────────────────────────────
+  console.log("Allocation by protocol:");
+  for (const sub of subProviders) {
+    const allocation = strategyPositions
+      .filter((p) => p.protocolName === sub.label)
+      .reduce((sum, p) => sum + p.allocationPercent, 0);
+    console.log(`  ${sub.label}: ${allocation.toFixed(1)}%`);
+  }
+  const liquidityBufferPercent = snapshot.positions
+    .filter((p) => p.type === "liquidityBuffer")
+    .reduce((sum, p) => sum + p.allocationPercent, 0);
+  const gasReservePercent = snapshot.positions
+    .filter((p) => p.type === "gasReserve")
+    .reduce((sum, p) => sum + p.allocationPercent, 0);
+  console.log(`  Liquidity Buffer: ${liquidityBufferPercent.toFixed(1)}%`);
+  console.log(`  Gas Reserve: ${gasReservePercent.toFixed(1)}%`);
   console.log("");
 
   if (recommendation.diagnostics.warnings.length > 0) {
@@ -134,7 +184,13 @@ async function main(): Promise<void> {
   console.log(
     "- Morpho APY/TVL from Morpho public API when reachable; static otherwise.",
   );
-  console.log("- Trust/liquidity profiles are curated/static for both protocols.");
+  console.log(
+    "- Moonwell APY/TVL from Moonwell data API when MOONWELL_BASE_API_URL is set; static otherwise.",
+  );
+  console.log(
+    "- Moonwell's curated trust (~73.7) is below the Balanced minTrustScore (75), so Moonwell opportunities may be filtered under this intent (observed, not forced).",
+  );
+  console.log("- Trust/liquidity profiles are curated/static for all protocols.");
   console.log("- V1 assets only (USDC/EURC/DAI).");
   console.log("- No transactions created. Read-only adapters only.");
   console.log("- Default API/frontend provider remains MockLaminarDataProvider.");
