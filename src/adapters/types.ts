@@ -11,29 +11,38 @@ export type ProtocolAdapterChain = SupportedChain;
 /**
  * Operating mode of a read-only protocol adapter.
  *
- * - `static-fallback`: no RPC configured; deterministic static data only.
+ * - `static-fallback`: no remote source configured/used; deterministic static
+ *   data only.
  * - `rpc-readonly`: an RPC URL is configured and may be used for read-only
- *   connectivity checks. Market APY/TVL may still be static in early spikes.
+ *   connectivity checks (Aave). Market APY/TVL may still be static in early
+ *   spikes.
+ * - `api-readonly`: a read-only data API is configured and may be queried
+ *   (Morpho public GraphQL API). Falls back to static data on failure.
  */
-export type AdapterMode = "static-fallback" | "rpc-readonly";
+export type AdapterMode = "static-fallback" | "rpc-readonly" | "api-readonly";
 
 /**
  * Source of a discovered market.
  *
- * - `static-fallback`: data is fully static; no RPC was available.
+ * - `static-fallback`: data is fully static; no remote source was available.
  * - `static-fallback-rpc-verified`: RPC connectivity was verified, but the
  *   reserves and the market APY/TVL values are still static.
  * - `rpc-reserve-discovery`: the reserve asset was discovered on-chain via
  *   read-only RPC calls. APY/TVL may still be static placeholders.
+ * - `morpho-api`: the market was discovered via Morpho's read-only public API.
  */
 export type ReadOnlyMarketSource =
   | "static-fallback"
   | "static-fallback-rpc-verified"
-  | "rpc-reserve-discovery";
+  | "rpc-reserve-discovery"
+  | "morpho-api";
 
-export type ApySource = "aave-liquidity-rate" | "static-placeholder";
+export type ApySource =
+  | "aave-liquidity-rate"
+  | "morpho-api"
+  | "static-placeholder";
 
-export type TvlSource = "static-placeholder";
+export type TvlSource = "morpho-api" | "static-placeholder";
 
 /**
  * Provenance metadata for a read-only market.
@@ -41,9 +50,14 @@ export type TvlSource = "static-placeholder";
  * Distinguishes which parts of the market are sourced on-chain vs static.
  */
 export type ReadOnlyMarketMetadata = {
-  /** How the reserve asset itself was discovered. */
-  reserveDiscovery: "static" | "on-chain";
-  /** Underlying reserve asset address, when discovered on-chain. */
+  /**
+   * How the reserve/market asset itself was identified.
+   * - `static`: from curated static config.
+   * - `on-chain`: discovered via read-only RPC (Aave).
+   * - `api`: discovered via a read-only data API (Morpho).
+   */
+  reserveDiscovery: "static" | "on-chain" | "api";
+  /** Underlying reserve/vault address, when known. */
   reserveAddress?: string;
   /** ERC20 decimals, when read on-chain. */
   decimals?: number;
@@ -68,6 +82,8 @@ export type AdapterHealthStatus = {
   healthy: boolean;
   /** True only when a real read-only RPC call succeeded. */
   rpcChecked: boolean;
+  /** True only when a real read-only data API call succeeded. */
+  apiChecked?: boolean;
   /** Block number returned by a read-only RPC call, when available. */
   blockNumber?: string;
   detail: string;

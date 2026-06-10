@@ -261,6 +261,59 @@ placeholder.
 - The adapter is **read-only**: no wallet, no private key, no signer, and
   **no transactions are created**.
 
+## Morpho Base Adapter (experimental)
+
+The read-only Morpho adapter for Base discovers Morpho vaults via Morpho's
+public GraphQL API when available, and falls back to deterministic static
+markets otherwise. It is **not** wired into the API or frontend default flow;
+the default data provider remains `MockLaminarDataProvider`.
+
+Run the read-only adapter probe:
+
+```bash
+npm run adapter:morpho:base
+```
+
+Run the Morpho provider recommendation probe (Balanced intent, $10,000):
+
+```bash
+npm run recommendation:morpho
+```
+
+### Data source
+
+- **Morpho public API** (`https://api.morpho.org/graphql`, chainId `8453`) is
+  queried read-only when reachable. APY (`state.netApy`) and TVL
+  (`state.totalAssetsUsd`) are sourced from the API.
+- If the API is unavailable, returns an unexpected shape, or yields no supported
+  markets, the adapter falls back to **deterministic static markets** so local
+  development never blocks.
+- Override or disable the endpoint with `MORPHO_BASE_API_URL` (set to an empty
+  string to force static-fallback mode).
+
+### Adapter modes
+
+- **Static fallback mode** (`disableApi` / empty `MORPHO_BASE_API_URL`):
+  `discoverMarkets()` returns deterministic static markets
+  (`source = "static-fallback"`); APY/TVL are static placeholders
+  (`apySource`/`tvlSource = "static-placeholder"`).
+- **API read-only mode** (default): `getHealth()` performs a read-only vaults
+  query and `discoverMarkets()` returns API-sourced markets
+  (`source = "morpho-api"`, `apySource`/`tvlSource = "morpho-api"`). On failure
+  (non-strict) it falls back to static markets; with `strictApi: true` it throws
+  a `MorphoDiscoveryError`.
+
+### Warnings
+
+- **APY/TVL are real only when the Morpho API is reachable**; otherwise they are
+  static placeholders.
+- V1 assets only (USDC / EURC / DAI). No ETH/BTC/LSTs/long-tail assets.
+- Trust/liquidity metadata for Morpho is curated/static.
+- `protocolRiskLevel` for Morpho is curated as `medium`.
+- The adapter is **read-only**: no wallet, no private key, no signer, and
+  **no transactions are created**.
+- The API/frontend default provider remains `MockLaminarDataProvider`.
+
 ## API documentation
 
 - API guide: [docs/api/README.md](docs/api/README.md)
@@ -282,7 +335,7 @@ placeholder.
 ```text
 src/core/     Domain pipeline and public core API
 src/core/providers/  Read-only data provider interfaces (mock default)
-src/adapters/ Read-only protocol adapters (Aave Base spike, experimental)
+src/adapters/ Read-only protocol adapters (Aave + Morpho Base spikes, experimental)
 src/api/      Local HTTP API
 src/demo/     CLI demo
 frontend/     Minimal React prototype UI
