@@ -1,0 +1,200 @@
+import { MoonwellBaseReadOnlyAdapter } from "../../adapters/moonwell/MoonwellBaseReadOnlyAdapter.js";
+import type { MoonwellBaseReadOnlyAdapterOptions } from "../../adapters/moonwell/MoonwellBaseReadOnlyAdapter.js";
+import { mapMoonwellMarketToOpportunity } from "../../adapters/moonwell/mapMoonwellMarketToOpportunity.js";
+import { MOONWELL_BASE_CONFIG } from "../../adapters/moonwell/moonwellBaseConfig.js";
+import {
+  getOpportunityLiquidityProfile,
+  UnknownOpportunityLiquidityProfileError,
+} from "../liquidity/scoreOpportunityLiquidity.js";
+import type { OpportunityLiquidityProfile } from "../liquidity/types.js";
+import type { Opportunity } from "../opportunity/types.js";
+import {
+  getProtocolTrustProfile,
+  UnknownProtocolTrustProfileError,
+} from "../trust/scoreOpportunityTrust.js";
+import type { ProtocolTrustProfile } from "../trust/types.js";
+import type { LaminarDataProvider, ProviderInfo } from "./types.js";
+
+/**
+ * Curated Moonwell trust profile for the read-only adapter.
+ *
+ * NOTE: Trust metadata is curated/static — not sourced on-chain or via API.
+ *
+ * RATIONALE (conservative but accurate):
+ * - protocolAgeYears: 4 — Moonwell has operated since 2021–2022 (Moonwell Apollo
+ *   on Moonriver, Artemis on Moonbeam) and launched on Base in 2023. A 4-year
+ *   figure is conservative and still below Aave (5.5y).
+ * - tvlUsd: ~60M — approximate current Moonwell total TVL (order of magnitude,
+ *   per public trackers). Materially smaller than Aave/Morpho, which correctly
+ *   keeps Moonwell's trust below them.
+ * - audits: Moonwell core is a Compound V2-style protocol with multiple public
+ *   audits (Halborn) plus competitive review (Code4rena). Three tier-2 audits are
+ *   modeled; no tier-1 firm is claimed (conservative).
+ * - incidents: none modeled for the V1 stablecoin lending markets. No unverified
+ *   incidents are fabricated.
+ * - chainAdjustment: 0 (Base, same as Aave/Morpho).
+ *
+ * RESULTING TRUST SCORE: ≈73.7. This clears the "Yield Focused" profile
+ * (minTrustScore 65) but is intentionally below "Balanced" (75) and
+ * "Conservative" (85) — an honest reflection of Moonwell being a smaller,
+ * younger protocol than Aave/Morpho. The recommendation probe therefore uses a
+ * yield-focused intent to demonstrate real allocations.
+ */
+export const MOONWELL_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile = {
+  protocolId: MOONWELL_BASE_CONFIG.protocolId,
+  protocolName: MOONWELL_BASE_CONFIG.protocolName,
+  protocolAgeYears: 4,
+  tvlUsd: 60_000_000,
+  audits: [
+    {
+      auditor: "Halborn",
+      tier: 2,
+      completedAt: "2022-09-01",
+    },
+    {
+      auditor: "Halborn",
+      tier: 2,
+      completedAt: "2023-08-01",
+    },
+    {
+      auditor: "Code4rena",
+      tier: 2,
+      completedAt: "2023-11-01",
+    },
+  ],
+  incidents: [],
+  chainAdjustment: 0,
+};
+
+/**
+ * Curated liquidity profile for Moonwell Base stablecoin lending markets.
+ *
+ * RATIONALE:
+ * - Moonwell uses a Compound V2-style pooled lending model. Supplied
+ *   stablecoins can normally be withdrawn instantly, subject to pool
+ *   utilization. Redemption reliability is treated as "high" (not "veryHigh")
+ *   to reflect occasional high-utilization periods where withdrawals can be
+ *   temporarily constrained until borrowers repay or new supply arrives.
+ * - No lockup, no withdrawal queue/cooldown for V1 stablecoin markets.
+ * - Liquidity metadata is curated/static; it is NOT discovered on-chain.
+ */
+function buildCuratedLiquidityProfile(
+  opportunityId: string,
+): OpportunityLiquidityProfile {
+  return {
+    opportunityId,
+    withdrawalSpeedBucket: "instant",
+    withdrawalConstraintType: "none",
+    redemptionReliabilityLevel: "high",
+    assetLiquidityLevel: "veryHigh",
+    maxWithdrawalDelay: "instant",
+    hasLockup: false,
+  };
+}
+
+/**
+ * Read-only Moonwell Base data provider.
+ *
+ * Wraps API-discovered (or static fallback) opportunities and curated
+ * trust/liquidity profiles into a synchronous `LaminarDataProvider` that can be
+ * passed directly into `createLaminarRecommendation`.
+ *
+ * IMPORTANT:
+ * - APY/TVL are real when the Moonwell API is reachable; static placeholders
+ *   otherwise.
+ * - Trust/liquidity profiles are curated/static.
+ * - No transactions are created; the adapter is read-only.
+ * - This is experimental. The API/frontend default remains MockLaminarDataProvider.
+ */
+class MoonwellBaseLaminarDataProvider implements LaminarDataProvider {
+  private readonly opportunities: readonly Opportunity[];
+  private readonly trustProfiles: Record<string, ProtocolTrustProfile>;
+  private readonly liquidityProfiles: Record<
+    string,
+    OpportunityLiquidityProfile
+  >;
+
+  constructor(
+    opportunities: readonly Opportunity[],
+    trustProfiles: Record<string, ProtocolTrustProfile>,
+    liquidityProfiles: Record<string, OpportunityLiquidityProfile>,
+  ) {
+    this.opportunities = opportunities;
+    this.trustProfiles = trustProfiles;
+    this.liquidityProfiles = liquidityProfiles;
+  }
+
+  discoverOpportunities(): Opportunity[] {
+    return [...this.opportunities];
+  }
+
+  getTrustProfile(protocolId: string): ProtocolTrustProfile {
+    return getProtocolTrustProfile(protocolId, this.trustProfiles);
+  }
+
+  getLiquidityProfile(opportunityId: string): OpportunityLiquidityProfile {
+    return getOpportunityLiquidityProfile(opportunityId, this.liquidityProfiles);
+  }
+
+  getProviderInfo(): ProviderInfo {
+    return {
+      providerType: "MoonwellBaseLaminarDataProvider",
+      providerName: "Moonwell Base (experimental)",
+    };
+  }
+}
+
+export {
+  UnknownOpportunityLiquidityProfileError,
+  UnknownProtocolTrustProfileError,
+};
+
+export type MoonwellBaseProviderSnapshotOptions =
+  MoonwellBaseReadOnlyAdapterOptions;
+
+/**
+ * Experimental factory that builds a LaminarDataProvider snapshot from the
+ * read-only Moonwell Base adapter.
+ *
+ * This is async because adapter discovery is async, but it returns a plain
+ * synchronous LaminarDataProvider snapshot so that createLaminarRecommendation
+ * stays synchronous.
+ *
+ * Usage:
+ * ```ts
+ * const provider = await createMoonwellBaseLaminarDataProviderSnapshot();
+ * const result = createLaminarRecommendation({ intent, portfolioValueUsd, dataProvider: provider });
+ * ```
+ *
+ * IMPORTANT:
+ * - This is experimental and is NOT the default provider.
+ * - APY/TVL are from the Moonwell public API when reachable; static otherwise.
+ * - Trust/liquidity metadata is curated/static.
+ * - No transactions are created; the adapter is read-only.
+ */
+export async function createMoonwellBaseLaminarDataProviderSnapshot(
+  options: MoonwellBaseProviderSnapshotOptions = {},
+): Promise<LaminarDataProvider> {
+  const adapter = new MoonwellBaseReadOnlyAdapter(options);
+  const markets = await adapter.discoverMarkets();
+  const opportunities: Opportunity[] = markets.map(
+    mapMoonwellMarketToOpportunity,
+  );
+
+  const trustProfiles: Record<string, ProtocolTrustProfile> = {
+    [MOONWELL_BASE_CONFIG.protocolId]: MOONWELL_BASE_CURATED_TRUST_PROFILE,
+  };
+
+  const liquidityProfiles: Record<string, OpportunityLiquidityProfile> = {};
+  for (const opportunity of opportunities) {
+    liquidityProfiles[opportunity.id] = buildCuratedLiquidityProfile(
+      opportunity.id,
+    );
+  }
+
+  return new MoonwellBaseLaminarDataProvider(
+    opportunities,
+    trustProfiles,
+    liquidityProfiles,
+  );
+}

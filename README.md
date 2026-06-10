@@ -345,6 +345,82 @@ npm run recommendation:morpho
   **no transactions are created**.
 - The API/frontend default provider remains `MockLaminarDataProvider`.
 
+## Moonwell Base Adapter (experimental)
+
+The read-only Moonwell adapter for Base discovers Moonwell lending markets
+(mTokens) via Moonwell's public read-only data API when configured, and falls
+back to deterministic static markets otherwise. It is **not** wired into the API
+or frontend default flow, nor into the provider comparison or Combined provider;
+the default data provider remains `MockLaminarDataProvider`.
+
+Run the read-only adapter probe:
+
+```bash
+npm run adapter:moonwell:base
+```
+
+Run the Moonwell provider recommendation probe (Balanced intent, $10,000):
+
+```bash
+npm run recommendation:moonwell
+```
+
+### Data source
+
+- **Chosen source: a lightweight read-only HTTP/JSON data API client**, mirroring
+  the Morpho adapter exactly. The endpoint is provided via the
+  `MOONWELL_BASE_API_URL` environment variable (chainId `8453`). When reachable,
+  supply APY (`supplyApy`) and TVL (`totalSupplyUsd`) are sourced from the API.
+- **Why this source:** simplest and most robust for a read-only spike; no heavy
+  SDK dependency; no signer/wallet; matches the existing Morpho architecture; and
+  tests stay deterministic via an injected mock client.
+- **Discarded alternatives:**
+  - The official `@moonwell-fi/moonwell-sdk` — a heavyweight dependency that is
+    internally RPC-coupled (viem multicall) and harder to mock cleanly; overkill
+    for a read-only spike.
+  - The subgraph — requires endpoint/key management and carries schema-drift
+    risk.
+  - Direct on-chain mToken reads — feasible but the Compound-style APY math
+    (per-timestamp rate → APY) and USD TVL (needs a price) add complexity and
+    approximation. The client interface leaves room to plug any of these in later.
+- Unlike Morpho, there is **no hardcoded public default endpoint**. Without
+  `MOONWELL_BASE_API_URL`, the adapter runs in deterministic static-fallback mode
+  (same default posture as the Aave adapter without an RPC URL).
+
+### Adapter modes
+
+- **Static fallback mode** (default / `disableApi` / unset `MOONWELL_BASE_API_URL`):
+  `discoverMarkets()` returns deterministic static markets
+  (`source = "static-fallback"`); APY/TVL are static placeholders
+  (`apySource`/`tvlSource = "static-placeholder"`).
+- **API read-only mode** (when `MOONWELL_BASE_API_URL` is set): `getHealth()`
+  performs a read-only markets query and `discoverMarkets()` returns API-sourced
+  markets (`source = "moonwell-api"`, `apySource`/`tvlSource = "moonwell-api"`).
+  On failure (non-strict) it falls back to static markets; with `strictApi: true`
+  it throws a `MoonwellDiscoveryError`.
+
+### Data quality
+
+- **Real (when API reachable):** supply APY and TVL per market.
+- **Curated/static:** trust profile (≈3y operation, ~$60M TVL, two Halborn
+  tier-2 audits, no modeled incidents) and liquidity profile (instant withdrawal,
+  no lockup, `high` redemption reliability to reflect pooled-utilization risk).
+- **Fallback (static placeholders):** APY/TVL when the API is unset/unavailable
+  or returns no supported markets.
+
+### Warnings
+
+- **APY/TVL are real only when the Moonwell API is reachable**; otherwise they
+  are static placeholders.
+- V1 assets only (USDC / EURC / DAI). No ETH/BTC/LSTs/long-tail assets.
+- Trust/liquidity metadata for Moonwell is curated/static.
+- `protocolRiskLevel` for Moonwell is curated as `medium`.
+- The adapter is **read-only**: no wallet, no private key, no signer, and
+  **no transactions are created**.
+- The API/frontend default provider remains `MockLaminarDataProvider`.
+- Moonwell is **not** integrated into `compare:providers` or the Combined
+  provider yet (intentionally out of scope for this spike).
+
 ## API documentation
 
 - API guide: [docs/api/README.md](docs/api/README.md)

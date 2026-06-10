@@ -30,16 +30,19 @@ export type AdapterMode = "static-fallback" | "rpc-readonly" | "api-readonly";
  * - `rpc-reserve-discovery`: the reserve asset was discovered on-chain via
  *   read-only RPC calls. APY/TVL may still be static placeholders.
  * - `morpho-api`: the market was discovered via Morpho's read-only public API.
+ * - `moonwell-api`: the market was discovered via Moonwell's read-only data API.
  */
 export type ReadOnlyMarketSource =
   | "static-fallback"
   | "static-fallback-rpc-verified"
   | "rpc-reserve-discovery"
-  | "morpho-api";
+  | "morpho-api"
+  | "moonwell-api";
 
 export type ApySource =
   | "aave-liquidity-rate"
   | "morpho-api"
+  | "moonwell-api"
   | "static-placeholder";
 
 /**
@@ -51,6 +54,7 @@ export type ApySource =
 export type TvlSource =
   | "aave-atoken-supply"
   | "morpho-api"
+  | "moonwell-api"
   | "static-placeholder";
 
 /**
