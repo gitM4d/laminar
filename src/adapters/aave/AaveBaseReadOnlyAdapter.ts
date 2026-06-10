@@ -1,4 +1,4 @@
-import { createPublicClient, http, type PublicClient } from "viem";
+import { createPublicClient, http, type Address, type PublicClient } from "viem";
 import { base } from "viem/chains";
 import { AAVE_BASE_CONFIG, resolveAaveBaseRpcUrl } from "./aaveBaseConfig.js";
 import {
@@ -10,6 +10,7 @@ import {
   buildAaveMarketId,
   discoverAaveBaseReserves,
   readAaveReserveSupplyApr,
+  readAaveReserveTvl,
   type AaveReadOnlyClient,
   type DiscoveredReserve,
 } from "./aaveReserveDiscovery.js";
@@ -52,7 +53,8 @@ export type AaveBaseReadOnlyAdapterOptions = {
  *   APR (Pool.getReserveData currentLiquidityRate).
  *
  * NOTE: APY is the real Aave liquidityRate APR used as an APY approximation
- * (incentives excluded). TVL remains a STATIC placeholder.
+ * (incentives excluded). TVL is derived from aToken.totalSupply() on-chain;
+ * for stablecoins a 1-token ≈ 1 USD peg is assumed (no price feed).
  */
 export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
   readonly id = AAVE_BASE_CONFIG.protocolId;
@@ -140,7 +142,7 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
         rpcChecked: true,
         blockNumber: blockNumber.toString(),
         detail:
-          "RPC read-only health check succeeded (getBlockNumber). Reserves and supply APR discovered on-chain; TVL remains a static placeholder.",
+          "RPC read-only health check succeeded (getBlockNumber). Reserves, supply APR, and TVL (aToken.totalSupply) discovered on-chain.",
         checkedAt,
       };
     } catch (error) {
@@ -224,9 +226,11 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
     let apy = staticApy;
     let apySource: ReadOnlyMarketMetadata["apySource"] = "static-placeholder";
     let apyIsApproximation = false;
-    let apyNote: string;
+    let apyNote: string | undefined;
     let liquidityRateRay: string | undefined;
+    let aTokenAddress: string | undefined;
 
+    // ── APY (and aToken address) via getReserveData ────────────────────────
     try {
       const supply = await readAaveReserveSupplyApr(client, reserve.address);
       apy = supply.supplyApr;
@@ -235,9 +239,8 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
       apyNote =
         "Aave liquidityRate APR used as APY approximation; incentives not included.";
       liquidityRateRay = supply.liquidityRateRay.toString();
+      aTokenAddress = supply.aTokenAddress;
     } catch (error) {
-      // In strict mode, surface the failure. In non-strict mode, fall back to
-      // the static APY placeholder for this specific market.
       if (this.strictRpc) {
         throw error instanceof AaveReserveDiscoveryError
           ? error
@@ -250,15 +253,46 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
         "On-chain supply APR read failed; using static placeholder APY (non-strict fallback).";
     }
 
+    // ── TVL via aToken.totalSupply() ──────────────────────────────────────
+    let tvlUsd = staticTvlUsd;
+    let tvlSource: ReadOnlyMarketMetadata["tvlSource"] = "static-placeholder";
+    let tvlNote: string | undefined;
+
+    if (aTokenAddress !== undefined) {
+      try {
+        const tvlData = await readAaveReserveTvl(
+          client,
+          aTokenAddress as Address,
+          reserve.decimals,
+        );
+        tvlUsd = tvlData.tvlUsd;
+        tvlSource = "aave-atoken-supply";
+        tvlNote =
+          `aToken.totalSupply() on-chain; 1 ${reserve.symbol} ≈ 1 USD (stablecoin peg assumed, no price feed).`;
+      } catch (error) {
+        if (this.strictRpc) {
+          throw error instanceof AaveReserveDiscoveryError
+            ? error
+            : new AaveReserveDiscoveryError(
+                `TVL read failed for ${reserve.symbol}`,
+                error,
+              );
+        }
+        tvlNote =
+          "On-chain TVL read failed; using static placeholder (non-strict fallback).";
+      }
+    }
+
     const metadata: ReadOnlyMarketMetadata = {
       reserveDiscovery: "on-chain",
       reserveAddress: reserve.address,
       decimals: reserve.decimals,
       apySource,
       apyIsApproximation,
-      apyNote,
-      tvlSource: "static-placeholder",
-      note: "Reserve discovered on-chain; TVL is a static placeholder.",
+      tvlSource,
+      note: "Reserve, APY, and TVL discovered on-chain.",
+      ...(apyNote !== undefined ? { apyNote } : {}),
+      ...(tvlNote !== undefined ? { tvlNote } : {}),
       ...(liquidityRateRay !== undefined ? { liquidityRateRay } : {}),
     };
 
@@ -269,7 +303,7 @@ export class AaveBaseReadOnlyAdapter implements ProtocolAdapter {
       chain: AAVE_BASE_CONFIG.chain,
       asset: reserve.symbol,
       apy,
-      tvlUsd: staticTvlUsd,
+      tvlUsd,
       exposureCategory: "lending",
       source: "rpc-reserve-discovery",
       fetchedAt,

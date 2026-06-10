@@ -19,14 +19,36 @@ import {
 
 const USDC = "0xUSDC000000000000000000000000000000000000" as `0x${string}`;
 const EURC = "0xEURC000000000000000000000000000000000000" as `0x${string}`;
+const A_USDC = "0xaUSDC0000000000000000000000000000000000" as `0x${string}`;
+const A_EURC = "0xaEURC0000000000000000000000000000000000" as `0x${string}`;
 
 function buildMockAaveClient(): AaveReadOnlyClient {
   const reserveData: Record<
     string,
-    { symbol: string; decimals: number; liquidityRateRay: bigint }
+    {
+      symbol: string;
+      decimals: number;
+      liquidityRateRay: bigint;
+      aTokenAddress: `0x${string}`;
+    }
   > = {
-    [USDC]: { symbol: "USDC", decimals: 6, liquidityRateRay: 5n * 10n ** 25n },
-    [EURC]: { symbol: "EURC", decimals: 6, liquidityRateRay: 3n * 10n ** 25n },
+    [USDC]: {
+      symbol: "USDC",
+      decimals: 6,
+      liquidityRateRay: 5n * 10n ** 25n,
+      aTokenAddress: A_USDC,
+    },
+    [EURC]: {
+      symbol: "EURC",
+      decimals: 6,
+      liquidityRateRay: 3n * 10n ** 25n,
+      aTokenAddress: A_EURC,
+    },
+  };
+
+  const aTokenSupplies: Record<string, bigint> = {
+    [A_USDC]: 180_000_000n * 10n ** 6n,
+    [A_EURC]: 25_000_000n * 10n ** 6n,
   };
 
   return {
@@ -41,7 +63,14 @@ function buildMockAaveClient(): AaveReadOnlyClient {
         if (data === undefined) {
           throw new Error(`no reserve data for ${target}`);
         }
-        return { currentLiquidityRate: data.liquidityRateRay };
+        return {
+          currentLiquidityRate: data.liquidityRateRay,
+          aTokenAddress: data.aTokenAddress,
+        };
+      }
+      if (args.functionName === "totalSupply") {
+        const supply = aTokenSupplies[args.address];
+        return supply ?? 0n;
       }
       const reserve = reserveData[args.address];
       if (reserve === undefined) {

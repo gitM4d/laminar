@@ -4,9 +4,11 @@ import {
   AaveReserveDiscoveryError,
   buildAaveMarketId,
   discoverAaveBaseReserves,
+  extractATokenAddress,
   extractCurrentLiquidityRate,
   isV1SupportedAsset,
   readAaveReserveSupplyApr,
+  readAaveReserveTvl,
   V1_SUPPORTED_ASSETS,
   type AaveReadOnlyClient,
 } from "./aaveReserveDiscovery.js";
@@ -179,13 +181,53 @@ describe("extractCurrentLiquidityRate", () => {
   });
 });
 
+const MOCK_ATOKEN = "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" as const;
+
+describe("extractATokenAddress", () => {
+  it("reads aTokenAddress from a named-object decode", () => {
+    expect(
+      extractATokenAddress({
+        aTokenAddress: MOCK_ATOKEN,
+        currentLiquidityRate: 45n * 10n ** 24n,
+      }),
+    ).toBe(MOCK_ATOKEN);
+  });
+
+  it("reads aTokenAddress from a positional tuple (index 8)", () => {
+    // Positional: [config(0), liquidityIndex(1), currentLiquidityRate(2),
+    //              variableBorrowIndex(3), currentVariableBorrowRate(4),
+    //              currentStableBorrowRate(5), lastUpdateTimestamp(6),
+    //              id(7), aTokenAddress(8)]
+    const tuple = [
+      { data: 0n }, // 0 configuration
+      1n,           // 1 liquidityIndex
+      45n * 10n ** 24n, // 2 currentLiquidityRate
+      1n,           // 3 variableBorrowIndex
+      1n,           // 4 currentVariableBorrowRate
+      0n,           // 5 currentStableBorrowRate
+      1n,           // 6 lastUpdateTimestamp
+      1n,           // 7 id
+      MOCK_ATOKEN,  // 8 aTokenAddress
+    ];
+    expect(extractATokenAddress(tuple)).toBe(MOCK_ATOKEN);
+  });
+
+  it("returns undefined when aTokenAddress is absent", () => {
+    expect(extractATokenAddress({ somethingElse: 1n })).toBeUndefined();
+    expect(extractATokenAddress(null)).toBeUndefined();
+  });
+});
+
 describe("readAaveReserveSupplyApr", () => {
-  it("maps liquidityRate to a supply APR decimal", async () => {
+  it("maps liquidityRate to a supply APR decimal and returns aTokenAddress", async () => {
     const client: AaveReadOnlyClient = {
       getBlockNumber: async () => 1n,
       readContract: async (args) => {
         expect(args.functionName).toBe("getReserveData");
-        return { currentLiquidityRate: 45n * 10n ** 24n };
+        return {
+          currentLiquidityRate: 45n * 10n ** 24n,
+          aTokenAddress: MOCK_ATOKEN,
+        };
       },
     };
 
@@ -196,6 +238,7 @@ describe("readAaveReserveSupplyApr", () => {
 
     expect(result.liquidityRateRay).toBe(45n * 10n ** 24n);
     expect(result.supplyApr).toBe(0.045);
+    expect(result.aTokenAddress).toBe(MOCK_ATOKEN);
   });
 
   it("throws AaveReserveDiscoveryError when getReserveData fails", async () => {
@@ -217,7 +260,7 @@ describe("readAaveReserveSupplyApr", () => {
   it("throws when the liquidity rate cannot be decoded", async () => {
     const client: AaveReadOnlyClient = {
       getBlockNumber: async () => 1n,
-      readContract: async () => ({ somethingElse: 1n }),
+      readContract: async () => ({ aTokenAddress: MOCK_ATOKEN }),
     };
 
     await expect(
@@ -225,6 +268,71 @@ describe("readAaveReserveSupplyApr", () => {
         client,
         "0x1111111111111111111111111111111111111111",
       ),
+    ).rejects.toBeInstanceOf(AaveReserveDiscoveryError);
+  });
+
+  it("throws when aTokenAddress cannot be decoded", async () => {
+    const client: AaveReadOnlyClient = {
+      getBlockNumber: async () => 1n,
+      readContract: async () => ({
+        currentLiquidityRate: 45n * 10n ** 24n,
+        // aTokenAddress intentionally absent
+      }),
+    };
+
+    await expect(
+      readAaveReserveSupplyApr(
+        client,
+        "0x1111111111111111111111111111111111111111",
+      ),
+    ).rejects.toBeInstanceOf(AaveReserveDiscoveryError);
+  });
+});
+
+describe("readAaveReserveTvl", () => {
+  // 500_000_000 USDC → 500_000_000_000_000 raw (6 decimals)
+  const USDC_SUPPLY_RAW = 500_000_000n * 10n ** 6n;
+
+  it("converts aToken totalSupply to USD (stablecoin peg, 6 decimals)", async () => {
+    const client: AaveReadOnlyClient = {
+      getBlockNumber: async () => 1n,
+      readContract: async (args) => {
+        expect(args.functionName).toBe("totalSupply");
+        expect(args.address).toBe(MOCK_ATOKEN);
+        return USDC_SUPPLY_RAW;
+      },
+    };
+
+    const result = await readAaveReserveTvl(client, MOCK_ATOKEN, 6);
+
+    expect(result.tvlUsd).toBe(500_000_000);
+    expect(result.totalSupplyRaw).toBe(USDC_SUPPLY_RAW);
+    expect(result.aTokenAddress).toBe(MOCK_ATOKEN);
+  });
+
+  it("handles 18-decimal assets (DAI)", async () => {
+    // 1_000_000 DAI = 1_000_000 * 1e18 raw
+    const daiSupplyRaw = 1_000_000n * 10n ** 18n;
+    const client: AaveReadOnlyClient = {
+      getBlockNumber: async () => 1n,
+      readContract: async () => daiSupplyRaw,
+    };
+
+    const result = await readAaveReserveTvl(client, MOCK_ATOKEN, 18);
+
+    expect(result.tvlUsd).toBeCloseTo(1_000_000, 4);
+  });
+
+  it("throws AaveReserveDiscoveryError when totalSupply call fails", async () => {
+    const client: AaveReadOnlyClient = {
+      getBlockNumber: async () => 1n,
+      readContract: async () => {
+        throw new Error("totalSupply call failed");
+      },
+    };
+
+    await expect(
+      readAaveReserveTvl(client, MOCK_ATOKEN, 6),
     ).rejects.toBeInstanceOf(AaveReserveDiscoveryError);
   });
 });

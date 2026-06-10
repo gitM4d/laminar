@@ -15,16 +15,50 @@ const USDC = "0xUSDC000000000000000000000000000000000000" as `0x${string}`;
 const EURC = "0xEURC000000000000000000000000000000000000" as `0x${string}`;
 const WETH = "0xWETH000000000000000000000000000000000000" as `0x${string}`;
 
+// Deterministic mock aToken addresses — must be distinct from the reserve addresses.
+const A_USDC = "0xaUSDC00000000000000000000000000000000000" as `0x${string}`;
+const A_EURC = "0xaEURC00000000000000000000000000000000000" as `0x${string}`;
+
+// Deterministic mock TVL raw supplies: 100M USDC and 20M EURC (6 decimals each).
+const MOCK_USDC_SUPPLY_RAW = 100_000_000n * 10n ** 6n;
+const MOCK_EURC_SUPPLY_RAW = 20_000_000n * 10n ** 6n;
+
 function buildDiscoveryClient(
-  options: { failReserveData?: boolean } = {},
+  options: { failReserveData?: boolean; failTvl?: boolean } = {},
 ): AaveReadOnlyClient {
   const reserves: Record<
     string,
-    { symbol: string; decimals: number; liquidityRateRay: bigint }
+    {
+      symbol: string;
+      decimals: number;
+      liquidityRateRay: bigint;
+      aTokenAddress: `0x${string}`;
+    }
   > = {
-    [USDC]: { symbol: "USDC", decimals: 6, liquidityRateRay: 5n * 10n ** 25n },
-    [EURC]: { symbol: "EURC", decimals: 6, liquidityRateRay: 3n * 10n ** 25n },
-    [WETH]: { symbol: "WETH", decimals: 18, liquidityRateRay: 1n * 10n ** 25n },
+    [USDC]: {
+      symbol: "USDC",
+      decimals: 6,
+      liquidityRateRay: 5n * 10n ** 25n,
+      aTokenAddress: A_USDC,
+    },
+    [EURC]: {
+      symbol: "EURC",
+      decimals: 6,
+      liquidityRateRay: 3n * 10n ** 25n,
+      aTokenAddress: A_EURC,
+    },
+    [WETH]: {
+      symbol: "WETH",
+      decimals: 18,
+      liquidityRateRay: 1n * 10n ** 25n,
+      aTokenAddress: "0xaWETH00000000000000000000000000000000000",
+    },
+  };
+
+  // Mock raw totalSupply values keyed by aToken address.
+  const aTokenSupplies: Record<string, bigint> = {
+    [A_USDC]: MOCK_USDC_SUPPLY_RAW,
+    [A_EURC]: MOCK_EURC_SUPPLY_RAW,
   };
 
   return {
@@ -42,7 +76,21 @@ function buildDiscoveryClient(
         if (reserve === undefined) {
           throw new Error("unknown reserve data");
         }
-        return { currentLiquidityRate: reserve.liquidityRateRay };
+        return {
+          currentLiquidityRate: reserve.liquidityRateRay,
+          aTokenAddress: reserve.aTokenAddress,
+        };
+      }
+      if (args.functionName === "totalSupply") {
+        if (options.failTvl) {
+          throw new Error("totalSupply failed");
+        }
+        const supply = aTokenSupplies[args.address];
+        if (supply !== undefined) {
+          return supply;
+        }
+        // Unknown aToken — return 0 rather than throwing to keep tests simple.
+        return 0n;
       }
       const reserve = reserves[args.address];
       if (reserve === undefined) {
@@ -217,7 +265,7 @@ describe("AaveBaseReadOnlyAdapter", () => {
     expect(usdc?.metadata?.liquidityRateRay).toBe((5n * 10n ** 25n).toString());
   });
 
-  it("keeps TVL as a static placeholder even with on-chain APY", async () => {
+  it("reports aave-atoken-supply TVL source when RPC succeeds (Sprint 24)", async () => {
     const adapter = new AaveBaseReadOnlyAdapter({
       rpcUrl: "https://example.invalid/rpc",
       publicClient: buildDiscoveryClient(),
@@ -226,7 +274,7 @@ describe("AaveBaseReadOnlyAdapter", () => {
 
     const markets = await adapter.discoverMarkets();
     for (const market of markets) {
-      expect(market.metadata?.tvlSource).toBe("static-placeholder");
+      expect(market.metadata?.tvlSource).toBe("aave-atoken-supply");
       expect(market.tvlUsd).toBeGreaterThan(0);
     }
   });
@@ -244,7 +292,7 @@ describe("AaveBaseReadOnlyAdapter", () => {
     );
   });
 
-  it("non-strict per-market fallback uses static APY when reserve data fails", async () => {
+  it("non-strict per-market fallback uses static APY and TVL when reserve data fails", async () => {
     const adapter = new AaveBaseReadOnlyAdapter({
       rpcUrl: "https://example.invalid/rpc",
       publicClient: buildDiscoveryClient({ failReserveData: true }),
@@ -254,12 +302,15 @@ describe("AaveBaseReadOnlyAdapter", () => {
     const markets = await adapter.discoverMarkets();
     const usdc = markets.find((market) => market.asset === "USDC");
 
-    // Reserve still discovered on-chain, but APY falls back to static.
+    // Reserve still discovered on-chain, but APY and TVL fall back to static.
     expect(usdc?.source).toBe("rpc-reserve-discovery");
     expect(usdc?.metadata?.reserveDiscovery).toBe("on-chain");
     expect(usdc?.metadata?.apySource).toBe("static-placeholder");
     expect(usdc?.metadata?.apyNote).toContain("non-strict fallback");
     expect(usdc?.apy).toBeGreaterThan(0);
+    // No aTokenAddress available → TVL is also static.
+    expect(usdc?.metadata?.tvlSource).toBe("static-placeholder");
+    expect(usdc?.tvlUsd).toBeGreaterThan(0);
   });
 
   it("strictRpc throws when reserve discovery fails", async () => {
@@ -300,6 +351,54 @@ describe("AaveBaseReadOnlyAdapter", () => {
     // fallback is flagged as rpc-verified.
     expect(markets[0]?.source).toBe("static-fallback-rpc-verified");
     expect(markets[0]?.metadata?.reserveDiscovery).toBe("static");
+  });
+
+  it("reads real TVL from aToken.totalSupply() in rpc mode", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: buildDiscoveryClient(),
+      now: fixedNow,
+    });
+
+    const markets = await adapter.discoverMarkets();
+    const usdc = markets.find((market) => market.asset === "USDC");
+    const eurc = markets.find((market) => market.asset === "EURC");
+
+    expect(usdc?.metadata?.tvlSource).toBe("aave-atoken-supply");
+    expect(usdc?.tvlUsd).toBe(100_000_000);
+    expect(usdc?.metadata?.tvlNote).toContain("stablecoin peg assumed");
+
+    expect(eurc?.metadata?.tvlSource).toBe("aave-atoken-supply");
+    expect(eurc?.tvlUsd).toBe(20_000_000);
+  });
+
+  it("TVL falls back to static when totalSupply fails (non-strict)", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: buildDiscoveryClient({ failTvl: true }),
+      now: fixedNow,
+    });
+
+    const markets = await adapter.discoverMarkets();
+    const usdc = markets.find((market) => market.asset === "USDC");
+
+    // APY is still real (getReserveData succeeded); only TVL fell back.
+    expect(usdc?.metadata?.apySource).toBe("aave-liquidity-rate");
+    expect(usdc?.metadata?.tvlSource).toBe("static-placeholder");
+    expect(usdc?.tvlUsd).toBeGreaterThan(0);
+  });
+
+  it("strictRpc throws when totalSupply fails", async () => {
+    const adapter = new AaveBaseReadOnlyAdapter({
+      rpcUrl: "https://example.invalid/rpc",
+      strictRpc: true,
+      publicClient: buildDiscoveryClient({ failTvl: true }),
+      now: fixedNow,
+    });
+
+    await expect(adapter.discoverMarkets()).rejects.toBeInstanceOf(
+      AaveReserveDiscoveryError,
+    );
   });
 
   it("does not introduce wallet/private key/signing imports in adapter sources", () => {

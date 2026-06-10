@@ -61,7 +61,10 @@ export const AAVE_POOL_ABI = [
 ] as const;
 
 /**
- * Minimal ERC20 ABI — read-only token metadata only.
+ * Minimal ERC20 ABI — read-only token metadata and supply only.
+ *
+ * `totalSupply()` is used to read the on-chain TVL of Aave aTokens
+ * (read-only, no account or wallet required).
  */
 export const ERC20_ABI = [
   {
@@ -77,5 +80,12 @@ export const ERC20_ABI = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "uint8" }],
+  },
+  {
+    type: "function",
+    name: "totalSupply",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
   },
 ] as const;

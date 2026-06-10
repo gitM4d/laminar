@@ -41,8 +41,12 @@ async function main(): Promise<void> {
     );
     console.log(`    apyNote: ${market.metadata?.apyNote ?? "n/a"}`);
     console.log(
-      `    tvlUsd: ${market.tvlUsd} (tvlSource: ${market.metadata?.tvlSource ?? "n/a"})`,
+      `    tvlUsd: ${market.tvlUsd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
     );
+    console.log(`    tvlSource: ${market.metadata?.tvlSource ?? "n/a"}`);
+    if (market.metadata?.tvlNote !== undefined) {
+      console.log(`    tvlNote: ${market.metadata.tvlNote}`);
+    }
   }
   console.log("");
 
@@ -61,6 +65,9 @@ async function main(): Promise<void> {
   const apyOnChain = markets.some(
     (market) => market.metadata?.apySource === "aave-liquidity-rate",
   );
+  const tvlOnChain = markets.some(
+    (market) => market.metadata?.tvlSource === "aave-atoken-supply",
+  );
 
   console.log("Notes:");
   console.log(
@@ -72,8 +79,11 @@ async function main(): Promise<void> {
   console.log(
     `- Supply APY from Aave liquidityRate: ${apyOnChain ? "yes" : "no (static placeholder)"}`,
   );
+  console.log(
+    `- TVL from aToken.totalSupply(): ${tvlOnChain ? "yes (stablecoin peg: 1 token ≈ 1 USD)" : "no (static placeholder)"}`,
+  );
   console.log("- APY is an APR approximation (incentives not included).");
-  console.log("- TVL is a STATIC placeholder.");
+  console.log("- TVL peg assumption: 1 USDC = 1 USD, 1 EURC = 1 USD (no price feed).");
   console.log("- Trust/liquidity metadata is curated/static.");
   console.log("- No transactions were created. Read-only adapter only.");
 }

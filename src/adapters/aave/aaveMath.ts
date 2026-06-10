@@ -26,3 +26,35 @@ export function rayToDecimal(rate: bigint): number {
   const scaled = (rate * RAY_DECIMAL_PRECISION) / RAY;
   return Number(scaled) / Number(RAY_DECIMAL_PRECISION);
 }
+
+/**
+ * Converts an aToken `totalSupply()` raw value to a USD-denominated TVL.
+ *
+ * STABLECOIN PEG ASSUMPTION: This function assumes 1 token unit = 1 USD.
+ * It is valid only for USDC/EURC/DAI and only when each token maintains its
+ * peg. No price feed is used. The caller must document this assumption.
+ *
+ * Examples (USDC, 6 decimals):
+ * - 500_000_000_000_000n raw → 500_000_000 USD  (TVL ~$500M)
+ * - 1_000_000n raw           →         1 USD   (single USDC)
+ *
+ * @param totalSupplyRaw  Raw `totalSupply()` value from the aToken contract.
+ * @param decimals        ERC20 decimals of the underlying asset (e.g. 6 for USDC).
+ */
+export function aTokenSupplyToUsd(
+  totalSupplyRaw: bigint,
+  decimals: number,
+): number {
+  if (decimals < 0 || decimals > 18) {
+    throw new RangeError(`aTokenSupplyToUsd: unsupported decimals ${decimals.toString()}`);
+  }
+  // Use bigint arithmetic for the integer part to avoid precision loss on
+  // large supplies, then convert only the remainder as a fraction.
+  const divisor = 10n ** BigInt(decimals);
+  const integerPart = totalSupplyRaw / divisor;
+  const fractionalPart = totalSupplyRaw % divisor;
+  return (
+    Number(integerPart) +
+    Number(fractionalPart) / Number(divisor)
+  );
+}

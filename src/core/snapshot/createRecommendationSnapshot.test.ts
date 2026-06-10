@@ -174,6 +174,8 @@ describe("createRecommendationSnapshot", () => {
     );
     const USDC = "0xUSDC000000000000000000000000000000000000" as const;
     const EURC = "0xEURC000000000000000000000000000000000000" as const;
+    const A_USDC = "0xaUSDC000000000000000000000000000000000000" as const;
+    const A_EURC = "0xaEURC000000000000000000000000000000000000" as const;
 
     const provider = await createAaveBaseLaminarDataProviderSnapshot({
       rpcUrl: "https://example.invalid/rpc",
@@ -184,12 +186,21 @@ describe("createRecommendationSnapshot", () => {
             return [USDC, EURC];
           }
           if (args.functionName === "getReserveData") {
-            const rates: Record<string, bigint> = {
-              [USDC]: 319n * 10n ** 23n,
-              [EURC]: 143n * 10n ** 23n,
+            const rates: Record<string, { rate: bigint; aToken: string }> = {
+              [USDC]: { rate: 319n * 10n ** 23n, aToken: A_USDC },
+              [EURC]: { rate: 143n * 10n ** 23n, aToken: A_EURC },
             };
             const target = (args.args?.[0] ?? "") as string;
-            return { currentLiquidityRate: rates[target] };
+            const entry = rates[target];
+            if (entry === undefined) return {};
+            return {
+              currentLiquidityRate: entry.rate,
+              aTokenAddress: entry.aToken,
+            };
+          }
+          if (args.functionName === "totalSupply") {
+            // Return a small deterministic supply so TVL reads don't fail.
+            return 100_000_000n * 10n ** 6n;
           }
           const meta: Record<string, { symbol: string; decimals: number }> = {
             [USDC]: { symbol: "USDC", decimals: 6 },

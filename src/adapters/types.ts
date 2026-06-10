@@ -42,7 +42,16 @@ export type ApySource =
   | "morpho-api"
   | "static-placeholder";
 
-export type TvlSource = "morpho-api" | "static-placeholder";
+/**
+ * - `aave-atoken-supply`: TVL derived from aToken.totalSupply() on-chain.
+ *   For stablecoins a 1-token ≈ 1 USD peg is assumed and documented.
+ * - `morpho-api`: TVL sourced from the Morpho read-only API.
+ * - `static-placeholder`: deterministic static value; no real data.
+ */
+export type TvlSource =
+  | "aave-atoken-supply"
+  | "morpho-api"
+  | "static-placeholder";
 
 /**
  * Provenance metadata for a read-only market.
@@ -69,8 +78,12 @@ export type ReadOnlyMarketMetadata = {
   apyNote?: string;
   /** Raw Aave currentLiquidityRate in ray units, when read on-chain. */
   liquidityRateRay?: string;
-  /** How the TVL value was produced (still a placeholder in this sprint). */
+  /** How the TVL value was produced. */
   tvlSource: TvlSource;
+  /**
+   * Human-readable note about the TVL value (e.g. stablecoin peg assumption).
+   */
+  tvlNote?: string;
   /** Human-readable provenance note. */
   note?: string;
 };
