@@ -60,7 +60,7 @@ function mapPositions(
   });
 }
 
-function calculateExpectedApy(
+function calculateStrategyExpectedApy(
   recommendation: PortfolioRecommendationResult,
 ): number {
   const opportunityById = new Map(
@@ -97,20 +97,77 @@ function calculateExpectedApy(
     return 0;
   }
 
-  // Store as decimal APY (e.g. 0.054 = 5.4%), consistent with opportunity.apy.
+  // Weighted average APY across strategy positions only (decimal, e.g. 0.0265 = 2.65%).
   return roundTo(weightedApySum / totalStrategyWeight, 6);
+}
+
+function calculatePortfolioExpectedApy(
+  recommendation: PortfolioRecommendationResult,
+): number {
+  const opportunityById = new Map(
+    recommendation.opportunities.map((opportunity) => [
+      opportunity.id,
+      opportunity,
+    ]),
+  );
+
+  const positions = recommendation.portfolioConstruction.positions;
+
+  if (positions.length === 0) {
+    return 0;
+  }
+
+  let weightedApySum = 0;
+  let totalWeight = 0;
+
+  for (const position of positions) {
+    totalWeight += position.weight;
+
+    if (position.type !== "strategy") {
+      // liquidityBuffer and gasReserve earn 0% APY.
+      continue;
+    }
+
+    const opportunity = opportunityById.get(position.opportunityId);
+
+    if (opportunity === undefined) {
+      continue;
+    }
+
+    weightedApySum += position.weight * opportunity.apy;
+  }
+
+  if (totalWeight <= 0) {
+    return 0;
+  }
+
+  // Portfolio-wide weighted APY including zero-yield buffer and gas reserve (decimal).
+  return roundTo(weightedApySum / totalWeight, 6);
 }
 
 function buildMetrics(
   recommendation: PortfolioRecommendationResult,
 ): SnapshotMetric[] {
   const metadata = recommendation.portfolioConstruction.metadata;
+  const strategyExpectedApy = calculateStrategyExpectedApy(recommendation);
+  const portfolioExpectedApy = calculatePortfolioExpectedApy(recommendation);
 
   return [
     {
+      key: "strategyExpectedApy",
+      label: "Strategy APY",
+      value: strategyExpectedApy,
+    },
+    {
+      key: "portfolioExpectedApy",
+      label: "Portfolio APY",
+      value: portfolioExpectedApy,
+    },
+    {
+      // Legacy alias of strategyExpectedApy. Prefer strategyExpectedApy / portfolioExpectedApy.
       key: "expectedApy",
       label: "Expected APY",
-      value: calculateExpectedApy(recommendation),
+      value: strategyExpectedApy,
     },
     {
       key: "strategyAllocationPercent",

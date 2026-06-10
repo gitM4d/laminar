@@ -13,6 +13,11 @@ export type SensitivityScenarioSummary = {
   scenarioName: string;
   selectedProfile: string;
   portfolioValueUsd: number;
+  /** Weighted APY across strategy positions only (decimal). */
+  strategyExpectedApy: number;
+  /** Weighted APY across all positions; buffer/gas earn 0% (decimal). */
+  portfolioExpectedApy: number;
+  /** Legacy alias of strategyExpectedApy. */
   expectedApy: number;
   strategyAllocationPercent: number;
   liquidityBufferPercent: number;
@@ -118,6 +123,8 @@ export function extractScenarioSummary(
     scenarioName,
     selectedProfile: result.recommendation.selectedProfile,
     portfolioValueUsd: snapshot.portfolioValueUsd,
+    strategyExpectedApy: getMetricNumber(snapshot, "strategyExpectedApy"),
+    portfolioExpectedApy: getMetricNumber(snapshot, "portfolioExpectedApy"),
     expectedApy: getMetricNumber(snapshot, "expectedApy"),
     strategyAllocationPercent: getMetricNumber(
       snapshot,
@@ -203,7 +210,8 @@ export function formatSensitivityTable(
     "Scenario",
     "Profile",
     "Portfolio",
-    "APY",
+    "StratAPY",
+    "PortAPY",
     "Strategy%",
     "Liq%",
     "Gas%",
@@ -218,7 +226,8 @@ export function formatSensitivityTable(
     summary.scenarioName,
     summary.selectedProfile,
     formatUsd(summary.portfolioValueUsd),
-    `${(summary.expectedApy * 100).toFixed(2)}%`,
+    `${(summary.strategyExpectedApy * 100).toFixed(2)}%`,
+    `${(summary.portfolioExpectedApy * 100).toFixed(2)}%`,
     `${summary.strategyAllocationPercent.toFixed(2)}%`,
     `${summary.liquidityBufferPercent.toFixed(2)}%`,
     `${summary.gasReservePercent.toFixed(2)}%`,

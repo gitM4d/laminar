@@ -18,7 +18,12 @@ function getMetric(snapshot: RecommendationSnapshot, key: string): string {
     return "—";
   }
 
-  if (key === "expectedApy" && typeof metric.value === "number") {
+  if (
+    (key === "strategyExpectedApy" ||
+      key === "portfolioExpectedApy" ||
+      key === "expectedApy") &&
+    typeof metric.value === "number"
+  ) {
     return `${(metric.value * 100).toFixed(2)}%`;
   }
 
@@ -40,8 +45,12 @@ export function SnapshotView({ snapshot }: SnapshotViewProps) {
           <p>{formatUsd(snapshot.portfolioValueUsd)}</p>
         </div>
         <div>
-          <span className="muted">Expected APY</span>
-          <p>{getMetric(snapshot, "expectedApy")}</p>
+          <span className="muted">Strategy APY</span>
+          <p>{getMetric(snapshot, "strategyExpectedApy")}</p>
+        </div>
+        <div>
+          <span className="muted">Portfolio APY</span>
+          <p>{getMetric(snapshot, "portfolioExpectedApy")}</p>
         </div>
       </div>
 

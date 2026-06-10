@@ -25,8 +25,10 @@ export type SnapshotWarning = {
 };
 
 export type SnapshotMetric = {
+  /** e.g. strategyExpectedApy, portfolioExpectedApy, expectedApy (legacy alias). */
   key: string;
   label: string;
+  /** APY metrics are decimal (0.0265 = 2.65%), consistent with opportunity.apy. */
   value: number | string;
 };
 

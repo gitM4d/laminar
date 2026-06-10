@@ -45,10 +45,20 @@ async function main(): Promise<void> {
   );
   console.log("");
 
-  const expectedApyMetric = snapshot.metrics.find((m) => m.key === "expectedApy");
-  if (expectedApyMetric !== undefined) {
+  const strategyApyMetric = snapshot.metrics.find(
+    (m) => m.key === "strategyExpectedApy",
+  );
+  const portfolioApyMetric = snapshot.metrics.find(
+    (m) => m.key === "portfolioExpectedApy",
+  );
+  if (strategyApyMetric !== undefined) {
     console.log(
-      `  Expected APY:       ${(Number(expectedApyMetric.value) * 100).toFixed(3)}%`,
+      `  Strategy APY:       ${(Number(strategyApyMetric.value) * 100).toFixed(3)}%`,
+    );
+  }
+  if (portfolioApyMetric !== undefined) {
+    console.log(
+      `  Portfolio APY:      ${(Number(portfolioApyMetric.value) * 100).toFixed(3)}%`,
     );
   }
   console.log("");

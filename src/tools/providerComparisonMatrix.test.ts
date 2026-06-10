@@ -56,6 +56,8 @@ const mockSummary: ProviderComparisonSummary = {
   scenarioName: "Balanced default",
   selectedProfile: "Balanced",
   portfolioValueUsd: 10_000,
+  strategyExpectedApy: 0.045,
+  portfolioExpectedApy: 0.022,
   expectedApy: 0.045,
   strategyAllocationPercent: 50,
   liquidityBufferPercent: 49,
@@ -72,6 +74,8 @@ const mockSummary: ProviderComparisonSummary = {
 
 const aaveSummary: ProviderComparisonSummary = {
   ...mockSummary,
+  strategyExpectedApy: 0.032,
+  portfolioExpectedApy: 0.016,
   expectedApy: 0.032,
   strategyAllocationPercent: 49.5,
   liquidityBufferPercent: 49.5,

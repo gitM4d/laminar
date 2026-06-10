@@ -78,7 +78,7 @@ describe("createRecommendationSnapshot", () => {
     expect(gas?.asset).toBe("USDC");
   });
 
-  it("calculates expectedApy as weighted average across strategy positions", () => {
+  it("calculates strategyExpectedApy as weighted average across strategy positions", () => {
     const recommendation = balancedRecommendation();
     const snapshot = createRecommendationSnapshot(recommendation);
 
@@ -102,14 +102,73 @@ describe("createRecommendationSnapshot", () => {
       totalWeight += position.weight;
     }
 
-    const expectedApy = Number(
+    const expectedStrategyApy = Number(
       (weightedApySum / totalWeight).toFixed(6),
     );
 
-    expect(getMetricValue(snapshot, "expectedApy")).toBe(expectedApy);
+    expect(getMetricValue(snapshot, "strategyExpectedApy")).toBe(
+      expectedStrategyApy,
+    );
+    expect(getMetricValue(snapshot, "expectedApy")).toBe(expectedStrategyApy);
   });
 
-  it("stores expectedApy as decimal APY for Aave-like opportunities", async () => {
+  it("portfolioExpectedApy weights liquidity buffer and gas reserve at 0% APY", () => {
+    const recommendation = balancedRecommendation();
+    const snapshot = createRecommendationSnapshot(recommendation);
+    const opportunityById = new Map(
+      recommendation.opportunities.map((opportunity) => [
+        opportunity.id,
+        opportunity,
+      ]),
+    );
+
+    let portfolioWeightedSum = 0;
+    let totalWeight = 0;
+
+    for (const position of recommendation.portfolioConstruction.positions) {
+      totalWeight += position.weight;
+
+      if (position.type === "strategy") {
+        portfolioWeightedSum +=
+          position.weight *
+          (opportunityById.get(position.opportunityId)?.apy ?? 0);
+      }
+    }
+
+    const expectedPortfolioApy = Number(
+      (portfolioWeightedSum / totalWeight).toFixed(6),
+    );
+
+    expect(getMetricValue(snapshot, "portfolioExpectedApy")).toBe(
+      expectedPortfolioApy,
+    );
+    expect(getMetricValue(snapshot, "strategyExpectedApy")).toBeGreaterThan(
+      expectedPortfolioApy,
+    );
+  });
+
+  it("strategyExpectedApy equals portfolioExpectedApy when non-strategy allocation is zero", () => {
+    const recommendation = balancedRecommendation();
+    const snapshot = createRecommendationSnapshot(recommendation);
+    const metadata = recommendation.portfolioConstruction.metadata;
+    const strategyApy = Number(getMetricValue(snapshot, "strategyExpectedApy"));
+    const portfolioApy = Number(getMetricValue(snapshot, "portfolioExpectedApy"));
+    const nonStrategyWeight =
+      metadata.liquidityBufferWeight + metadata.gasReserveWeight;
+
+    if (nonStrategyWeight === 0) {
+      expect(strategyApy).toBe(portfolioApy);
+      return;
+    }
+
+    const expectedPortfolioApy = Number(
+      (strategyApy * metadata.strategyWeight).toFixed(6),
+    );
+    expect(portfolioApy).toBe(expectedPortfolioApy);
+    expect(strategyApy).toBeGreaterThan(portfolioApy);
+  });
+
+  it("stores strategyExpectedApy as decimal APY for Aave-like opportunities", async () => {
     const { createAaveBaseLaminarDataProviderSnapshot } = await import(
       "../providers/AaveBaseLaminarDataProvider.js"
     );
@@ -154,13 +213,21 @@ describe("createRecommendationSnapshot", () => {
       dataProvider: provider,
     });
     const snapshot = createRecommendationSnapshot(recommendation);
-    const expectedApy = getMetricValue(snapshot, "expectedApy");
+    const strategyExpectedApy = getMetricValue(snapshot, "strategyExpectedApy");
+    const portfolioExpectedApy = getMetricValue(
+      snapshot,
+      "portfolioExpectedApy",
+    );
 
-    expect(typeof expectedApy).toBe("number");
-    expect(expectedApy).toBeGreaterThan(0.02);
-    expect(expectedApy).toBeLessThan(0.04);
+    expect(typeof strategyExpectedApy).toBe("number");
+    expect(strategyExpectedApy).toBeGreaterThan(0.02);
+    expect(strategyExpectedApy).toBeLessThan(0.04);
     // Regression: must be decimal APY (~2.6%), not percent points (~265 when misread).
-    expect(expectedApy).toBeLessThan(1);
+    expect(strategyExpectedApy).toBeLessThan(1);
+    expect(Number(portfolioExpectedApy)).toBeGreaterThan(0);
+    expect(Number(portfolioExpectedApy)).toBeLessThan(
+      Number(strategyExpectedApy),
+    );
   });
 
   it("warns when opportunities were rejected", () => {
