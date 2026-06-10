@@ -190,19 +190,50 @@ Optional JSON output:
 npm run compare:providers -- --json
 ```
 
-The matrix compares:
+The matrix compares four providers by default:
 
 - **MockLaminarDataProvider** — default product mode (all static data)
-- **AaveBaseLaminarDataProvider** — experimental opt-in provider
+- **AaveBaseLaminarDataProvider** — experimental Aave Base provider
+- **MorphoBaseLaminarDataProvider** — experimental Morpho Base provider
+- **CombinedLaminarDataProvider** — Aave + Morpho combined universe
+
+The CLI prints two tables:
+
+1. **Recommendation comparison** — portfolio metrics (StratAPY, PortAPY,
+   allocations, top strategy, warnings, opportunity count) per provider/scenario.
+2. **Provider Data Quality** — what is real vs static vs curated per provider.
+
+Data quality labels:
+
+| Provider | APY Data | TVL Data | Trust Data | Liquidity Data |
+|---|---|---|---|---|
+| Mock | static | static | mock | mock |
+| Aave (RPC) | real-onchain | real-onchain-approx | curated | curated |
+| Aave (fallback) | static-fallback | static-fallback | curated | curated |
+| Morpho (API) | real-api | real-api | curated | curated |
+| Morpho (fallback) | static-fallback | static-fallback | curated | curated |
+| Combined | mixed-real | mixed-real | curated | curated |
+
+Difference summaries compare each real provider against Mock:
+
+- Aave vs Mock
+- Morpho vs Mock
+- Combined vs Mock
+
+JSON mode returns `providers`, `providerDataQuality`, `scenarios`, `results`,
+and `differences` (`aaveVsMock`, `morphoVsMock`, `combinedVsMock`).
 
 Notes:
 
 - Mock provider is the default product mode (API/frontend unchanged).
-- Aave provider is experimental and opt-in only.
-- Aave APY is real when RPC is configured (`AAVE_BASE_RPC_URL` / `BASE_RPC_URL`).
+- Aave, Morpho, and Combined providers are experimental and opt-in only.
+- Aave APY/TVL are real on-chain when RPC is configured (`AAVE_BASE_RPC_URL` /
+  `BASE_RPC_URL`). TVL uses a stablecoin peg (1 token ≈ 1 USD).
 - Without RPC, Aave falls back to static markets and is labeled accordingly.
-- Aave TVL remains a static placeholder.
-- Trust/liquidity profiles remain curated.
+- Morpho APY/TVL are real when the Morpho API is reachable; static fallback
+  otherwise (`MORPHO_BASE_API_URL` or the public default).
+- Combined reuses the same Aave/Morpho snapshots (no duplicate external calls).
+- Trust/liquidity profiles remain curated for all real providers.
 
 ## Protocol adapters (experimental)
 

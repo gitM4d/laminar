@@ -1,7 +1,8 @@
 import "dotenv/config";
 import {
-  formatDifferenceSummary,
+  formatAllDifferenceSummaries,
   formatProviderComparisonTable,
+  formatProviderDataQualityTable,
   runProviderComparisonMatrix,
 } from "./providerComparisonMatrix.js";
 
@@ -33,14 +34,22 @@ async function main(): Promise<void> {
     ),
   );
   console.log("");
-  console.log(formatDifferenceSummary(matrix.differences));
+  console.log(formatProviderDataQualityTable(matrix.providerDataQuality));
+  console.log("");
+  console.log(formatAllDifferenceSummaries(matrix.differences));
   console.log("");
   console.log("Notes:");
   console.log("- MockLaminarDataProvider is the default product mode.");
-  console.log("- AaveBaseLaminarDataProvider is experimental.");
-  console.log("- Aave APY is real when RPC is configured.");
-  console.log("- Aave TVL remains a static placeholder.");
-  console.log("- Trust/liquidity profiles remain curated.");
+  console.log("- Aave, Morpho, and Combined providers are experimental.");
+  console.log(
+    "- Aave APY/TVL are real on-chain when RPC is configured (TVL uses stablecoin peg).",
+  );
+  console.log(
+    "- Morpho APY/TVL are real when the Morpho API is reachable; static fallback otherwise.",
+  );
+  console.log(
+    "- Combined merges Aave + Morpho opportunities; trust/liquidity profiles remain curated.",
+  );
 }
 
 main().catch((error: unknown) => {

@@ -1,4 +1,5 @@
 import { resolveAaveBaseRpcUrl } from "../adapters/aave/aaveBaseConfig.js";
+import { resolveMorphoBaseApiUrl } from "../adapters/morpho/morphoBaseConfig.js";
 import { createLaminarRecommendation } from "../core/index.js";
 import type { LaminarDataProvider } from "../core/providers/types.js";
 import { MockLaminarDataProvider } from "../core/providers/MockLaminarDataProvider.js";
@@ -6,6 +7,11 @@ import {
   createAaveBaseLaminarDataProviderSnapshot,
   type AaveBaseProviderSnapshotOptions,
 } from "../core/providers/AaveBaseLaminarDataProvider.js";
+import {
+  createMorphoBaseLaminarDataProviderSnapshot,
+  type MorphoBaseProviderSnapshotOptions,
+} from "../core/providers/MorphoBaseLaminarDataProvider.js";
+import { CombinedLaminarDataProvider } from "../core/providers/CombinedLaminarDataProvider.js";
 import type { LaminarRecommendationResult } from "../core/types.js";
 import type { UserIntent } from "../core/intent/types.js";
 import {
@@ -16,11 +22,33 @@ import {
   type SensitivityScenarioSummary,
 } from "./sensitivityMatrix.js";
 
+export type ProviderDataQualityLabel =
+  | "static"
+  | "static-fallback"
+  | "real-onchain"
+  | "real-onchain-approx"
+  | "real-api"
+  | "mixed-real"
+  | "mixed-fallback"
+  | "mock"
+  | "curated";
+
+export type ProviderDataQuality = {
+  providerType: string;
+  providerName: string;
+  apyData: ProviderDataQualityLabel;
+  tvlData: ProviderDataQualityLabel;
+  trustData: ProviderDataQualityLabel;
+  liquidityData: ProviderDataQualityLabel;
+  /** Optional human-readable source note (e.g. RPC/API configured vs fallback). */
+  dataSourceLabel?: string;
+};
+
 export type ProviderComparisonSummary = SensitivityScenarioSummary & {
   providerName: string;
   providerType: string;
   opportunityCount: number;
-  /** Present for Aave provider: indicates on-chain vs static-fallback data. */
+  /** Present for real providers: indicates on-chain/API vs static-fallback data. */
   dataSourceLabel?: string;
 };
 
@@ -29,6 +57,7 @@ export type ProviderDefinition = {
   providerName: string;
   provider: LaminarDataProvider;
   dataSourceLabel?: string;
+  dataQuality: ProviderDataQuality;
 };
 
 export type ProviderComparisonResult = {
@@ -47,14 +76,23 @@ export type ProviderComparisonResult = {
 export type ProviderScenarioDifference = {
   scenarioName: string;
   mockProviderName: string;
-  aaveProviderName: string;
+  realProviderName: string;
+  strategyExpectedApyDifference: number;
+  portfolioExpectedApyDifference: number;
+  /** Legacy alias of strategyExpectedApyDifference. */
   expectedApyDifference: number;
   strategyAllocationPercentDifference: number;
   liquidityBufferPercentDifference: number;
   topStrategyLabelChanged: boolean;
   mockTopStrategyLabel: string;
-  aaveTopStrategyLabel: string;
+  realTopStrategyLabel: string;
   opportunityCountDifference: number;
+};
+
+export type ProviderComparisonDifferences = {
+  aaveVsMock: ProviderScenarioDifference[];
+  morphoVsMock: ProviderScenarioDifference[];
+  combinedVsMock: ProviderScenarioDifference[];
 };
 
 export type ProviderComparisonMatrixResult = {
@@ -64,15 +102,26 @@ export type ProviderComparisonMatrixResult = {
     providerName: string;
     dataSourceLabel?: string;
   }[];
+  providerDataQuality: ProviderDataQuality[];
   scenarios: SensitivityScenarioInput[];
   results: ProviderComparisonResult[];
-  differences: ProviderScenarioDifference[];
+  differences: ProviderComparisonDifferences;
 };
 
 export type ProviderComparisonMatrixOptions = {
   asOf?: Date;
   scenarios?: SensitivityScenarioInput[];
   aaveSnapshotOptions?: AaveBaseProviderSnapshotOptions;
+  morphoSnapshotOptions?: MorphoBaseProviderSnapshotOptions;
+};
+
+const MOCK_DATA_QUALITY: ProviderDataQuality = {
+  providerType: "MockLaminarDataProvider",
+  providerName: "MockLaminarDataProvider",
+  apyData: "static",
+  tvlData: "static",
+  trustData: "mock",
+  liquidityData: "mock",
 };
 
 export function extractProviderComparisonSummary(
@@ -99,37 +148,133 @@ export function resolveAaveDataSourceLabel(
   options: AaveBaseProviderSnapshotOptions = {},
 ): string {
   const rpcUrl =
-    options.rpcUrl ??
-    resolveAaveBaseRpcUrl(options.env ?? process.env);
+    options.rpcUrl ?? resolveAaveBaseRpcUrl(options.env ?? process.env);
 
   return rpcUrl !== undefined
     ? "on-chain (RPC configured)"
     : "static-fallback (no RPC configured)";
 }
 
-export function computeScenarioDifference(
-  mock: ProviderComparisonSummary,
-  aave: ProviderComparisonSummary,
-): ProviderScenarioDifference {
+export function resolveMorphoDataSourceLabel(
+  options: MorphoBaseProviderSnapshotOptions = {},
+): string {
+  if (options.disableApi === true) {
+    return "static-fallback (API disabled)";
+  }
+
+  const apiUrl =
+    options.apiUrl ?? resolveMorphoBaseApiUrl(options.env ?? process.env);
+
+  return apiUrl !== undefined
+    ? "api (Morpho GraphQL configured)"
+    : "static-fallback (no API configured)";
+}
+
+export function resolveAaveDataQuality(
+  options: AaveBaseProviderSnapshotOptions = {},
+): ProviderDataQuality {
+  const rpcUrl =
+    options.rpcUrl ?? resolveAaveBaseRpcUrl(options.env ?? process.env);
+  const isFallback = rpcUrl === undefined;
+
   return {
-    scenarioName: mock.scenarioName,
-    mockProviderName: mock.providerName,
-    aaveProviderName: aave.providerName,
-    expectedApyDifference: aave.expectedApy - mock.expectedApy,
-    strategyAllocationPercentDifference:
-      aave.strategyAllocationPercent - mock.strategyAllocationPercent,
-    liquidityBufferPercentDifference:
-      aave.liquidityBufferPercent - mock.liquidityBufferPercent,
-    topStrategyLabelChanged:
-      mock.topStrategyPositionLabel !== aave.topStrategyPositionLabel,
-    mockTopStrategyLabel: mock.topStrategyPositionLabel,
-    aaveTopStrategyLabel: aave.topStrategyPositionLabel,
-    opportunityCountDifference: aave.opportunityCount - mock.opportunityCount,
+    providerType: "AaveBaseLaminarDataProvider",
+    providerName: "Aave Base (experimental)",
+    apyData: isFallback ? "static-fallback" : "real-onchain",
+    tvlData: isFallback ? "static-fallback" : "real-onchain-approx",
+    trustData: "curated",
+    liquidityData: "curated",
+    dataSourceLabel: resolveAaveDataSourceLabel(options),
   };
 }
 
-export function computeAllScenarioDifferences(
+export function resolveMorphoDataQuality(
+  options: MorphoBaseProviderSnapshotOptions = {},
+): ProviderDataQuality {
+  const isFallback =
+    options.disableApi === true ||
+    (options.apiUrl ?? resolveMorphoBaseApiUrl(options.env ?? process.env)) ===
+      undefined;
+
+  return {
+    providerType: "MorphoBaseLaminarDataProvider",
+    providerName: "Morpho Base (experimental)",
+    apyData: isFallback ? "static-fallback" : "real-api",
+    tvlData: isFallback ? "static-fallback" : "real-api",
+    trustData: "curated",
+    liquidityData: "curated",
+    dataSourceLabel: resolveMorphoDataSourceLabel(options),
+  };
+}
+
+export function resolveCombinedDataQuality(
+  aaveQuality: ProviderDataQuality,
+  morphoQuality: ProviderDataQuality,
+): ProviderDataQuality {
+  const aaveReal =
+    aaveQuality.apyData !== "static-fallback" &&
+    aaveQuality.tvlData !== "static-fallback";
+  const morphoReal =
+    morphoQuality.apyData !== "static-fallback" &&
+    morphoQuality.tvlData !== "static-fallback";
+
+  const apyData: ProviderDataQualityLabel =
+    aaveReal && morphoReal
+      ? "mixed-real"
+      : aaveReal || morphoReal
+        ? "mixed-real"
+        : "mixed-fallback";
+  const tvlData: ProviderDataQualityLabel = apyData;
+
+  const labels: string[] = [];
+  if (aaveQuality.dataSourceLabel !== undefined) {
+    labels.push(`Aave: ${aaveQuality.dataSourceLabel}`);
+  }
+  if (morphoQuality.dataSourceLabel !== undefined) {
+    labels.push(`Morpho: ${morphoQuality.dataSourceLabel}`);
+  }
+
+  return {
+    providerType: "CombinedLaminarDataProvider",
+    providerName: "Combined Aave + Morpho (experimental)",
+    apyData,
+    tvlData,
+    trustData: "curated",
+    liquidityData: "curated",
+    ...(labels.length > 0 ? { dataSourceLabel: labels.join("; ") } : {}),
+  };
+}
+
+export function computeScenarioDifference(
+  mock: ProviderComparisonSummary,
+  real: ProviderComparisonSummary,
+): ProviderScenarioDifference {
+  const strategyExpectedApyDifference =
+    real.strategyExpectedApy - mock.strategyExpectedApy;
+
+  return {
+    scenarioName: mock.scenarioName,
+    mockProviderName: mock.providerName,
+    realProviderName: real.providerName,
+    strategyExpectedApyDifference,
+    portfolioExpectedApyDifference:
+      real.portfolioExpectedApy - mock.portfolioExpectedApy,
+    expectedApyDifference: strategyExpectedApyDifference,
+    strategyAllocationPercentDifference:
+      real.strategyAllocationPercent - mock.strategyAllocationPercent,
+    liquidityBufferPercentDifference:
+      real.liquidityBufferPercent - mock.liquidityBufferPercent,
+    topStrategyLabelChanged:
+      mock.topStrategyPositionLabel !== real.topStrategyPositionLabel,
+    mockTopStrategyLabel: mock.topStrategyPositionLabel,
+    realTopStrategyLabel: real.topStrategyPositionLabel,
+    opportunityCountDifference: real.opportunityCount - mock.opportunityCount,
+  };
+}
+
+export function computeScenarioDifferencesForProvider(
   results: ProviderComparisonResult[],
+  realProviderType: string,
 ): ProviderScenarioDifference[] {
   const scenarioNames = [
     ...new Set(results.map((entry) => entry.scenarioName)),
@@ -141,23 +286,49 @@ export function computeAllScenarioDifferences(
         entry.scenarioName === scenarioName &&
         entry.providerType === "MockLaminarDataProvider",
     );
-    const aaveResult = results.find(
+    const realResult = results.find(
       (entry) =>
         entry.scenarioName === scenarioName &&
-        entry.providerType === "AaveBaseLaminarDataProvider",
+        entry.providerType === realProviderType,
     );
 
-    if (mockResult === undefined || aaveResult === undefined) {
+    if (mockResult === undefined || realResult === undefined) {
       throw new Error(
-        `Missing provider result for scenario "${scenarioName}"`,
+        `Missing provider result for scenario "${scenarioName}" (real provider: ${realProviderType})`,
       );
     }
 
-    return computeScenarioDifference(
-      mockResult.summary,
-      aaveResult.summary,
-    );
+    return computeScenarioDifference(mockResult.summary, realResult.summary);
   });
+}
+
+/** @deprecated Use computeScenarioDifferencesForProvider with Aave provider type. */
+export function computeAllScenarioDifferences(
+  results: ProviderComparisonResult[],
+): ProviderScenarioDifference[] {
+  return computeScenarioDifferencesForProvider(
+    results,
+    "AaveBaseLaminarDataProvider",
+  );
+}
+
+export function computeAllProviderDifferences(
+  results: ProviderComparisonResult[],
+): ProviderComparisonDifferences {
+  return {
+    aaveVsMock: computeScenarioDifferencesForProvider(
+      results,
+      "AaveBaseLaminarDataProvider",
+    ),
+    morphoVsMock: computeScenarioDifferencesForProvider(
+      results,
+      "MorphoBaseLaminarDataProvider",
+    ),
+    combinedVsMock: computeScenarioDifferencesForProvider(
+      results,
+      "CombinedLaminarDataProvider",
+    ),
+  };
 }
 
 function truncate(value: string, maxLength: number): string {
@@ -253,12 +424,55 @@ export function formatProviderComparisonTable(
   ].join("\n");
 }
 
+export function formatProviderDataQualityTable(
+  qualities: ProviderDataQuality[],
+): string {
+  const headers = [
+    "Provider",
+    "APY Data",
+    "TVL Data",
+    "Trust Data",
+    "Liquidity Data",
+  ];
+
+  const rows = qualities.map((quality) => [
+    quality.dataSourceLabel !== undefined
+      ? `${quality.providerName} [${quality.dataSourceLabel}]`
+      : quality.providerName,
+    quality.apyData,
+    quality.tvlData,
+    quality.trustData,
+    quality.liquidityData,
+  ]);
+
+  const widths = headers.map((header, index) =>
+    Math.max(
+      header.length,
+      ...rows.map((row) => String(row[index]).length),
+    ),
+  );
+
+  const formatRow = (cells: string[]) =>
+    cells
+      .map((cell, index) => truncate(String(cell), widths[index] ?? cell.length))
+      .join(" | ");
+
+  return [
+    "Provider Data Quality:",
+    formatRow(headers),
+    widths.map((width) => "-".repeat(width)).join("-|-"),
+    ...rows.map((row) => formatRow(row)),
+  ].join("\n");
+}
+
 export function formatDifferenceSummary(
+  title: string,
   differences: ProviderScenarioDifference[],
 ): string {
   const headers = [
     "Scenario",
-    "ΔAPY",
+    "ΔStratAPY",
+    "ΔPortAPY",
     "ΔStrategy%",
     "ΔLiq%",
     "Top Strategy",
@@ -267,11 +481,12 @@ export function formatDifferenceSummary(
 
   const rows = differences.map((diff) => [
     diff.scenarioName,
-    formatSignedPercent(diff.expectedApyDifference * 100),
+    formatSignedPercent(diff.strategyExpectedApyDifference * 100),
+    formatSignedPercent(diff.portfolioExpectedApyDifference * 100),
     formatSignedPercent(diff.strategyAllocationPercentDifference),
     formatSignedPercent(diff.liquidityBufferPercentDifference),
     diff.topStrategyLabelChanged
-      ? `${diff.mockTopStrategyLabel} → ${diff.aaveTopStrategyLabel}`
+      ? `${diff.mockTopStrategyLabel} → ${diff.realTopStrategyLabel}`
       : "unchanged",
     diff.opportunityCountDifference > 0
       ? `+${diff.opportunityCountDifference.toString()}`
@@ -291,10 +506,31 @@ export function formatDifferenceSummary(
       .join(" | ");
 
   return [
-    "Difference summary (Aave vs Mock):",
+    title,
     formatRow(headers),
     widths.map((width) => "-".repeat(width)).join("-|-"),
     ...rows.map((row) => formatRow(row)),
+  ].join("\n");
+}
+
+export function formatAllDifferenceSummaries(
+  differences: ProviderComparisonDifferences,
+): string {
+  return [
+    formatDifferenceSummary(
+      "Difference summary (Aave vs Mock):",
+      differences.aaveVsMock,
+    ),
+    "",
+    formatDifferenceSummary(
+      "Difference summary (Morpho vs Mock):",
+      differences.morphoVsMock,
+    ),
+    "",
+    formatDifferenceSummary(
+      "Difference summary (Combined vs Mock):",
+      differences.combinedVsMock,
+    ),
   ].join("\n");
 }
 
@@ -304,24 +540,60 @@ export async function runProviderComparisonMatrix(
   const asOf = options.asOf ?? DEFAULT_SENSITIVITY_AS_OF;
   const scenarios = options.scenarios ?? SENSITIVITY_SCENARIOS;
   const aaveSnapshotOptions = options.aaveSnapshotOptions ?? {};
+  const morphoSnapshotOptions = options.morphoSnapshotOptions ?? {};
 
   const mockProvider = new MockLaminarDataProvider();
   const aaveProvider = await createAaveBaseLaminarDataProviderSnapshot(
     aaveSnapshotOptions,
   );
-  const aaveDataSourceLabel = resolveAaveDataSourceLabel(aaveSnapshotOptions);
+  const morphoProvider = await createMorphoBaseLaminarDataProviderSnapshot(
+    morphoSnapshotOptions,
+  );
+  const combinedProvider = new CombinedLaminarDataProvider([
+    aaveProvider,
+    morphoProvider,
+  ]);
+
+  const aaveDataQuality = resolveAaveDataQuality(aaveSnapshotOptions);
+  const morphoDataQuality = resolveMorphoDataQuality(morphoSnapshotOptions);
+  const combinedDataQuality = resolveCombinedDataQuality(
+    aaveDataQuality,
+    morphoDataQuality,
+  );
 
   const providerDefinitions: ProviderDefinition[] = [
     {
       providerType: "MockLaminarDataProvider",
       providerName: "MockLaminarDataProvider",
       provider: mockProvider,
+      dataQuality: MOCK_DATA_QUALITY,
     },
     {
       providerType: "AaveBaseLaminarDataProvider",
       providerName: "Aave Base (experimental)",
       provider: aaveProvider,
-      dataSourceLabel: aaveDataSourceLabel,
+      dataQuality: aaveDataQuality,
+      ...(aaveDataQuality.dataSourceLabel !== undefined
+        ? { dataSourceLabel: aaveDataQuality.dataSourceLabel }
+        : {}),
+    },
+    {
+      providerType: "MorphoBaseLaminarDataProvider",
+      providerName: "Morpho Base (experimental)",
+      provider: morphoProvider,
+      dataQuality: morphoDataQuality,
+      ...(morphoDataQuality.dataSourceLabel !== undefined
+        ? { dataSourceLabel: morphoDataQuality.dataSourceLabel }
+        : {}),
+    },
+    {
+      providerType: "CombinedLaminarDataProvider",
+      providerName: "Combined Aave + Morpho (experimental)",
+      provider: combinedProvider,
+      dataQuality: combinedDataQuality,
+      ...(combinedDataQuality.dataSourceLabel !== undefined
+        ? { dataSourceLabel: combinedDataQuality.dataSourceLabel }
+        : {}),
     },
   ];
 
@@ -361,7 +633,10 @@ export async function runProviderComparisonMatrix(
     }
   }
 
-  const differences = computeAllScenarioDifferences(results);
+  const providerDataQuality = providerDefinitions.map(
+    (providerDef) => providerDef.dataQuality,
+  );
+  const differences = computeAllProviderDifferences(results);
 
   return {
     asOf: asOf.toISOString(),
@@ -372,6 +647,7 @@ export async function runProviderComparisonMatrix(
         ? { dataSourceLabel: providerDef.dataSourceLabel }
         : {}),
     })),
+    providerDataQuality,
     scenarios,
     results,
     differences,
