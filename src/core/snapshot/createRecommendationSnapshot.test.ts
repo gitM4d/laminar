@@ -102,9 +102,65 @@ describe("createRecommendationSnapshot", () => {
       totalWeight += position.weight;
     }
 
-    const expectedApy = ((weightedApySum / totalWeight) * 100).toFixed(2);
+    const expectedApy = Number(
+      (weightedApySum / totalWeight).toFixed(6),
+    );
 
-    expect(getMetricValue(snapshot, "expectedApy")).toBe(Number(expectedApy));
+    expect(getMetricValue(snapshot, "expectedApy")).toBe(expectedApy);
+  });
+
+  it("stores expectedApy as decimal APY for Aave-like opportunities", async () => {
+    const { createAaveBaseLaminarDataProviderSnapshot } = await import(
+      "../providers/AaveBaseLaminarDataProvider.js"
+    );
+    const USDC = "0xUSDC000000000000000000000000000000000000" as const;
+    const EURC = "0xEURC000000000000000000000000000000000000" as const;
+
+    const provider = await createAaveBaseLaminarDataProviderSnapshot({
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: {
+        getBlockNumber: async () => 1n,
+        readContract: async (args) => {
+          if (args.functionName === "getReservesList") {
+            return [USDC, EURC];
+          }
+          if (args.functionName === "getReserveData") {
+            const rates: Record<string, bigint> = {
+              [USDC]: 319n * 10n ** 23n,
+              [EURC]: 143n * 10n ** 23n,
+            };
+            const target = (args.args?.[0] ?? "") as string;
+            return { currentLiquidityRate: rates[target] };
+          }
+          const meta: Record<string, { symbol: string; decimals: number }> = {
+            [USDC]: { symbol: "USDC", decimals: 6 },
+            [EURC]: { symbol: "EURC", decimals: 6 },
+          };
+          const reserve = meta[args.address];
+          if (reserve === undefined) {
+            throw new Error("unknown reserve");
+          }
+          return args.functionName === "symbol"
+            ? reserve.symbol
+            : reserve.decimals;
+        },
+      },
+    });
+
+    const recommendation = generatePortfolioRecommendation({
+      intent: { risk: 5, liquidity: 6, returnPreference: 5 },
+      portfolioValueUsd: 10_000,
+      asOf,
+      dataProvider: provider,
+    });
+    const snapshot = createRecommendationSnapshot(recommendation);
+    const expectedApy = getMetricValue(snapshot, "expectedApy");
+
+    expect(typeof expectedApy).toBe("number");
+    expect(expectedApy).toBeGreaterThan(0.02);
+    expect(expectedApy).toBeLessThan(0.04);
+    // Regression: must be decimal APY (~2.6%), not percent points (~265 when misread).
+    expect(expectedApy).toBeLessThan(1);
   });
 
   it("warns when opportunities were rejected", () => {

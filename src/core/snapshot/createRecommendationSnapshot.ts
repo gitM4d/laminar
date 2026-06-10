@@ -60,7 +60,7 @@ function mapPositions(
   });
 }
 
-function calculateExpectedApyPercent(
+function calculateExpectedApy(
   recommendation: PortfolioRecommendationResult,
 ): number {
   const opportunityById = new Map(
@@ -97,7 +97,8 @@ function calculateExpectedApyPercent(
     return 0;
   }
 
-  return roundTo((weightedApySum / totalStrategyWeight) * 100, 2);
+  // Store as decimal APY (e.g. 0.054 = 5.4%), consistent with opportunity.apy.
+  return roundTo(weightedApySum / totalStrategyWeight, 6);
 }
 
 function buildMetrics(
@@ -109,7 +110,7 @@ function buildMetrics(
     {
       key: "expectedApy",
       label: "Expected APY",
-      value: calculateExpectedApyPercent(recommendation),
+      value: calculateExpectedApy(recommendation),
     },
     {
       key: "strategyAllocationPercent",

@@ -175,6 +175,35 @@ npm run recommendation:aave
 - The API/frontend default provider remains `MockLaminarDataProvider`.
 - No transactions are created.
 
+## Provider Comparison Matrix
+
+Compare Laminar recommendations across providers for the same sensitivity
+scenarios:
+
+```bash
+npm run compare:providers
+```
+
+Optional JSON output:
+
+```bash
+npm run compare:providers -- --json
+```
+
+The matrix compares:
+
+- **MockLaminarDataProvider** — default product mode (all static data)
+- **AaveBaseLaminarDataProvider** — experimental opt-in provider
+
+Notes:
+
+- Mock provider is the default product mode (API/frontend unchanged).
+- Aave provider is experimental and opt-in only.
+- Aave APY is real when RPC is configured (`AAVE_BASE_RPC_URL` / `BASE_RPC_URL`).
+- Without RPC, Aave falls back to static markets and is labeled accordingly.
+- Aave TVL remains a static placeholder.
+- Trust/liquidity profiles remain curated.
+
 ## Protocol adapters (experimental)
 
 The read-only protocol adapter for Aave V3 on Base is **not** wired into the API

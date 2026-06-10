@@ -218,7 +218,7 @@ export function formatSensitivityTable(
     summary.scenarioName,
     summary.selectedProfile,
     formatUsd(summary.portfolioValueUsd),
-    `${summary.expectedApy.toFixed(2)}%`,
+    `${(summary.expectedApy * 100).toFixed(2)}%`,
     `${summary.strategyAllocationPercent.toFixed(2)}%`,
     `${summary.liquidityBufferPercent.toFixed(2)}%`,
     `${summary.gasReservePercent.toFixed(2)}%`,

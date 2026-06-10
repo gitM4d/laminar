@@ -19,7 +19,7 @@ function getMetric(snapshot: RecommendationSnapshot, key: string): string {
   }
 
   if (key === "expectedApy" && typeof metric.value === "number") {
-    return `${metric.value.toFixed(2)}%`;
+    return `${(metric.value * 100).toFixed(2)}%`;
   }
 
   return String(metric.value);
