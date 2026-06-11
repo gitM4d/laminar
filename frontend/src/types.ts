@@ -38,12 +38,63 @@ export type SnapshotExplanation = {
   summary: string;
 };
 
+export type TrustExplanationAuditTier =
+  | "tier1"
+  | "tier2"
+  | "tier3"
+  | "none";
+
+export type TrustExplanationTvlBucket =
+  | "veryLow"
+  | "low"
+  | "medium"
+  | "high";
+
+export type TrustExplanationComponents = {
+  age: number;
+  audits: number;
+  incidents: number;
+  tvl: number;
+  chainAdjustment: number;
+};
+
+export type TrustExplanation = {
+  protocolAgeYears: number;
+  auditCount: number;
+  auditTier: TrustExplanationAuditTier;
+  historicalIncidents: number;
+  tvlUsd: number;
+  tvlBucket: TrustExplanationTvlBucket;
+  components: TrustExplanationComponents;
+};
+
+export type SnapshotTrustHighlight = {
+  protocolId: string;
+  protocolName: string;
+  trustScore: number;
+  summary: string;
+  trustExplanation?: TrustExplanation;
+};
+
+export type ProtocolTrustExplanation = {
+  protocolId: string;
+  protocolName: string;
+  trustScore: number;
+  summary: string;
+  trustExplanation: TrustExplanation;
+};
+
+export type RecommendationPayload = {
+  trustExplanations?: ProtocolTrustExplanation[];
+};
+
 export type RecommendationSnapshot = {
   profile: string;
   portfolioValueUsd: number;
   generatedAt: string;
   positions: SnapshotPosition[];
   metrics: SnapshotMetric[];
+  trustHighlights?: SnapshotTrustHighlight[];
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
 };
@@ -68,7 +119,7 @@ export type MockExecutionPlan = {
 };
 
 export type RecommendationResponse = {
-  recommendation: unknown;
+  recommendation: RecommendationPayload;
   snapshot: RecommendationSnapshot;
   executionPlan: MockExecutionPlan;
 };

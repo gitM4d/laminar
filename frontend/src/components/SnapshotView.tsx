@@ -1,7 +1,18 @@
-import type { RecommendationSnapshot } from "../types.js";
+import {
+  formatComponentScore,
+  formatTrustScore,
+  formatUsdCompact,
+} from "../formatTrust.js";
+import { resolveTrustHighlights } from "../resolveTrustHighlights.js";
+import type {
+  ProtocolTrustExplanation,
+  RecommendationSnapshot,
+  SnapshotTrustHighlight,
+} from "../types.js";
 
 type SnapshotViewProps = {
   snapshot: RecommendationSnapshot;
+  trustExplanations?: ProtocolTrustExplanation[];
 };
 
 function formatUsd(value: number): string {
@@ -30,7 +41,81 @@ function getMetric(snapshot: RecommendationSnapshot, key: string): string {
   return String(metric.value);
 }
 
-export function SnapshotView({ snapshot }: SnapshotViewProps) {
+function TrustHighlightCard({ highlight }: { highlight: SnapshotTrustHighlight }) {
+  const explanation = highlight.trustExplanation;
+
+  return (
+    <article className="trust-highlight">
+      <div className="trust-highlight-header">
+        <p>
+          <span className="muted">Protocol:</span> {highlight.protocolName}
+        </p>
+        <p>
+          <span className="muted">Trust Score:</span>{" "}
+          {formatTrustScore(highlight.trustScore)}
+        </p>
+        <p>
+          <span className="muted">Summary:</span> {highlight.summary}
+        </p>
+      </div>
+
+      {explanation !== undefined && (
+        <>
+          <h4>Details</h4>
+          <ul className="trust-detail-list">
+            <li>
+              <span className="muted">Age:</span>{" "}
+              {explanation.protocolAgeYears.toFixed(1)} years
+            </li>
+            <li>
+              <span className="muted">Audits:</span> {explanation.auditTier} (
+              {explanation.auditCount})
+            </li>
+            <li>
+              <span className="muted">Incidents:</span>{" "}
+              {explanation.historicalIncidents}
+            </li>
+            <li>
+              <span className="muted">TVL:</span>{" "}
+              {formatUsdCompact(explanation.tvlUsd)} ({explanation.tvlBucket})
+            </li>
+          </ul>
+
+          <h4>Components</h4>
+          <ul className="trust-component-list">
+            <li>
+              <span className="muted">Age:</span>{" "}
+              {formatComponentScore(explanation.components.age)}
+            </li>
+            <li>
+              <span className="muted">Audits:</span>{" "}
+              {formatComponentScore(explanation.components.audits)}
+            </li>
+            <li>
+              <span className="muted">Incidents:</span>{" "}
+              {formatComponentScore(explanation.components.incidents)}
+            </li>
+            <li>
+              <span className="muted">TVL:</span>{" "}
+              {formatComponentScore(explanation.components.tvl)}
+            </li>
+            <li>
+              <span className="muted">Chain Adjustment:</span>{" "}
+              {formatComponentScore(explanation.components.chainAdjustment)}
+            </li>
+          </ul>
+        </>
+      )}
+    </article>
+  );
+}
+
+export function SnapshotView({
+  snapshot,
+  trustExplanations,
+}: SnapshotViewProps) {
+  const trustHighlights = resolveTrustHighlights(snapshot, trustExplanations);
+
   return (
     <section className="card">
       <h2>Recommendation Snapshot</h2>
@@ -77,6 +162,20 @@ export function SnapshotView({ snapshot }: SnapshotViewProps) {
           ))}
         </tbody>
       </table>
+
+      {trustHighlights.length > 0 && (
+        <>
+          <h3>Trust Highlights</h3>
+          <div className="trust-highlights">
+            {trustHighlights.map((highlight) => (
+              <TrustHighlightCard
+                key={highlight.protocolId}
+                highlight={highlight}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {snapshot.warnings.length > 0 && (
         <>

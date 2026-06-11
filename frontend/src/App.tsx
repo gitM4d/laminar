@@ -76,7 +76,10 @@ export function App() {
 
       {result !== null && (
         <div className="results">
-          <SnapshotView snapshot={result.snapshot} />
+          <SnapshotView
+            snapshot={result.snapshot}
+            trustExplanations={result.recommendation.trustExplanations}
+          />
           <ExecutionPlanView executionPlan={result.executionPlan} />
         </div>
       )}
