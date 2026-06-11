@@ -1,5 +1,5 @@
 import { calculateTrustScore } from "./calculateTrustScore.js";
-import type { AuditorTier, ProtocolTrustProfile } from "./types.js";
+import type { AuditorTier, ProtocolTrustProfile, ProtocolTrustTvlSource } from "./types.js";
 
 export type TrustExplanationAuditTier = "tier1" | "tier2" | "tier3" | "none";
 
@@ -24,6 +24,7 @@ export type TrustExplanation = {
   historicalIncidents: number;
   tvlUsd: number;
   tvlBucket: TrustExplanationTvlBucket;
+  tvlSource?: ProtocolTrustTvlSource;
   components: TrustExplanationComponents;
 };
 
@@ -135,6 +136,7 @@ export function buildTrustExplanation(
     historicalIncidents: profile.incidents.length,
     tvlUsd: profile.tvlUsd,
     tvlBucket,
+    ...(profile.tvlSource !== undefined ? { tvlSource: profile.tvlSource } : {}),
     components,
   };
 

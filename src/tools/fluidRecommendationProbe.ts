@@ -2,6 +2,7 @@ import "dotenv/config";
 import { createLaminarRecommendation } from "../core/index.js";
 import { createFluidBaseLaminarDataProviderSnapshot } from "../core/providers/FluidBaseLaminarDataProvider.js";
 import { printRejectedOpportunities } from "./printRejectedOpportunities.js";
+import { printTrustSummary } from "./printTrustSummary.js";
 
 const DEFAULT_INTENT = { risk: 8, liquidity: 3, returnPreference: 9 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
@@ -86,6 +87,7 @@ async function main(): Promise<void> {
   }
   console.log("");
 
+  printTrustSummary(recommendation.trustExplanations);
   printRejectedOpportunities(recommendation.rejectedOpportunityExplanations);
 
   console.log(

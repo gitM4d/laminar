@@ -77,13 +77,26 @@ describe("MorphoBaseLaminarDataProvider", () => {
     });
 
     const trust = provider.getTrustProfile("morpho");
-    expect(trust).toEqual(MORPHO_BASE_CURATED_TRUST_PROFILE);
+    expect(trust.tvlUsd).toBe(MORPHO_BASE_CURATED_TRUST_PROFILE.tvlUsd);
+    expect(trust.tvlSource).toBe("curated-fallback");
 
     for (const opportunity of provider.discoverOpportunities()) {
       const liquidity = provider.getLiquidityProfile(opportunity.id);
       expect(liquidity.opportunityId).toBe(opportunity.id);
       expect(liquidity.hasLockup).toBe(false);
     }
+  });
+
+  it("derives trust TVL from real API market TVLs when the API is reachable", async () => {
+    const provider = await createMorphoBaseLaminarDataProviderSnapshot({
+      apiUrl: "https://api.invalid/graphql",
+      client: buildApiClient(sampleVaultsResponse),
+      now: () => asOf,
+    });
+
+    const trust = provider.getTrustProfile("morpho");
+    expect(trust.tvlSource).toBe("real-provider-markets");
+    expect(trust.tvlUsd).toBe(107_000_000);
   });
 
   it("exposes Morpho trust explanation without changing the trust score", async () => {

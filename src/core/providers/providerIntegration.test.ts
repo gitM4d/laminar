@@ -318,7 +318,8 @@ describe("Mode B — AaveBaseLaminarDataProvider (experimental)", () => {
     const trust = provider.getTrustProfile("aave");
     expect(trust.protocolId).toBe("aave");
     expect(trust.audits.length).toBeGreaterThanOrEqual(2);
-    expect(trust).toEqual(AAVE_BASE_CURATED_TRUST_PROFILE);
+    expect(trust.tvlUsd).toBe(AAVE_BASE_CURATED_TRUST_PROFILE.tvlUsd);
+    expect(trust.tvlSource).toBe("curated-fallback");
   });
 
   it("liquidity profile is instant with no lockup", async () => {

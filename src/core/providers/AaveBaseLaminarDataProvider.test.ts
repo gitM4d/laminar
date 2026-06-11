@@ -36,11 +36,57 @@ describe("AaveBaseLaminarDataProvider snapshot", () => {
       env: {},
     });
 
-    expect(provider.getTrustProfile("aave").protocolName).toBe("Aave");
+    const trust = provider.getTrustProfile("aave");
+    expect(trust.protocolName).toBe("Aave");
+    expect(trust.tvlUsd).toBe(AAVE_BASE_CURATED_TRUST_PROFILE.tvlUsd);
+    expect(trust.tvlSource).toBe("curated-fallback");
     expect(
       provider.getLiquidityProfile("aave-usdc-base").withdrawalConstraintType,
     ).toBe("none");
     expect(provider.getLiquidityProfile("aave-usdc-base").hasLockup).toBe(false);
+  });
+
+  it("derives trust TVL from real on-chain market TVLs when RPC data is available", async () => {
+    const USDC = "0xUSDC000000000000000000000000000000000000" as `0x${string}`;
+    const EURC = "0xEURC000000000000000000000000000000000000" as `0x${string}`;
+    const A_USDC = "0xaUSDC0000000000000000000000000000000000" as `0x${string}`;
+    const A_EURC = "0xaEURC0000000000000000000000000000000000" as `0x${string}`;
+
+    const provider = await createAaveBaseLaminarDataProviderSnapshot({
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: {
+        getBlockNumber: async () => 12_345_678n,
+        readContract: async (args) => {
+          if (args.functionName === "getReservesList") {
+            return [USDC, EURC];
+          }
+          if (args.functionName === "getReserveData") {
+            const target = (args.args?.[0] ?? "") as string;
+            if (target === USDC) {
+              return {
+                currentLiquidityRate: 5n * 10n ** 25n,
+                aTokenAddress: A_USDC,
+              };
+            }
+            return {
+              currentLiquidityRate: 3n * 10n ** 25n,
+              aTokenAddress: A_EURC,
+            };
+          }
+          if (args.functionName === "totalSupply") {
+            if (args.address === A_USDC) {
+              return 180_000_000n * 10n ** 6n;
+            }
+            return 25_000_000n * 10n ** 6n;
+          }
+          return args.functionName === "symbol" ? "USDC" : 6;
+        },
+      },
+    });
+
+    const trust = provider.getTrustProfile("aave");
+    expect(trust.tvlSource).toBe("real-provider-markets");
+    expect(trust.tvlUsd).toBe(205_000_000);
   });
 
   it("exposes Aave trust explanation without changing the trust score", async () => {

@@ -14,6 +14,7 @@ import {
 } from "../trust/scoreOpportunityTrust.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
+import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
 
 /**
  * Curated Morpho trust profile for the read-only adapter.
@@ -151,7 +152,10 @@ export async function createMorphoBaseLaminarDataProviderSnapshot(
   const opportunities: Opportunity[] = markets.map(mapMorphoMarketToOpportunity);
 
   const trustProfiles: Record<string, ProtocolTrustProfile> = {
-    [MORPHO_BASE_CONFIG.protocolId]: MORPHO_BASE_CURATED_TRUST_PROFILE,
+    [MORPHO_BASE_CONFIG.protocolId]: buildProtocolTrustProfileWithDerivedTvl(
+      MORPHO_BASE_CURATED_TRUST_PROFILE,
+      markets,
+    ),
   };
 
   const liquidityProfiles: Record<string, OpportunityLiquidityProfile> = {};

@@ -80,6 +80,20 @@ describe("buildTrustExplanation", () => {
     expect(explained.trustExplanation.tvlBucket).toBe("medium");
   });
 
+  it("propagates tvlSource into trust explanations when present", () => {
+    const explained = buildTrustExplanation(
+      {
+        ...MORPHO_BASE_CURATED_TRUST_PROFILE,
+        tvlUsd: 107_000_000,
+        tvlSource: "real-provider-markets",
+      },
+      asOf,
+    );
+
+    expect(explained.trustExplanation.tvlSource).toBe("real-provider-markets");
+    expect(explained.trustExplanation.tvlUsd).toBe(107_000_000);
+  });
+
   it("is deterministic for the same input and asOf", () => {
     const left = buildTrustExplanation(MOONWELL_BASE_CURATED_TRUST_PROFILE, asOf);
     const right = buildTrustExplanation(

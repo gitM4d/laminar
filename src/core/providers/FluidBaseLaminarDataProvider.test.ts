@@ -91,9 +91,10 @@ describe("FluidBaseLaminarDataProvider", () => {
       now: () => asOf,
     });
 
-    expect(provider.getTrustProfile("fluid")).toEqual(
-      FLUID_BASE_CURATED_TRUST_PROFILE,
-    );
+    const trust = provider.getTrustProfile("fluid");
+    expect(trust.tvlSource).toBe("real-provider-markets");
+    expect(trust.tvlUsd).toBe(9_000_000);
+    expect(trust.audits).toEqual(FLUID_BASE_CURATED_TRUST_PROFILE.audits);
 
     for (const opportunity of provider.discoverOpportunities()) {
       const liquidity = provider.getLiquidityProfile(opportunity.id);

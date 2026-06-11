@@ -14,6 +14,7 @@ import {
 } from "../trust/scoreOpportunityTrust.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
+import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
 
 /**
  * Curated Aave trust profile for the read-only adapter.
@@ -150,7 +151,10 @@ export async function createAaveBaseLaminarDataProviderSnapshot(
   const opportunities: Opportunity[] = markets.map(mapAaveMarketToOpportunity);
 
   const trustProfiles: Record<string, ProtocolTrustProfile> = {
-    [AAVE_BASE_CONFIG.protocolId]: AAVE_BASE_CURATED_TRUST_PROFILE,
+    [AAVE_BASE_CONFIG.protocolId]: buildProtocolTrustProfileWithDerivedTvl(
+      AAVE_BASE_CURATED_TRUST_PROFILE,
+      markets,
+    ),
   };
 
   const liquidityProfiles: Record<string, OpportunityLiquidityProfile> = {};

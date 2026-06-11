@@ -19,11 +19,17 @@ export type SecurityIncident = {
   description: string;
 };
 
+export type ProtocolTrustTvlSource =
+  | "real-provider-markets"
+  | "curated-fallback";
+
 export type ProtocolTrustProfile = {
   protocolId: string;
   protocolName: string;
   protocolAgeYears: number;
   tvlUsd: number;
+  /** Indicates whether TVL input came from real provider markets or curated fallback. */
+  tvlSource?: ProtocolTrustTvlSource;
   audits: readonly ProtocolAudit[];
   incidents: readonly SecurityIncident[];
   chainAdjustment: number;

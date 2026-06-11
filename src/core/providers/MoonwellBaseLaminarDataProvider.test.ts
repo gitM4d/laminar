@@ -97,13 +97,39 @@ describe("MoonwellBaseLaminarDataProvider", () => {
     });
 
     const trust = provider.getTrustProfile("moonwell");
-    expect(trust).toEqual(MOONWELL_BASE_CURATED_TRUST_PROFILE);
+    expect(trust.tvlUsd).toBe(MOONWELL_BASE_CURATED_TRUST_PROFILE.tvlUsd);
+    expect(trust.tvlSource).toBe("curated-fallback");
 
     for (const opportunity of provider.discoverOpportunities()) {
       const liquidity = provider.getLiquidityProfile(opportunity.id);
       expect(liquidity.opportunityId).toBe(opportunity.id);
       expect(liquidity.hasLockup).toBe(false);
     }
+  });
+
+  it("derives trust TVL from real API market TVLs when the API is reachable", async () => {
+    const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
+      apiUrl: "https://api.invalid/moonwell",
+      client: buildApiClient(sampleMarketsResponse),
+      now: () => asOf,
+    });
+
+    const trust = provider.getTrustProfile("moonwell");
+    expect(trust.tvlSource).toBe("real-provider-markets");
+    expect(trust.tvlUsd).toBe(48_000_000);
+  });
+
+  it("does not use static fallback market TVL for trust when only static data exists", async () => {
+    const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
+      disableApi: true,
+      allowStaticMarketData: true,
+      now: () => asOf,
+    });
+
+    const trust = provider.getTrustProfile("moonwell");
+    expect(trust.tvlSource).toBe("curated-fallback");
+    expect(trust.tvlUsd).toBe(MOONWELL_BASE_CURATED_TRUST_PROFILE.tvlUsd);
+    expect(trust.tvlUsd).not.toBe(53_000_000);
   });
 
   it("exposes Moonwell trust explanation without changing the trust score", async () => {

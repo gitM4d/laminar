@@ -18,6 +18,7 @@ import {
 } from "../trust/scoreOpportunityTrust.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
+import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
 
 /**
  * Curated Moonwell trust profile for the read-only adapter.
@@ -209,7 +210,10 @@ export async function createMoonwellBaseLaminarDataProviderSnapshot(
   );
 
   const trustProfiles: Record<string, ProtocolTrustProfile> = {
-    [MOONWELL_BASE_CONFIG.protocolId]: MOONWELL_BASE_CURATED_TRUST_PROFILE,
+    [MOONWELL_BASE_CONFIG.protocolId]: buildProtocolTrustProfileWithDerivedTvl(
+      MOONWELL_BASE_CURATED_TRUST_PROFILE,
+      discoveredMarkets,
+    ),
   };
 
   const liquidityProfiles: Record<string, OpportunityLiquidityProfile> = {};

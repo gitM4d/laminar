@@ -15,6 +15,7 @@ import {
 } from "../trust/scoreOpportunityTrust.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
+import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
 
 export const FLUID_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile = {
   protocolId: FLUID_BASE_CONFIG.protocolId,
@@ -110,7 +111,10 @@ export async function createFluidBaseLaminarDataProviderSnapshot(
 
   if (opportunities.length > 0) {
     trustProfiles[FLUID_BASE_CONFIG.protocolId] =
-      FLUID_BASE_CURATED_TRUST_PROFILE;
+      buildProtocolTrustProfileWithDerivedTvl(
+        FLUID_BASE_CURATED_TRUST_PROFILE,
+        eligibleMarkets,
+      );
     for (const opportunity of opportunities) {
       liquidityProfiles[opportunity.id] = buildCuratedLiquidityProfile(
         opportunity.id,
