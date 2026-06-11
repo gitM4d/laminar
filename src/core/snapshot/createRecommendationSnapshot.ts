@@ -1,3 +1,4 @@
+import { buildRejectionHighlights } from "../explainability/buildRejectedOpportunityExplanations.js";
 import type { PortfolioRecommendationResult } from "../recommendation/types.js";
 import type {
   RecommendationSnapshot,
@@ -365,6 +366,9 @@ export function createRecommendationSnapshot(
     positions: mapPositions(recommendation),
     metrics: buildMetrics(recommendation),
     trustHighlights: buildTrustHighlights(recommendation),
+    rejectionHighlights: buildRejectionHighlights(
+      recommendation.rejectedOpportunityExplanations,
+    ),
     warnings: buildWarnings(recommendation),
     explanations: buildExplanations(recommendation),
     source: {

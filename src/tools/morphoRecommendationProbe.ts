@@ -2,6 +2,7 @@ import "dotenv/config";
 import { createLaminarRecommendation } from "../core/index.js";
 import { createMorphoBaseLaminarDataProviderSnapshot } from "../core/providers/MorphoBaseLaminarDataProvider.js";
 import type { ProtocolTrustExplanation } from "../core/trust/buildTrustExplanation.js";
+import { printRejectedOpportunities } from "./printRejectedOpportunities.js";
 
 const DEFAULT_INTENT = { risk: 5, liquidity: 6, returnPreference: 5 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
@@ -89,6 +90,7 @@ async function main(): Promise<void> {
   console.log("");
 
   printTrustSummary(recommendation.trustExplanations);
+  printRejectedOpportunities(recommendation.rejectedOpportunityExplanations);
 
   console.log(
     `Ranked opportunities (${recommendation.opportunityRanking.ranked.length.toString()}):`,

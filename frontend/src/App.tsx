@@ -79,6 +79,9 @@ export function App() {
           <SnapshotView
             snapshot={result.snapshot}
             trustExplanations={result.recommendation.trustExplanations}
+            rejectedOpportunityExplanations={
+              result.recommendation.rejectedOpportunityExplanations
+            }
           />
           <ExecutionPlanView executionPlan={result.executionPlan} />
         </div>

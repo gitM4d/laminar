@@ -7,6 +7,7 @@ import { CombinedLaminarDataProvider } from "../core/providers/CombinedLaminarDa
 import type { LaminarDataProvider } from "../core/providers/types.js";
 import type { Opportunity } from "../core/opportunity/types.js";
 import type { ProtocolTrustExplanation } from "../core/trust/buildTrustExplanation.js";
+import { printRejectedOpportunities } from "./printRejectedOpportunities.js";
 
 const DEFAULT_INTENT = { risk: 5, liquidity: 6, returnPreference: 5 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
@@ -133,6 +134,7 @@ async function main(): Promise<void> {
   console.log("");
 
   printTrustSummary(recommendation.trustExplanations);
+  printRejectedOpportunities(recommendation.rejectedOpportunityExplanations);
 
   // ── Ranked opportunities by protocol ───────────────────────────────────────
   console.log("Ranked opportunities by protocol:");

@@ -3,16 +3,22 @@ import {
   formatTrustScore,
   formatUsdCompact,
 } from "../formatTrust.js";
+import {
+  resolveRejectedOpportunities,
+  type ResolvedRejectedOpportunity,
+} from "../resolveRejectedOpportunities.js";
 import { resolveTrustHighlights } from "../resolveTrustHighlights.js";
 import type {
   ProtocolTrustExplanation,
   RecommendationSnapshot,
+  RejectedOpportunityExplanation,
   SnapshotTrustHighlight,
 } from "../types.js";
 
 type SnapshotViewProps = {
   snapshot: RecommendationSnapshot;
   trustExplanations?: ProtocolTrustExplanation[];
+  rejectedOpportunityExplanations?: RejectedOpportunityExplanation[];
 };
 
 function formatUsd(value: number): string {
@@ -110,11 +116,72 @@ function TrustHighlightCard({ highlight }: { highlight: SnapshotTrustHighlight }
   );
 }
 
+function formatDetailValue(value: number | string | boolean): string {
+  return String(value);
+}
+
+function RejectedOpportunityCard({
+  rejection,
+}: {
+  rejection: ResolvedRejectedOpportunity;
+}) {
+  return (
+    <article className="rejection-highlight">
+      <div className="rejection-highlight-header">
+        <p>
+          <span className="muted">Label:</span> {rejection.label}
+        </p>
+        <p>
+          <span className="muted">Protocol:</span> {rejection.protocolName}
+        </p>
+        <p>
+          <span className="muted">Asset:</span> {rejection.asset}
+        </p>
+        <p>
+          <span className="muted">Category:</span>{" "}
+          {rejection.primaryReasonCategory}
+        </p>
+        <p>
+          <span className="muted">Summary:</span> {rejection.summary}
+        </p>
+      </div>
+
+      {rejection.details !== undefined && rejection.details.length > 0 && (
+        <>
+          <h4>Details</h4>
+          <ul className="rejection-detail-list">
+            {rejection.details.map((detail) => (
+              <li key={detail.code}>
+                <span className="muted">{detail.category}:</span>{" "}
+                {detail.message}
+                {detail.observedValue !== undefined &&
+                  detail.requiredValue !== undefined && (
+                    <>
+                      {" "}
+                      (
+                      {formatDetailValue(detail.observedValue)} vs required{" "}
+                      {formatDetailValue(detail.requiredValue)})
+                    </>
+                  )}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </article>
+  );
+}
+
 export function SnapshotView({
   snapshot,
   trustExplanations,
+  rejectedOpportunityExplanations,
 }: SnapshotViewProps) {
   const trustHighlights = resolveTrustHighlights(snapshot, trustExplanations);
+  const rejectedOpportunities = resolveRejectedOpportunities(
+    snapshot,
+    rejectedOpportunityExplanations,
+  );
 
   return (
     <section className="card">
@@ -171,6 +238,20 @@ export function SnapshotView({
               <TrustHighlightCard
                 key={highlight.protocolId}
                 highlight={highlight}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {rejectedOpportunities.length > 0 && (
+        <>
+          <h3>Rejected Opportunities</h3>
+          <div className="rejection-highlights">
+            {rejectedOpportunities.map((rejection) => (
+              <RejectedOpportunityCard
+                key={rejection.opportunityId}
+                rejection={rejection}
               />
             ))}
           </div>

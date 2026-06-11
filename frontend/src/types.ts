@@ -86,6 +86,44 @@ export type ProtocolTrustExplanation = {
 
 export type RecommendationPayload = {
   trustExplanations?: ProtocolTrustExplanation[];
+  rejectedOpportunityExplanations?: RejectedOpportunityExplanation[];
+};
+
+export type RejectionReasonCategory =
+  | "trust"
+  | "liquidity"
+  | "risk"
+  | "policy"
+  | "construction"
+  | "unknown";
+
+export type RejectedOpportunityDetail = {
+  code: string;
+  category: RejectionReasonCategory;
+  message: string;
+  observedValue?: number | string | boolean;
+  requiredValue?: number | string | boolean;
+};
+
+export type RejectedOpportunityExplanation = {
+  opportunityId: string;
+  protocolId: string;
+  protocolName: string;
+  asset: string;
+  status: "rejected";
+  primaryReasonCode: string;
+  primaryReasonCategory: RejectionReasonCategory;
+  summary: string;
+  details: RejectedOpportunityDetail[];
+};
+
+export type SnapshotRejectionHighlight = {
+  opportunityId: string;
+  label: string;
+  protocolName: string;
+  asset: string;
+  primaryReasonCategory: RejectionReasonCategory;
+  summary: string;
 };
 
 export type RecommendationSnapshot = {
@@ -95,6 +133,7 @@ export type RecommendationSnapshot = {
   positions: SnapshotPosition[];
   metrics: SnapshotMetric[];
   trustHighlights?: SnapshotTrustHighlight[];
+  rejectionHighlights?: SnapshotRejectionHighlight[];
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
 };

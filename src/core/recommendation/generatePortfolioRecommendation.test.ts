@@ -119,6 +119,24 @@ describe("generatePortfolioRecommendation", () => {
     expect(result.opportunityRanking.rejected.length).toBeGreaterThan(0);
   });
 
+  it("includes rejectedOpportunityExplanations in the result", () => {
+    const result = generatePortfolioRecommendation({
+      intent: { risk: 3, liquidity: 8, returnPreference: 4 },
+      portfolioValueUsd: 10_000,
+      asOf,
+    });
+
+    expect(result.rejectedOpportunityExplanations.length).toBeGreaterThan(0);
+    expect(result.diagnostics.rejectionsExplained).toBe(true);
+    expect(
+      new Set(
+        result.rejectedOpportunityExplanations.map(
+          (entry) => entry.opportunityId,
+        ),
+      ).size,
+    ).toBe(result.rejectedOpportunityExplanations.length);
+  });
+
   it("includes portfolioConstruction in the result", () => {
     const result = generatePortfolioRecommendation({
       intent: { risk: 3, liquidity: 8, returnPreference: 4 },

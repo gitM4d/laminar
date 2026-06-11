@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { createLaminarRecommendation } from "../core/index.js";
 import { createMoonwellBaseLaminarDataProviderSnapshot } from "../core/providers/MoonwellBaseLaminarDataProvider.js";
+import { printRejectedOpportunities } from "./printRejectedOpportunities.js";
 
 /**
  * Yield-focused intent. Moonwell's conservative curated trust (~73.7) clears the
@@ -71,6 +72,8 @@ async function main(): Promise<void> {
     );
   }
   console.log("");
+
+  printRejectedOpportunities(recommendation.rejectedOpportunityExplanations);
 
   console.log(
     `Ranked opportunities (${recommendation.opportunityRanking.ranked.length.toString()}):`,

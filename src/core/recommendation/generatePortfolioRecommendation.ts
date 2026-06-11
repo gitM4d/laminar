@@ -21,6 +21,7 @@ import {
   UnknownProtocolTrustProfileError,
 } from "../trust/scoreOpportunityTrust.js";
 import { buildTrustExplanation } from "../trust/buildTrustExplanation.js";
+import { buildRejectedOpportunityExplanations } from "../explainability/buildRejectedOpportunityExplanations.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type {
   GeneratePortfolioRecommendationInput,
@@ -260,6 +261,17 @@ export function generatePortfolioRecommendation(
   });
   completeStep(pipelineSteps, "constructPortfolio");
 
+  const rejectedOpportunityExplanations = buildRejectedOpportunityExplanations({
+    selectedProfile: profileClassification.selectedProfile,
+    policy,
+    opportunities,
+    opportunityRanking,
+    portfolioConstruction,
+    riskAssessments,
+    trustScores,
+    liquidityScores,
+  });
+
   if (
     portfolioConstruction.constructionSteps.some(
       (step) => step.id === "emptyCandidateUniverse",
@@ -278,6 +290,7 @@ export function generatePortfolioRecommendation(
     opportunities,
     trustScores,
     trustExplanations,
+    rejectedOpportunityExplanations,
     liquidityScores,
     riskAssessments,
     opportunityRanking,
@@ -291,6 +304,7 @@ export function generatePortfolioRecommendation(
       providerName: providerInfo.providerName,
       opportunityCount: opportunities.length,
       trustExplained: true,
+      rejectionsExplained: true,
     },
   };
 }

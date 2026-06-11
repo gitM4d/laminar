@@ -34,6 +34,7 @@ describe("createLaminarRecommendation", () => {
 
     expect(result.recommendation.selectedProfile).toBe("Balanced");
     expect(result.recommendation.diagnostics.trustExplained).toBe(true);
+    expect(result.recommendation.diagnostics.rejectionsExplained).toBe(true);
     expect(result.snapshot.profile).toBe("Balanced");
     expect(result.executionPlan.summary.numberOfDeposits).toBeGreaterThan(0);
   });

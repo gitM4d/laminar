@@ -386,4 +386,25 @@ describe("createRecommendationSnapshot", () => {
     expect(snapshot.source.pipelineStepsCompleted).toBe(10);
     expect(snapshot.source.recommendationId).toBeUndefined();
   });
+
+  it("includes rejectionHighlights with compact shape and no duplicates", () => {
+    const recommendation = balancedRecommendation();
+    const snapshot = createRecommendationSnapshot(recommendation);
+
+    expect(snapshot.rejectionHighlights.length).toBeGreaterThan(0);
+    expect(snapshot.rejectionHighlights.length).toBe(
+      recommendation.rejectedOpportunityExplanations.length,
+    );
+
+    const ids = snapshot.rejectionHighlights.map(
+      (highlight) => highlight.opportunityId,
+    );
+    expect(new Set(ids).size).toBe(ids.length);
+
+    for (const highlight of snapshot.rejectionHighlights) {
+      expect(highlight.label).toContain(highlight.asset);
+      expect(highlight.summary.length).toBeGreaterThan(0);
+      expect(highlight).not.toHaveProperty("details");
+    }
+  });
 });

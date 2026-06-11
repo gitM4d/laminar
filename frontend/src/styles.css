@@ -171,3 +171,34 @@ code {
 .trust-component-list li {
   margin-bottom: 0.25rem;
 }
+
+.rejection-highlights {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.rejection-highlight {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  background: #fff7ed;
+}
+
+.rejection-highlight-header p {
+  margin: 0 0 0.35rem;
+}
+
+.rejection-highlight h4 {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.rejection-detail-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.rejection-detail-list li {
+  margin-bottom: 0.25rem;
+}

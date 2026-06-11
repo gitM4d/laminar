@@ -1,4 +1,5 @@
 import type { ProfileName } from "../profile/types.js";
+import type { SnapshotRejectionHighlight } from "../explainability/buildRejectedOpportunityExplanations.js";
 
 export type SnapshotPositionType =
   | "strategy"
@@ -57,6 +58,7 @@ export type RecommendationSnapshot = {
   positions: SnapshotPosition[];
   metrics: SnapshotMetric[];
   trustHighlights: SnapshotTrustHighlight[];
+  rejectionHighlights: SnapshotRejectionHighlight[];
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
   source: RecommendationSnapshotSource;
