@@ -18,6 +18,7 @@
     "check": "npm run typecheck && npm run lint && npm run test && npm run api:contract",
     "demo": "tsx src/demo/intentToPolicyDemo.ts",
     "compare:providers": "tsx src/tools/providerComparisonMatrixCli.ts",
+    "compare:real-providers": "tsx src/tools/realProviderComparisonMatrixCli.ts",
     "dev": "concurrently -n api,frontend -c blue,magenta \"npm run api\" \"npm run frontend\"",
     "frontend": "vite --config frontend/vite.config.ts",
     "frontend:build": "vite build --config frontend/vite.config.ts",

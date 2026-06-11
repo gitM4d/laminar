@@ -178,7 +178,43 @@ npm run recommendation:aave
 ## Provider Comparison Matrix
 
 Compare Laminar recommendations across providers for the same sensitivity
-scenarios:
+scenarios.
+
+### Real provider comparison (product analysis)
+
+Use this for comparing real read-only providers only (no Mock):
+
+```bash
+npm run compare:real-providers
+```
+
+Optional JSON output:
+
+```bash
+npm run compare:real-providers -- --json
+```
+
+The real-provider matrix compares:
+
+- **AaveBaseLaminarDataProvider** — experimental Aave Base provider
+- **MorphoBaseLaminarDataProvider** — experimental Morpho Base provider
+- **FluidBaseLaminarDataProvider** — experimental Fluid Base provider
+- **CombinedLaminarDataProvider (Combined V2)** — Aave + Morpho + optional
+  Moonwell/Fluid combined universe
+
+Difference summaries show **Real Provider Delta vs Combined**:
+
+- Aave vs Combined
+- Morpho vs Combined
+- Fluid vs Combined
+
+JSON mode returns `providers`, `providerDataQuality`, `scenarios`, `results`,
+and `differences` (`aaveVsCombined`, `morphoVsCombined`, `fluidVsCombined`).
+No Mock entries.
+
+### Legacy all-provider comparison (regression/dev)
+
+`compare:providers` remains for backward compatibility and includes Mock:
 
 ```bash
 npm run compare:providers
@@ -190,13 +226,22 @@ Optional JSON output:
 npm run compare:providers -- --json
 ```
 
-The matrix compares four providers by default:
+The CLI prints a banner:
 
-- **MockLaminarDataProvider** — default product mode (all static data)
+> Includes MockLaminarDataProvider for regression/dev comparison only.
+
+**MockLaminarDataProvider** is a regression/dev fixture (synthetic static
+data), not product data. It remains the default API/frontend provider and is
+still used in tests and CI.
+
+The legacy matrix compares five providers:
+
+- **MockLaminarDataProvider** — regression/dev fixture (not product data)
 - **AaveBaseLaminarDataProvider** — experimental Aave Base provider
 - **MorphoBaseLaminarDataProvider** — experimental Morpho Base provider
-- **CombinedLaminarDataProvider (Combined V2)** — Aave + Morpho + Moonwell
-  combined universe
+- **FluidBaseLaminarDataProvider** — experimental Fluid Base provider
+- **CombinedLaminarDataProvider (Combined V2)** — Aave + Morpho + Moonwell +
+  Fluid combined universe
 
 > **Combined V1 vs V2:** the matrix previously combined only Aave + Morpho.
 > It now combines Aave + Morpho + Moonwell ("Combined V2"). We **replaced** the
@@ -224,7 +269,7 @@ Data quality labels:
 | Moonwell (fallback) | static-fallback | static-fallback | curated | curated |
 | Combined V2 | mixed-real | mixed-real | curated | curated |
 
-Difference summaries compare each real provider against Mock:
+Difference summaries in legacy mode compare each real provider against Mock:
 
 - Aave vs Mock
 - Morpho vs Mock
@@ -235,7 +280,9 @@ and `differences` (`aaveVsMock`, `morphoVsMock`, `combinedVsMock`).
 
 Notes:
 
-- Mock provider is the default product mode (API/frontend unchanged).
+- Use **`compare:real-providers`** for product analysis against real data.
+- **`compare:providers`** is legacy/all-provider diagnostics including Mock.
+- Mock provider is the default API/frontend mode (unchanged).
 - Aave, Morpho, and Combined providers are experimental and opt-in only.
 - Aave APY/TVL are real on-chain when RPC is configured (`AAVE_BASE_RPC_URL` /
   `BASE_RPC_URL`). TVL uses a stablecoin peg (1 token ≈ 1 USD).

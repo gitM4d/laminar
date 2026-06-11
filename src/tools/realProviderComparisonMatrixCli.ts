@@ -1,28 +1,25 @@
 import "dotenv/config";
 import {
-  formatAllDifferenceSummaries,
   formatProviderComparisonTable,
   formatProviderDataQualityTable,
-  runProviderComparisonMatrix,
+  formatRealProviderDifferenceSummaries,
+  runRealProviderComparisonMatrix,
 } from "./providerComparisonMatrix.js";
 
 async function main(): Promise<void> {
   const jsonMode = process.argv.includes("--json");
-  const matrix = await runProviderComparisonMatrix();
+  const matrix = await runRealProviderComparisonMatrix();
 
   if (jsonMode) {
     console.log(JSON.stringify(matrix, null, 2));
     return;
   }
 
-  console.log("Laminar Provider Comparison Matrix");
+  console.log("Laminar Real Provider Comparison Matrix");
   console.log(`asOf: ${matrix.asOf}`);
   console.log("");
   console.log(
-    "Includes MockLaminarDataProvider for regression/dev comparison only.",
-  );
-  console.log(
-    "For product analysis, use: npm run compare:real-providers",
+    "Real providers only (Aave, Morpho, Fluid, Combined). Mock excluded.",
   );
   console.log("");
 
@@ -43,18 +40,19 @@ async function main(): Promise<void> {
   console.log("");
   console.log(formatProviderDataQualityTable(matrix.providerDataQuality));
   console.log("");
-  if (matrix.includeMock && "aaveVsMock" in matrix.differences) {
-    console.log(formatAllDifferenceSummaries(matrix.differences));
+
+  if (!matrix.includeMock && "aaveVsCombined" in matrix.differences) {
+    console.log(formatRealProviderDifferenceSummaries(matrix.differences));
     console.log("");
   }
+
   console.log("Notes:");
   console.log(
-    "- MockLaminarDataProvider is a regression/dev fixture, not product data.",
+    "- Use compare:real-providers for product analysis against real data sources.",
   );
   console.log(
-    "- For real provider analysis, use: npm run compare:real-providers",
+    "- MockLaminarDataProvider is a regression/dev fixture; see compare:providers for legacy all-provider output.",
   );
-  console.log("- MockLaminarDataProvider is the default API/frontend mode.");
   console.log("- Aave, Morpho, Fluid, and Combined providers are experimental.");
   console.log(
     "- Aave APY/TVL are real on-chain when RPC is configured (TVL uses stablecoin peg).",
@@ -63,24 +61,21 @@ async function main(): Promise<void> {
     "- Morpho APY/TVL are real when the Morpho API is reachable; static fallback otherwise.",
   );
   console.log(
-    "- Fluid APY/TVL are real when the Fluid/Instadapp API is reachable; zero opportunities otherwise (no static fallback in real flows).",
+    "- Fluid APY/TVL are real when the Fluid/Instadapp API is reachable; zero opportunities otherwise.",
   );
   console.log(
-    "- Combined V2 merges real-data-eligible providers only (Aave + Morpho + optional Moonwell/Fluid).",
+    "- Combined merges real-data-eligible sub-providers only (Aave + Morpho + optional Moonwell/Fluid).",
   );
   console.log(
-    "- Moonwell is included only when MOONWELL_BASE_API_URL returns real market data.",
+    "- Moonwell is included in Combined only when MOONWELL_BASE_API_URL returns real market data.",
   );
   console.log(
-    "- Fluid is included only when the Fluid/Instadapp API returns real V1 markets.",
-  );
-  console.log(
-    "- Static Moonwell/Fluid fallback is diagnostics/tests only and never counted as real provider data.",
+    "- Difference summaries show Combined minus each single-protocol provider.",
   );
 }
 
 main().catch((error: unknown) => {
-  console.error("Provider comparison matrix failed:");
+  console.error("Real provider comparison matrix failed:");
   console.error(error);
   process.exitCode = 1;
 });

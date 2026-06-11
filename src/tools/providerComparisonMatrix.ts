@@ -106,8 +106,16 @@ export type ProviderComparisonDifferences = {
   combinedVsMock: ProviderScenarioDifference[];
 };
 
+export type RealProviderComparisonDifferences = {
+  aaveVsCombined: ProviderScenarioDifference[];
+  morphoVsCombined: ProviderScenarioDifference[];
+  fluidVsCombined: ProviderScenarioDifference[];
+};
+
 export type ProviderComparisonMatrixResult = {
   asOf: string;
+  /** True when MockLaminarDataProvider is included in providers/results. */
+  includeMock: boolean;
   providers: {
     providerType: string;
     providerName: string;
@@ -116,7 +124,7 @@ export type ProviderComparisonMatrixResult = {
   providerDataQuality: ProviderDataQuality[];
   scenarios: SensitivityScenarioInput[];
   results: ProviderComparisonResult[];
-  differences: ProviderComparisonDifferences;
+  differences: ProviderComparisonDifferences | RealProviderComparisonDifferences;
 };
 
 export type ProviderComparisonMatrixOptions = {
@@ -126,6 +134,8 @@ export type ProviderComparisonMatrixOptions = {
   morphoSnapshotOptions?: MorphoBaseProviderSnapshotOptions;
   moonwellSnapshotOptions?: MoonwellBaseProviderSnapshotOptions;
   fluidSnapshotOptions?: FluidBaseProviderSnapshotOptions;
+  /** When false, excludes MockLaminarDataProvider from the matrix. Default true. */
+  includeMock?: boolean;
 };
 
 const MOCK_DATA_QUALITY: ProviderDataQuality = {
@@ -410,30 +420,67 @@ export function computeScenarioDifferencesForProvider(
   results: ProviderComparisonResult[],
   realProviderType: string,
 ): ProviderScenarioDifference[] {
+  return computeScenarioDifferencesBetweenProviders(
+    results,
+    "MockLaminarDataProvider",
+    realProviderType,
+  );
+}
+
+export function computeScenarioDifferencesBetweenProviders(
+  results: ProviderComparisonResult[],
+  baselineProviderType: string,
+  comparisonProviderType: string,
+): ProviderScenarioDifference[] {
   const scenarioNames = [
     ...new Set(results.map((entry) => entry.scenarioName)),
   ];
 
   return scenarioNames.map((scenarioName) => {
-    const mockResult = results.find(
+    const baselineResult = results.find(
       (entry) =>
         entry.scenarioName === scenarioName &&
-        entry.providerType === "MockLaminarDataProvider",
+        entry.providerType === baselineProviderType,
     );
-    const realResult = results.find(
+    const comparisonResult = results.find(
       (entry) =>
         entry.scenarioName === scenarioName &&
-        entry.providerType === realProviderType,
+        entry.providerType === comparisonProviderType,
     );
 
-    if (mockResult === undefined || realResult === undefined) {
+    if (baselineResult === undefined || comparisonResult === undefined) {
       throw new Error(
-        `Missing provider result for scenario "${scenarioName}" (real provider: ${realProviderType})`,
+        `Missing provider result for scenario "${scenarioName}" (${baselineProviderType} vs ${comparisonProviderType})`,
       );
     }
 
-    return computeScenarioDifference(mockResult.summary, realResult.summary);
+    return computeScenarioDifference(
+      baselineResult.summary,
+      comparisonResult.summary,
+    );
   });
+}
+
+export function computeRealProviderDifferences(
+  results: ProviderComparisonResult[],
+): RealProviderComparisonDifferences {
+  return {
+    aaveVsCombined: computeScenarioDifferencesBetweenProviders(
+      results,
+      "AaveBaseLaminarDataProvider",
+      "CombinedLaminarDataProvider",
+    ),
+    morphoVsCombined: computeScenarioDifferencesBetweenProviders(
+      results,
+      "MorphoBaseLaminarDataProvider",
+      "CombinedLaminarDataProvider",
+    ),
+    fluidVsCombined: computeScenarioDifferencesBetweenProviders(
+      results,
+      "FluidBaseLaminarDataProvider",
+      "CombinedLaminarDataProvider",
+    ),
+  };
 }
 
 /** @deprecated Use computeScenarioDifferencesForProvider with Aave provider type. */
@@ -668,9 +715,37 @@ export function formatAllDifferenceSummaries(
   ].join("\n");
 }
 
+export function formatRealProviderDifferenceSummaries(
+  differences: RealProviderComparisonDifferences,
+): string {
+  return [
+    formatDifferenceSummary(
+      "Real Provider Delta vs Combined (Aave vs Combined):",
+      differences.aaveVsCombined,
+    ),
+    "",
+    formatDifferenceSummary(
+      "Real Provider Delta vs Combined (Morpho vs Combined):",
+      differences.morphoVsCombined,
+    ),
+    "",
+    formatDifferenceSummary(
+      "Real Provider Delta vs Combined (Fluid vs Combined):",
+      differences.fluidVsCombined,
+    ),
+  ].join("\n");
+}
+
+export function isMockProviderComparisonDifferences(
+  differences: ProviderComparisonDifferences | RealProviderComparisonDifferences,
+): differences is ProviderComparisonDifferences {
+  return "aaveVsMock" in differences;
+}
+
 export async function runProviderComparisonMatrix(
   options: ProviderComparisonMatrixOptions = {},
 ): Promise<ProviderComparisonMatrixResult> {
+  const includeMock = options.includeMock ?? true;
   const asOf = options.asOf ?? DEFAULT_SENSITIVITY_AS_OF;
   const scenarios = options.scenarios ?? SENSITIVITY_SCENARIOS;
   const aaveSnapshotOptions = options.aaveSnapshotOptions ?? {};
@@ -749,13 +824,18 @@ export async function runProviderComparisonMatrix(
 
   const combinedProvider = new CombinedLaminarDataProvider(combinedSubProviders);
 
-  const providerDefinitions: ProviderDefinition[] = [
-    {
+  const providerDefinitions: ProviderDefinition[] = [];
+
+  if (includeMock) {
+    providerDefinitions.push({
       providerType: "MockLaminarDataProvider",
       providerName: "MockLaminarDataProvider",
       provider: mockProvider,
       dataQuality: MOCK_DATA_QUALITY,
-    },
+    });
+  }
+
+  providerDefinitions.push(
     {
       providerType: "AaveBaseLaminarDataProvider",
       providerName: "Aave Base (experimental)",
@@ -792,7 +872,7 @@ export async function runProviderComparisonMatrix(
         ? { dataSourceLabel: combinedDataQuality.dataSourceLabel }
         : {}),
     },
-  ];
+  );
 
   const results: ProviderComparisonResult[] = [];
 
@@ -833,10 +913,13 @@ export async function runProviderComparisonMatrix(
   const providerDataQuality = providerDefinitions.map(
     (providerDef) => providerDef.dataQuality,
   );
-  const differences = computeAllProviderDifferences(results);
+  const differences = includeMock
+    ? computeAllProviderDifferences(results)
+    : computeRealProviderDifferences(results);
 
   return {
     asOf: asOf.toISOString(),
+    includeMock,
     providers: providerDefinitions.map((providerDef) => ({
       providerType: providerDef.providerType,
       providerName: providerDef.providerName,
@@ -849,4 +932,11 @@ export async function runProviderComparisonMatrix(
     results,
     differences,
   };
+}
+
+/** Real-provider-only matrix: Aave, Morpho, Fluid, Combined — no Mock. */
+export async function runRealProviderComparisonMatrix(
+  options: Omit<ProviderComparisonMatrixOptions, "includeMock"> = {},
+): Promise<ProviderComparisonMatrixResult> {
+  return runProviderComparisonMatrix({ ...options, includeMock: false });
 }

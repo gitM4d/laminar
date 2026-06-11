@@ -21,12 +21,15 @@ import {
 import {
   computeAllProviderDifferences,
   computeAllScenarioDifferences,
+  computeRealProviderDifferences,
   computeScenarioDifference,
   extractProviderComparisonSummary,
   formatAllDifferenceSummaries,
   formatDifferenceSummary,
   formatProviderComparisonTable,
   formatProviderDataQualityTable,
+  formatRealProviderDifferenceSummaries,
+  isMockProviderComparisonDifferences,
   resolveAaveDataQuality,
   resolveAaveDataSourceLabel,
   resolveCombinedDataQuality,
@@ -37,6 +40,7 @@ import {
   resolveMorphoDataQuality,
   resolveMorphoDataSourceLabel,
   runProviderComparisonMatrix,
+  runRealProviderComparisonMatrix,
   type ProviderComparisonSummary,
 } from "./providerComparisonMatrix.js";
 
@@ -549,6 +553,28 @@ describe("providerComparisonMatrix helpers", () => {
     expect(output).toContain("Difference summary (Morpho vs Mock):");
     expect(output).toContain("Difference summary (Combined vs Mock):");
   });
+
+  it("formatRealProviderDifferenceSummaries includes Aave, Morpho, and Fluid vs Combined", () => {
+    const differences = {
+      aaveVsCombined: [computeScenarioDifference(aaveSummary, combinedSummary)],
+      morphoVsCombined: [
+        computeScenarioDifference(morphoSummary, combinedSummary),
+      ],
+      fluidVsCombined: [computeScenarioDifference(morphoSummary, combinedSummary)],
+    };
+
+    const output = formatRealProviderDifferenceSummaries(differences);
+
+    expect(output).toContain(
+      "Real Provider Delta vs Combined (Aave vs Combined):",
+    );
+    expect(output).toContain(
+      "Real Provider Delta vs Combined (Morpho vs Combined):",
+    );
+    expect(output).toContain(
+      "Real Provider Delta vs Combined (Fluid vs Combined):",
+    );
+  });
 });
 
 describe("runProviderComparisonMatrix", () => {
@@ -578,9 +604,14 @@ describe("runProviderComparisonMatrix", () => {
     });
 
     expect(matrix.providers).toHaveLength(5);
+    expect(matrix.includeMock).toBe(true);
     expect(matrix.providerDataQuality).toHaveLength(5);
     expect(matrix.scenarios).toHaveLength(SENSITIVITY_SCENARIOS.length);
     expect(matrix.results).toHaveLength(SENSITIVITY_SCENARIOS.length * 5);
+    expect(isMockProviderComparisonDifferences(matrix.differences)).toBe(true);
+    if (!isMockProviderComparisonDifferences(matrix.differences)) {
+      throw new Error("expected mock comparison differences");
+    }
     expect(matrix.differences.aaveVsMock).toHaveLength(
       SENSITIVITY_SCENARIOS.length,
     );
@@ -753,6 +784,10 @@ describe("runProviderComparisonMatrix", () => {
       ...snapshotOptions,
     });
 
+    if (!isMockProviderComparisonDifferences(matrix.differences)) {
+      throw new Error("expected mock comparison differences");
+    }
+
     for (const diff of matrix.differences.aaveVsMock) {
       expect(diff.opportunityCountDifference).toBeLessThan(0);
       expect(diff.mockProviderName).toBe("MockLaminarDataProvider");
@@ -765,6 +800,10 @@ describe("runProviderComparisonMatrix", () => {
       asOf: DEFAULT_SENSITIVITY_AS_OF,
       ...snapshotOptions,
     });
+
+    if (!isMockProviderComparisonDifferences(matrix.differences)) {
+      throw new Error("expected mock comparison differences");
+    }
 
     expect(matrix.differences.morphoVsMock).toHaveLength(
       SENSITIVITY_SCENARIOS.length,
@@ -779,6 +818,10 @@ describe("runProviderComparisonMatrix", () => {
       asOf: DEFAULT_SENSITIVITY_AS_OF,
       ...snapshotOptions,
     });
+
+    if (!isMockProviderComparisonDifferences(matrix.differences)) {
+      throw new Error("expected mock comparison differences");
+    }
 
     expect(matrix.differences.combinedVsMock).toHaveLength(
       SENSITIVITY_SCENARIOS.length,
@@ -797,6 +840,10 @@ describe("runProviderComparisonMatrix", () => {
     const json = JSON.parse(JSON.stringify(matrix)) as typeof matrix;
 
     expect(json.providerDataQuality).toHaveLength(5);
+    expect(json.includeMock).toBe(true);
+    if (!isMockProviderComparisonDifferences(json.differences)) {
+      throw new Error("expected mock comparison differences");
+    }
     expect(json.differences.aaveVsMock).toBeDefined();
     expect(json.differences.morphoVsMock).toBeDefined();
     expect(json.differences.combinedVsMock).toBeDefined();
@@ -860,5 +907,146 @@ describe("runProviderComparisonMatrix", () => {
     expect(result.recommendation.diagnostics.providerType).toBe(
       "MockLaminarDataProvider",
     );
+  });
+});
+
+describe("runRealProviderComparisonMatrix", () => {
+  const snapshotOptions = {
+    aaveSnapshotOptions: {
+      rpcUrl: "https://example.invalid/rpc",
+      publicClient: buildMockAaveClient(),
+    },
+    morphoSnapshotOptions: {
+      apiUrl: "https://example.invalid/graphql",
+      client: buildMockMorphoClient(),
+    },
+    moonwellSnapshotOptions: {
+      apiUrl: "https://example.invalid/moonwell",
+      client: buildMockMoonwellClient(),
+    },
+    fluidSnapshotOptions: {
+      apiUrl: "https://example.invalid/fluid",
+      client: buildMockFluidClient(),
+    },
+  };
+
+  it("excludes Mock and includes Aave, Morpho, Fluid, and Combined", async () => {
+    const matrix = await runRealProviderComparisonMatrix({
+      asOf: DEFAULT_SENSITIVITY_AS_OF,
+      ...snapshotOptions,
+    });
+
+    expect(matrix.includeMock).toBe(false);
+    expect(matrix.providers).toHaveLength(4);
+    expect(matrix.providerDataQuality).toHaveLength(4);
+    expect(matrix.results).toHaveLength(SENSITIVITY_SCENARIOS.length * 4);
+    expect(
+      matrix.providers.some(
+        (provider) => provider.providerType === "MockLaminarDataProvider",
+      ),
+    ).toBe(false);
+    expect(
+      matrix.providers.map((provider) => provider.providerType),
+    ).toEqual([
+      "AaveBaseLaminarDataProvider",
+      "MorphoBaseLaminarDataProvider",
+      "FluidBaseLaminarDataProvider",
+      "CombinedLaminarDataProvider",
+    ]);
+  });
+
+  it("JSON mode excludes Mock entries", async () => {
+    const matrix = await runRealProviderComparisonMatrix({
+      asOf: DEFAULT_SENSITIVITY_AS_OF,
+      ...snapshotOptions,
+    });
+
+    const json = JSON.parse(JSON.stringify(matrix)) as typeof matrix;
+
+    expect(json.includeMock).toBe(false);
+    expect(json.providers).toHaveLength(4);
+    expect(json.providerDataQuality).toHaveLength(4);
+    expect(json.results.every((entry) => entry.providerType !== "MockLaminarDataProvider")).toBe(
+      true,
+    );
+    if (isMockProviderComparisonDifferences(json.differences)) {
+      throw new Error("expected real provider comparison differences");
+    }
+    expect(json.differences.aaveVsCombined).toBeDefined();
+    expect(json.differences.morphoVsCombined).toBeDefined();
+    expect(json.differences.fluidVsCombined).toBeDefined();
+    expect(json.differences).not.toHaveProperty("aaveVsMock");
+  });
+
+  it("difference summary compares single providers against Combined", async () => {
+    const matrix = await runRealProviderComparisonMatrix({
+      asOf: DEFAULT_SENSITIVITY_AS_OF,
+      ...snapshotOptions,
+    });
+
+    if (isMockProviderComparisonDifferences(matrix.differences)) {
+      throw new Error("expected real provider comparison differences");
+    }
+
+    expect(matrix.differences.aaveVsCombined).toHaveLength(
+      SENSITIVITY_SCENARIOS.length,
+    );
+    expect(matrix.differences.morphoVsCombined).toHaveLength(
+      SENSITIVITY_SCENARIOS.length,
+    );
+    expect(matrix.differences.fluidVsCombined).toHaveLength(
+      SENSITIVITY_SCENARIOS.length,
+    );
+
+    for (const diff of matrix.differences.aaveVsCombined) {
+      expect(diff.mockProviderName).toBe("Aave Base (experimental)");
+      expect(diff.realProviderName).toContain("Combined");
+    }
+  });
+
+  it("computeRealProviderDifferences matches Combined minus each provider", async () => {
+    const matrix = await runRealProviderComparisonMatrix({
+      asOf: DEFAULT_SENSITIVITY_AS_OF,
+      ...snapshotOptions,
+    });
+
+    const differences = computeRealProviderDifferences(matrix.results);
+    const scenario = SENSITIVITY_SCENARIOS[0]?.name ?? "Balanced default";
+
+    const aaveResult = matrix.results.find(
+      (entry) =>
+        entry.scenarioName === scenario &&
+        entry.providerType === "AaveBaseLaminarDataProvider",
+    );
+    const combinedResult = matrix.results.find(
+      (entry) =>
+        entry.scenarioName === scenario &&
+        entry.providerType === "CombinedLaminarDataProvider",
+    );
+
+    const expected = computeScenarioDifference(
+      aaveResult!.summary,
+      combinedResult!.summary,
+    );
+    const actual = differences.aaveVsCombined.find(
+      (entry) => entry.scenarioName === scenario,
+    );
+
+    expect(actual?.strategyExpectedApyDifference).toBeCloseTo(
+      expected.strategyExpectedApyDifference,
+      8,
+    );
+  });
+
+  it("compare:providers legacy mode still includes Mock when includeMock is true", async () => {
+    const matrix = await runProviderComparisonMatrix({
+      asOf: DEFAULT_SENSITIVITY_AS_OF,
+      includeMock: true,
+      ...snapshotOptions,
+    });
+
+    expect(matrix.includeMock).toBe(true);
+    expect(matrix.providers).toHaveLength(5);
+    expect(isMockProviderComparisonDifferences(matrix.differences)).toBe(true);
   });
 });
