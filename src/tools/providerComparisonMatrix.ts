@@ -1,6 +1,7 @@
 import { resolveAaveBaseRpcUrl } from "../adapters/aave/aaveBaseConfig.js";
 import { resolveMorphoBaseApiUrl } from "../adapters/morpho/morphoBaseConfig.js";
 import { resolveMoonwellBaseApiUrl } from "../adapters/moonwell/moonwellBaseConfig.js";
+import { resolveFluidBaseApiUrl } from "../adapters/fluid/fluidBaseConfig.js";
 import { resolveAllowStaticMarketData } from "../adapters/realDataEligibility.js";
 import { createLaminarRecommendation } from "../core/index.js";
 import type { LaminarDataProvider } from "../core/providers/types.js";
@@ -17,6 +18,10 @@ import {
   createMoonwellBaseLaminarDataProviderSnapshot,
   type MoonwellBaseProviderSnapshotOptions,
 } from "../core/providers/MoonwellBaseLaminarDataProvider.js";
+import {
+  createFluidBaseLaminarDataProviderSnapshot,
+  type FluidBaseProviderSnapshotOptions,
+} from "../core/providers/FluidBaseLaminarDataProvider.js";
 import { CombinedLaminarDataProvider } from "../core/providers/CombinedLaminarDataProvider.js";
 import type { LaminarRecommendationResult } from "../core/types.js";
 import type { UserIntent } from "../core/intent/types.js";
@@ -120,6 +125,7 @@ export type ProviderComparisonMatrixOptions = {
   aaveSnapshotOptions?: AaveBaseProviderSnapshotOptions;
   morphoSnapshotOptions?: MorphoBaseProviderSnapshotOptions;
   moonwellSnapshotOptions?: MoonwellBaseProviderSnapshotOptions;
+  fluidSnapshotOptions?: FluidBaseProviderSnapshotOptions;
 };
 
 const MOCK_DATA_QUALITY: ProviderDataQuality = {
@@ -272,6 +278,52 @@ export function resolveMoonwellDataQuality(
     trustData: "curated",
     liquidityData: "curated",
     dataSourceLabel: resolveMoonwellDataSourceLabel(options),
+  };
+}
+
+export function resolveFluidDataSourceLabel(
+  options: FluidBaseProviderSnapshotOptions = {},
+): string {
+  if (options.disableApi === true) {
+    return "unavailable (no real data configured)";
+  }
+
+  const apiUrl =
+    options.apiUrl ?? resolveFluidBaseApiUrl(options.env ?? process.env);
+
+  return apiUrl !== undefined
+    ? "api (Fluid/Instadapp lending API configured)"
+    : "unavailable (no real data configured)";
+}
+
+export function resolveFluidDataQuality(
+  options: FluidBaseProviderSnapshotOptions = {},
+): ProviderDataQuality {
+  const isUnavailable =
+    options.disableApi === true ||
+    (options.apiUrl ?? resolveFluidBaseApiUrl(options.env ?? process.env)) ===
+      undefined;
+
+  if (isUnavailable) {
+    return {
+      providerType: "FluidBaseLaminarDataProvider",
+      providerName: "Fluid Base (experimental)",
+      apyData: "static-fallback",
+      tvlData: "static-fallback",
+      trustData: "curated",
+      liquidityData: "curated",
+      dataSourceLabel: "unavailable (no real data configured)",
+    };
+  }
+
+  return {
+    providerType: "FluidBaseLaminarDataProvider",
+    providerName: "Fluid Base (experimental)",
+    apyData: "real-api",
+    tvlData: "real-api",
+    trustData: "curated",
+    liquidityData: "curated",
+    dataSourceLabel: resolveFluidDataSourceLabel(options),
   };
 }
 
@@ -627,6 +679,7 @@ export async function runProviderComparisonMatrix(
     requireRealData: true,
     ...options.moonwellSnapshotOptions,
   };
+  const fluidSnapshotOptions = options.fluidSnapshotOptions ?? {};
 
   const mockProvider = new MockLaminarDataProvider();
   const aaveProvider = await createAaveBaseLaminarDataProviderSnapshot(
@@ -638,12 +691,16 @@ export async function runProviderComparisonMatrix(
   const moonwellProvider = await createMoonwellBaseLaminarDataProviderSnapshot(
     moonwellSnapshotOptions,
   );
+  const fluidProvider = await createFluidBaseLaminarDataProviderSnapshot(
+    fluidSnapshotOptions,
+  );
 
   const aaveDataQuality = resolveAaveDataQuality(aaveSnapshotOptions);
   const morphoDataQuality = resolveMorphoDataQuality(morphoSnapshotOptions);
   const moonwellDataQuality = resolveMoonwellDataQuality(
     moonwellSnapshotOptions,
   );
+  const fluidDataQuality = resolveFluidDataQuality(fluidSnapshotOptions);
 
   const combinedSubProviders: LaminarDataProvider[] = [
     aaveProvider,
@@ -654,6 +711,7 @@ export async function runProviderComparisonMatrix(
     morphoDataQuality,
   ];
   let moonwellUnavailable = false;
+  let fluidUnavailable = false;
 
   if (moonwellProvider.discoverOpportunities().length > 0) {
     combinedSubProviders.push(moonwellProvider);
@@ -662,13 +720,27 @@ export async function runProviderComparisonMatrix(
     moonwellUnavailable = true;
   }
 
+  if (fluidProvider.discoverOpportunities().length > 0) {
+    combinedSubProviders.push(fluidProvider);
+    combinedQualities.push(fluidDataQuality);
+  } else {
+    fluidUnavailable = true;
+  }
+
   let combinedDataQuality = resolveCombinedDataQuality(...combinedQualities);
+  const unavailableLabels: string[] = [];
   if (moonwellUnavailable) {
+    unavailableLabels.push("Moonwell: unavailable (no real data configured)");
+  }
+  if (fluidUnavailable) {
+    unavailableLabels.push("Fluid: unavailable (no real data configured)");
+  }
+  if (unavailableLabels.length > 0) {
     combinedDataQuality = {
       ...combinedDataQuality,
       dataSourceLabel: [
         combinedDataQuality.dataSourceLabel,
-        "Moonwell: unavailable (no real data configured)",
+        ...unavailableLabels,
       ]
         .filter((label): label is string => label !== undefined && label.length > 0)
         .join("; "),
@@ -700,6 +772,15 @@ export async function runProviderComparisonMatrix(
       dataQuality: morphoDataQuality,
       ...(morphoDataQuality.dataSourceLabel !== undefined
         ? { dataSourceLabel: morphoDataQuality.dataSourceLabel }
+        : {}),
+    },
+    {
+      providerType: "FluidBaseLaminarDataProvider",
+      providerName: "Fluid Base (experimental)",
+      provider: fluidProvider,
+      dataQuality: fluidDataQuality,
+      ...(fluidDataQuality.dataSourceLabel !== undefined
+        ? { dataSourceLabel: fluidDataQuality.dataSourceLabel }
         : {}),
     },
     {

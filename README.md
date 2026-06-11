@@ -436,12 +436,75 @@ npm run recommendation:moonwell
 - Moonwell is integrated into `compare:providers` and the Combined provider via
   **Combined V2** (see below).
 
+## Fluid Base Adapter (experimental)
+
+The read-only Fluid adapter for Base discovers Fluid lending markets (fTokens)
+via the official Fluid/Instadapp public REST API when configured. Unlike Aave
+and Moonwell, **there is no silent static fallback in real provider flows** —
+if the API is unavailable or returns no V1 markets, Fluid exposes **zero**
+opportunities.
+
+Run the read-only adapter probe:
+
+```bash
+npm run adapter:fluid:base
+```
+
+Run the Fluid provider recommendation probe (Yield-focused intent, $10,000):
+
+```bash
+npm run recommendation:fluid
+```
+
+### Data source
+
+- **Chosen source: Fluid/Instadapp official public REST API**
+  (`GET https://api.fluid.instadapp.io/v2/lending/8453/tokens`). Documented at
+  [docs.fluid.instadapp.io](https://docs.fluid.instadapp.io).
+- **Why this source:** simplest read-only path; stable public default endpoint
+  (mirrors Morpho); no wallet/signer; deterministic tests via injected mock
+  client.
+- **Discarded alternatives:** on-chain LendingResolver reads (more complex APY/TVL
+  math); subgraph (endpoint/key management, schema drift).
+- Override with `FLUID_BASE_API_URL`. Set to empty string to disable the API.
+
+### Adapter modes
+
+- **`unavailable`** (default when API disabled / unset after empty override): 0
+  markets; `healthy: false`; no fake data.
+- **`real-readonly`** (when API reachable): markets from Fluid API
+  (`source = "fluid-api"`, `apySource`/`tvlSource = "fluid-api"`).
+- **`static-dev-fallback`** (diagnostics/tests only): requires explicit
+  `ALLOW_STATIC_MARKET_DATA=true`; **never** used in real provider flows,
+  `compare:providers`, or `recommendation:combined`.
+
+### V1 assets and real-data rule
+
+- V1 assets only: **USDC**, **EURC**, **DAI**. Non-V1 markets (WETH, GHO, etc.)
+  are skipped.
+- As of the current Fluid Base API, **USDC and EURC** are available; **DAI is
+  not listed** — the adapter returns only what the API provides.
+- If APY or TVL is missing for a market, it is excluded (no partial fake data).
+
+### Warnings
+
+- **No fake market data** in real provider flows. Static placeholders exist only
+  for dev diagnostics when `ALLOW_STATIC_MARKET_DATA=true`.
+- Trust/liquidity metadata for Fluid is curated/static.
+- `protocolRiskLevel` for Fluid is curated as `medium`.
+- The adapter is **read-only**: no wallet, no private key, no signer, and
+  **no transactions are created**.
+- The API/frontend default provider remains `MockLaminarDataProvider`.
+- Fluid appears in `compare:providers` as its own row (0 opportunities when
+  unavailable) and is included in Combined only when real V1 markets exist.
+
 ## Combined Provider (experimental)
 
 `CombinedLaminarDataProvider` aggregates an arbitrary list of real providers into
 a single read-only universe. As of **Combined V2** it combines:
 
-**Combined V2 = Aave + Morpho + Moonwell**
+**Combined V2 = Aave + Morpho + Moonwell + Fluid** (each sub-provider included
+only when it exposes at least one real-data-eligible market)
 
 ```bash
 npm run recommendation:combined
@@ -464,10 +527,11 @@ How it works:
 Limitations:
 
 - **Trust/liquidity are curated/static** for every protocol (not on-chain).
-- **Moonwell may be in static fallback** unless `MOONWELL_BASE_API_URL` is set
-  (Aave needs RPC, Morpho uses its public API). APY/TVL realism therefore
-  depends on each sub-provider's data availability; the combined data quality is
-  `mixed-real` when any sub-provider has real data, else `mixed-fallback`.
+- **Moonwell and Fluid are excluded** unless their real data sources return
+  eligible V1 markets (Aave needs RPC, Morpho/Fluid use public APIs). APY/TVL
+  realism therefore depends on each sub-provider's data availability; the
+  combined data quality is `mixed-real` when any sub-provider has real data,
+  else `mixed-fallback`.
 - Under a **Balanced** intent, Moonwell's curated trust (~73.7) is below the
   Balanced minTrustScore (75), so Moonwell opportunities are typically filtered
   and the combined allocation matches the previous Aave + Morpho behavior. This
@@ -496,7 +560,7 @@ Limitations:
 ```text
 src/core/     Domain pipeline and public core API
 src/core/providers/  Read-only data provider interfaces (mock default)
-src/adapters/ Read-only protocol adapters (Aave + Morpho Base spikes, experimental)
+src/adapters/ Read-only protocol adapters (Aave + Morpho + Moonwell + Fluid Base spikes, experimental)
 src/api/      Local HTTP API
 src/demo/     CLI demo
 frontend/     Minimal React prototype UI

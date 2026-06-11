@@ -18,8 +18,13 @@ export type ProtocolAdapterChain = SupportedChain;
  *   spikes.
  * - `api-readonly`: a read-only data API is configured and may be queried
  *   (Morpho public GraphQL API). Falls back to static data on failure.
+ * - `unavailable`: no read-only source configured; zero markets (Fluid default).
  */
-export type AdapterMode = "static-fallback" | "rpc-readonly" | "api-readonly";
+export type AdapterMode =
+  | "static-fallback"
+  | "rpc-readonly"
+  | "api-readonly"
+  | "unavailable";
 
 /**
  * Source of a discovered market.
@@ -31,18 +36,21 @@ export type AdapterMode = "static-fallback" | "rpc-readonly" | "api-readonly";
  *   read-only RPC calls. APY/TVL may still be static placeholders.
  * - `morpho-api`: the market was discovered via Morpho's read-only public API.
  * - `moonwell-api`: the market was discovered via Moonwell's read-only data API.
+ * - `fluid-api`: the market was discovered via Fluid's read-only public API.
  */
 export type ReadOnlyMarketSource =
   | "static-fallback"
   | "static-fallback-rpc-verified"
   | "rpc-reserve-discovery"
   | "morpho-api"
-  | "moonwell-api";
+  | "moonwell-api"
+  | "fluid-api";
 
 export type ApySource =
   | "aave-liquidity-rate"
   | "morpho-api"
   | "moonwell-api"
+  | "fluid-api"
   | "static-placeholder";
 
 /**
@@ -55,6 +63,7 @@ export type TvlSource =
   | "aave-atoken-supply"
   | "morpho-api"
   | "moonwell-api"
+  | "fluid-api"
   | "static-placeholder";
 
 /**

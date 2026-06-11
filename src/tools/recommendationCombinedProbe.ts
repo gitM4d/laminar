@@ -3,6 +3,7 @@ import { createLaminarRecommendation } from "../core/index.js";
 import { createAaveBaseLaminarDataProviderSnapshot } from "../core/providers/AaveBaseLaminarDataProvider.js";
 import { createMorphoBaseLaminarDataProviderSnapshot } from "../core/providers/MorphoBaseLaminarDataProvider.js";
 import { createMoonwellBaseLaminarDataProviderSnapshot } from "../core/providers/MoonwellBaseLaminarDataProvider.js";
+import { createFluidBaseLaminarDataProviderSnapshot } from "../core/providers/FluidBaseLaminarDataProvider.js";
 import { CombinedLaminarDataProvider } from "../core/providers/CombinedLaminarDataProvider.js";
 import type { LaminarDataProvider } from "../core/providers/types.js";
 import type { Opportunity } from "../core/opportunity/types.js";
@@ -47,14 +48,18 @@ async function main(): Promise<void> {
   console.log("Laminar — Combined V2 Real Provider Recommendation");
   console.log("==================================================");
   console.log(
-    "Building provider snapshots (read-only: Aave + Morpho + Moonwell)...",
+    "Building provider snapshots (read-only: Aave + Morpho + Moonwell + Fluid)...",
   );
   console.log("");
 
-  const [aaveProvider, morphoProvider, moonwellProvider] = await Promise.all([
+  const [aaveProvider, morphoProvider, moonwellProvider, fluidProvider] =
+    await Promise.all([
     createAaveBaseLaminarDataProviderSnapshot(),
     createMorphoBaseLaminarDataProviderSnapshot(),
     createMoonwellBaseLaminarDataProviderSnapshot({ requireRealData: true }),
+    createFluidBaseLaminarDataProviderSnapshot({
+      disableApi: process.env.FLUID_BASE_API_URL === "",
+    }),
   ]);
 
   const subProviders: { label: string; provider: LaminarDataProvider }[] = [
@@ -69,6 +74,16 @@ async function main(): Promise<void> {
   } else {
     console.log(
       "Moonwell: excluded (no real market data configured; set MOONWELL_BASE_API_URL)",
+    );
+    console.log("");
+  }
+
+  const fluidOpportunityCount = fluidProvider.discoverOpportunities().length;
+  if (fluidOpportunityCount > 0) {
+    subProviders.push({ label: "Fluid", provider: fluidProvider });
+  } else {
+    console.log(
+      "Fluid: excluded (no real market data configured; set FLUID_BASE_API_URL or use default API)",
     );
     console.log("");
   }
@@ -225,7 +240,10 @@ async function main(): Promise<void> {
     "- Moonwell is included only when MOONWELL_BASE_API_URL returns real market data.",
   );
   console.log(
-    "- Static Moonwell fallback is diagnostics/tests only and never used here.",
+    "- Fluid is included only when the Fluid/Instadapp API returns real V1 markets.",
+  );
+  console.log(
+    "- Static Moonwell/Fluid fallback is diagnostics/tests only and never used here.",
   );
   console.log("- Trust/liquidity profiles are curated/static for all protocols.");
   console.log("- V1 assets only (USDC/EURC/DAI).");

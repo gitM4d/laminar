@@ -10,6 +10,10 @@ import type {
   MoonwellApiClient,
   MoonwellApiMarketsResponse,
 } from "../adapters/moonwell/moonwellTypes.js";
+import type {
+  FluidApiClient,
+  FluidApiTokensResponse,
+} from "../adapters/fluid/fluidTypes.js";
 import {
   DEFAULT_SENSITIVITY_AS_OF,
   SENSITIVITY_SCENARIOS,
@@ -26,6 +30,8 @@ import {
   resolveAaveDataQuality,
   resolveAaveDataSourceLabel,
   resolveCombinedDataQuality,
+  resolveFluidDataQuality,
+  resolveFluidDataSourceLabel,
   resolveMoonwellDataQuality,
   resolveMoonwellDataSourceLabel,
   resolveMorphoDataQuality,
@@ -154,6 +160,55 @@ const sampleMoonwellMarketsResponse: MoonwellApiMarketsResponse = {
 function buildMockMoonwellClient(): MoonwellApiClient {
   return {
     getMarkets: async () => sampleMoonwellMarketsResponse,
+  };
+}
+
+const sampleFluidTokensResponse: FluidApiTokensResponse = {
+  data: [
+    {
+      address: "0xf42f5795D9ac7e9D757dB633D693cD548Cfd9169",
+      symbol: "fUSDC",
+      decimals: 6,
+      assetAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      asset: {
+        address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        name: "USD Coin",
+        symbol: "USDC",
+        decimals: 6,
+        price: "1.0",
+        chainId: "8453",
+      },
+      totalAssets: "9000000000000",
+      totalSupply: "8000000000000",
+      supplyRate: "465",
+      totalRate: "465",
+      rewardsRate: "0",
+    },
+    {
+      address: "0x1943FA26360f038230442525Cf1B9125b5DCB401",
+      symbol: "fEURC",
+      decimals: 6,
+      assetAddress: "0x60a3E35Cc302bFA44Cb288Bc5a4F316Fdb1adb42",
+      asset: {
+        address: "0x60a3E35Cc302bFA44Cb288Bc5a4F316Fdb1adb42",
+        name: "EURC",
+        symbol: "EURC",
+        decimals: 6,
+        price: "1.15",
+        chainId: "8453",
+      },
+      totalAssets: "1500000000000",
+      totalSupply: "1400000000000",
+      supplyRate: "225",
+      totalRate: "225",
+      rewardsRate: "0",
+    },
+  ],
+};
+
+function buildMockFluidClient(): FluidApiClient {
+  return {
+    getLendingTokens: async () => sampleFluidTokensResponse,
   };
 }
 
@@ -355,6 +410,38 @@ describe("providerComparisonMatrix helpers", () => {
     expect(quality.tvlData).toBe("static-fallback");
   });
 
+  it("resolveFluidDataSourceLabel reports unavailable when API disabled", () => {
+    expect(resolveFluidDataSourceLabel({ disableApi: true })).toBe(
+      "unavailable (no real data configured)",
+    );
+  });
+
+  it("resolveFluidDataSourceLabel reports api when configured", () => {
+    expect(
+      resolveFluidDataSourceLabel({
+        apiUrl: "https://example.invalid/fluid",
+      }),
+    ).toBe("api (Fluid/Instadapp lending API configured)");
+  });
+
+  it("resolveFluidDataQuality reports real-api when API configured", () => {
+    const quality = resolveFluidDataQuality({
+      apiUrl: "https://example.invalid/fluid",
+    });
+
+    expect(quality.apyData).toBe("real-api");
+    expect(quality.tvlData).toBe("real-api");
+    expect(quality.trustData).toBe("curated");
+    expect(quality.liquidityData).toBe("curated");
+  });
+
+  it("resolveFluidDataQuality reports unavailable when API disabled", () => {
+    const quality = resolveFluidDataQuality({ disableApi: true });
+
+    expect(quality.apyData).toBe("static-fallback");
+    expect(quality.dataSourceLabel).toBe("unavailable (no real data configured)");
+  });
+
   it("resolveCombinedDataQuality reports mixed-real when sub-providers are real (V2)", () => {
     const quality = resolveCombinedDataQuality(
       resolveAaveDataQuality({ rpcUrl: "https://example.invalid/rpc" }),
@@ -478,18 +565,22 @@ describe("runProviderComparisonMatrix", () => {
       apiUrl: "https://example.invalid/moonwell",
       client: buildMockMoonwellClient(),
     },
+    fluidSnapshotOptions: {
+      apiUrl: "https://example.invalid/fluid",
+      client: buildMockFluidClient(),
+    },
   };
 
-  it("runs all sensitivity scenarios for four providers without live RPC/API", async () => {
+  it("runs all sensitivity scenarios for five providers without live RPC/API", async () => {
     const matrix = await runProviderComparisonMatrix({
       asOf: DEFAULT_SENSITIVITY_AS_OF,
       ...snapshotOptions,
     });
 
-    expect(matrix.providers).toHaveLength(4);
-    expect(matrix.providerDataQuality).toHaveLength(4);
+    expect(matrix.providers).toHaveLength(5);
+    expect(matrix.providerDataQuality).toHaveLength(5);
     expect(matrix.scenarios).toHaveLength(SENSITIVITY_SCENARIOS.length);
-    expect(matrix.results).toHaveLength(SENSITIVITY_SCENARIOS.length * 4);
+    expect(matrix.results).toHaveLength(SENSITIVITY_SCENARIOS.length * 5);
     expect(matrix.differences.aaveVsMock).toHaveLength(
       SENSITIVITY_SCENARIOS.length,
     );
@@ -501,7 +592,7 @@ describe("runProviderComparisonMatrix", () => {
     );
   });
 
-  it("Combined V2 opportunityCount equals Aave + Morpho + real Moonwell per scenario", async () => {
+  it("Combined V2 opportunityCount equals Aave + Morpho + real Moonwell + real Fluid per scenario", async () => {
     const matrix = await runProviderComparisonMatrix({
       asOf: DEFAULT_SENSITIVITY_AS_OF,
       ...snapshotOptions,
@@ -527,18 +618,20 @@ describe("runProviderComparisonMatrix", () => {
       const combinedExpected =
         (aaveResult?.summary.opportunityCount ?? 0) +
         (morphoResult?.summary.opportunityCount ?? 0) +
-        (sampleMoonwellMarketsResponse.markets ?? []).length;
+        (sampleMoonwellMarketsResponse.markets ?? []).length +
+        (sampleFluidTokensResponse.data ?? []).length;
 
       expect(combinedResult?.summary.opportunityCount).toBe(combinedExpected);
     }
   });
 
-  it("excludes Moonwell static fallback from Combined when no real Moonwell source is configured", async () => {
+  it("excludes Moonwell and Fluid static fallback from Combined when no real sources are configured", async () => {
     const matrix = await runProviderComparisonMatrix({
       asOf: DEFAULT_SENSITIVITY_AS_OF,
       aaveSnapshotOptions: { env: {} },
       morphoSnapshotOptions: { disableApi: true },
       moonwellSnapshotOptions: { env: {} },
+      fluidSnapshotOptions: { disableApi: true },
     });
 
     const combinedQuality = matrix.providerDataQuality.find(
@@ -550,6 +643,16 @@ describe("runProviderComparisonMatrix", () => {
     );
     expect(combinedQuality?.dataSourceLabel).toContain(
       "Moonwell: unavailable (no real data configured)",
+    );
+    expect(combinedQuality?.dataSourceLabel).toContain(
+      "Fluid: unavailable (no real data configured)",
+    );
+
+    const fluidQuality = matrix.providerDataQuality.find(
+      (quality) => quality.providerType === "FluidBaseLaminarDataProvider",
+    );
+    expect(fluidQuality?.dataSourceLabel).toBe(
+      "unavailable (no real data configured)",
     );
 
     for (const scenario of SENSITIVITY_SCENARIOS) {
@@ -563,12 +666,18 @@ describe("runProviderComparisonMatrix", () => {
           entry.scenarioName === scenario.name &&
           entry.providerType === "MorphoBaseLaminarDataProvider",
       );
+      const fluidResult = matrix.results.find(
+        (entry) =>
+          entry.scenarioName === scenario.name &&
+          entry.providerType === "FluidBaseLaminarDataProvider",
+      );
       const combinedResult = matrix.results.find(
         (entry) =>
           entry.scenarioName === scenario.name &&
           entry.providerType === "CombinedLaminarDataProvider",
       );
 
+      expect(fluidResult?.summary.opportunityCount).toBe(0);
       expect(combinedResult?.summary.opportunityCount).toBe(
         (aaveResult?.summary.opportunityCount ?? 0) +
           (morphoResult?.summary.opportunityCount ?? 0),
@@ -675,7 +784,7 @@ describe("runProviderComparisonMatrix", () => {
       SENSITIVITY_SCENARIOS.length,
     );
     expect(matrix.differences.combinedVsMock[0]?.realProviderName).toBe(
-      "Combined Aave + Morpho + Moonwell (experimental)",
+      "Combined Aave + Morpho + Moonwell + Fluid (experimental)",
     );
   });
 
@@ -687,7 +796,7 @@ describe("runProviderComparisonMatrix", () => {
 
     const json = JSON.parse(JSON.stringify(matrix)) as typeof matrix;
 
-    expect(json.providerDataQuality).toHaveLength(4);
+    expect(json.providerDataQuality).toHaveLength(5);
     expect(json.differences.aaveVsMock).toBeDefined();
     expect(json.differences.morphoVsMock).toBeDefined();
     expect(json.differences.combinedVsMock).toBeDefined();
