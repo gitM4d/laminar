@@ -54,14 +54,24 @@ async function main(): Promise<void> {
   const [aaveProvider, morphoProvider, moonwellProvider] = await Promise.all([
     createAaveBaseLaminarDataProviderSnapshot(),
     createMorphoBaseLaminarDataProviderSnapshot(),
-    createMoonwellBaseLaminarDataProviderSnapshot(),
+    createMoonwellBaseLaminarDataProviderSnapshot({ requireRealData: true }),
   ]);
 
   const subProviders: { label: string; provider: LaminarDataProvider }[] = [
     { label: "Aave", provider: aaveProvider },
     { label: "Morpho", provider: morphoProvider },
-    { label: "Moonwell", provider: moonwellProvider },
   ];
+
+  const moonwellOpportunityCount =
+    moonwellProvider.discoverOpportunities().length;
+  if (moonwellOpportunityCount > 0) {
+    subProviders.push({ label: "Moonwell", provider: moonwellProvider });
+  } else {
+    console.log(
+      "Moonwell: excluded (no real market data configured; set MOONWELL_BASE_API_URL)",
+    );
+    console.log("");
+  }
 
   const combined = new CombinedLaminarDataProvider(
     subProviders.map((sub) => sub.provider),
@@ -212,10 +222,10 @@ async function main(): Promise<void> {
     "- Morpho APY/TVL from Morpho public API when reachable; static otherwise.",
   );
   console.log(
-    "- Moonwell APY/TVL from Moonwell data API when MOONWELL_BASE_API_URL is set; static otherwise.",
+    "- Moonwell is included only when MOONWELL_BASE_API_URL returns real market data.",
   );
   console.log(
-    "- Moonwell's curated trust (~73.7) is below the Balanced minTrustScore (75), so Moonwell opportunities may be filtered under this intent (observed, not forced).",
+    "- Static Moonwell fallback is diagnostics/tests only and never used here.",
   );
   console.log("- Trust/liquidity profiles are curated/static for all protocols.");
   console.log("- V1 assets only (USDC/EURC/DAI).");

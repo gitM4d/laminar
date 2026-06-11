@@ -3,6 +3,10 @@ import type { MoonwellBaseReadOnlyAdapterOptions } from "../../adapters/moonwell
 import { mapMoonwellMarketToOpportunity } from "../../adapters/moonwell/mapMoonwellMarketToOpportunity.js";
 import { MOONWELL_BASE_CONFIG } from "../../adapters/moonwell/moonwellBaseConfig.js";
 import {
+  filterRealDataEligibleMarkets,
+  resolveAllowStaticMarketData,
+} from "../../adapters/realDataEligibility.js";
+import {
   getOpportunityLiquidityProfile,
   UnknownOpportunityLiquidityProfileError,
 } from "../liquidity/scoreOpportunityLiquidity.js";
@@ -150,7 +154,17 @@ export {
 };
 
 export type MoonwellBaseProviderSnapshotOptions =
-  MoonwellBaseReadOnlyAdapterOptions;
+  MoonwellBaseReadOnlyAdapterOptions & {
+    /**
+     * When true, static placeholder markets are excluded from the provider
+     * snapshot. Real provider flows (combined probe, compare:providers) should
+     * set this. Override with `allowStaticMarketData: true` or
+     * `ALLOW_STATIC_MARKET_DATA=true` for tests/dev only.
+     */
+    requireRealData?: boolean;
+    /** Explicit dev/test override to include static placeholder markets. */
+    allowStaticMarketData?: boolean;
+  };
 
 /**
  * Experimental factory that builds a LaminarDataProvider snapshot from the
@@ -168,15 +182,28 @@ export type MoonwellBaseProviderSnapshotOptions =
  *
  * IMPORTANT:
  * - This is experimental and is NOT the default provider.
- * - APY/TVL are from the Moonwell public API when reachable; static otherwise.
+ * - APY/TVL are from the Moonwell public API when reachable.
+ * - With `requireRealData: true` (default for real flows), static fallback
+ *   markets are excluded and the provider exposes zero opportunities when no
+ *   real API source is configured.
  * - Trust/liquidity metadata is curated/static.
  * - No transactions are created; the adapter is read-only.
  */
 export async function createMoonwellBaseLaminarDataProviderSnapshot(
   options: MoonwellBaseProviderSnapshotOptions = {},
 ): Promise<LaminarDataProvider> {
+  const env = options.env ?? process.env;
+  const allowStaticMarketData =
+    options.allowStaticMarketData === true ||
+    resolveAllowStaticMarketData(env);
+  const requireRealData =
+    options.requireRealData === true && !allowStaticMarketData;
+
   const adapter = new MoonwellBaseReadOnlyAdapter(options);
-  const markets = await adapter.discoverMarkets();
+  const discoveredMarkets = await adapter.discoverMarkets();
+  const markets = requireRealData
+    ? filterRealDataEligibleMarkets(discoveredMarkets)
+    : discoveredMarkets;
   const opportunities: Opportunity[] = markets.map(
     mapMoonwellMarketToOpportunity,
   );

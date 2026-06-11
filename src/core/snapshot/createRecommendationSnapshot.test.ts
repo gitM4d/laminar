@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import type {
+  MoonwellApiClient,
+  MoonwellApiMarketsResponse,
+} from "../../adapters/moonwell/moonwellTypes.js";
 import { generatePortfolioRecommendation } from "../recommendation/generatePortfolioRecommendation.js";
 import { createRecommendationSnapshot } from "./createRecommendationSnapshot.js";
 
@@ -350,10 +354,29 @@ describe("createRecommendationSnapshot", () => {
       "../providers/CombinedLaminarDataProvider.js"
     );
 
+    const moonwellMarketsResponse: MoonwellApiMarketsResponse = {
+      markets: [
+        {
+          marketAddress: "0xMW_USDC",
+          underlyingSymbol: "USDC",
+          underlyingDecimals: 6,
+          supplyApy: 0.048,
+          totalSupplyUsd: 40_000_000,
+        },
+      ],
+    };
+    const moonwellClient: MoonwellApiClient = {
+      getMarkets: async () => moonwellMarketsResponse,
+    };
+
     const [aave, morpho, moonwell] = await Promise.all([
       createAaveBaseLaminarDataProviderSnapshot({ env: {} }),
       createMorphoBaseLaminarDataProviderSnapshot({ disableApi: true }),
-      createMoonwellBaseLaminarDataProviderSnapshot({ disableApi: true }),
+      createMoonwellBaseLaminarDataProviderSnapshot({
+        apiUrl: "https://example.invalid/moonwell",
+        client: moonwellClient,
+        requireRealData: true,
+      }),
     ]);
     const combined = new CombinedLaminarDataProvider([aave, morpho, moonwell]);
     const recommendation = generatePortfolioRecommendation({

@@ -26,6 +26,7 @@ async function buildStaticProviders(): Promise<{
   });
   const moonwell = await createMoonwellBaseLaminarDataProviderSnapshot({
     disableApi: true,
+    allowStaticMarketData: true,
   });
   return { aave, morpho, moonwell };
 }
@@ -151,6 +152,27 @@ describe("CombinedLaminarDataProvider — Combined V2 (Aave + Morpho + Moonwell)
     );
     expect(result.recommendation.diagnostics.opportunityCount).toBe(8);
     expect(result.snapshot.positions.length).toBeGreaterThan(0);
+  });
+
+  it("excludes Moonwell from real combined flow when requireRealData filters static markets", async () => {
+    const aave = await createAaveBaseLaminarDataProviderSnapshot({ env: {} });
+    const morpho = await createMorphoBaseLaminarDataProviderSnapshot({
+      disableApi: true,
+    });
+    const moonwell = await createMoonwellBaseLaminarDataProviderSnapshot({
+      disableApi: true,
+      requireRealData: true,
+    });
+
+    expect(moonwell.discoverOpportunities()).toEqual([]);
+
+    const combined = new CombinedLaminarDataProvider([aave, morpho]);
+    const ids = combined.discoverOpportunities().map((opportunity) => opportunity.id);
+
+    expect(ids.some((id) => id.startsWith("moonwell-"))).toBe(false);
+    expect(ids.length).toBe(
+      aave.discoverOpportunities().length + morpho.discoverOpportunities().length,
+    );
   });
 
   it("still throws on duplicate ids when Moonwell is included", async () => {

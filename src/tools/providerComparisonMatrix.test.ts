@@ -300,10 +300,25 @@ describe("providerComparisonMatrix helpers", () => {
     expect(quality.tvlData).toBe("static-fallback");
   });
 
-  it("resolveMoonwellDataSourceLabel reports static fallback when API disabled", () => {
+  it("resolveMoonwellDataSourceLabel reports static fallback when API disabled without requireRealData", () => {
     expect(resolveMoonwellDataSourceLabel({ disableApi: true })).toBe(
       "static-fallback (API disabled)",
     );
+  });
+
+  it("resolveMoonwellDataSourceLabel reports unavailable when requireRealData and API disabled", () => {
+    expect(
+      resolveMoonwellDataSourceLabel({
+        disableApi: true,
+        requireRealData: true,
+      }),
+    ).toBe("unavailable (no real data configured)");
+  });
+
+  it("resolveMoonwellDataSourceLabel reports unavailable with no API when requireRealData", () => {
+    expect(
+      resolveMoonwellDataSourceLabel({ env: {}, requireRealData: true }),
+    ).toBe("unavailable (no real data configured)");
   });
 
   it("resolveMoonwellDataSourceLabel reports static fallback with no API configured", () => {
@@ -321,6 +336,16 @@ describe("providerComparisonMatrix helpers", () => {
     expect(quality.tvlData).toBe("real-api");
     expect(quality.trustData).toBe("curated");
     expect(quality.liquidityData).toBe("curated");
+  });
+
+  it("resolveMoonwellDataQuality reports unavailable when requireRealData and no API", () => {
+    const quality = resolveMoonwellDataQuality({
+      env: {},
+      requireRealData: true,
+    });
+
+    expect(quality.apyData).toBe("static-fallback");
+    expect(quality.dataSourceLabel).toBe("unavailable (no real data configured)");
   });
 
   it("resolveMoonwellDataQuality reports static-fallback when API disabled", () => {
@@ -476,7 +501,7 @@ describe("runProviderComparisonMatrix", () => {
     );
   });
 
-  it("Combined V2 opportunityCount equals Aave + Morpho + Moonwell per scenario", async () => {
+  it("Combined V2 opportunityCount equals Aave + Morpho + real Moonwell per scenario", async () => {
     const matrix = await runProviderComparisonMatrix({
       asOf: DEFAULT_SENSITIVITY_AS_OF,
       ...snapshotOptions,
@@ -499,14 +524,55 @@ describe("runProviderComparisonMatrix", () => {
           entry.providerType === "CombinedLaminarDataProvider",
       );
 
-      // Moonwell static fallback (no moonwellSnapshotOptions in this matrix run
-      // would be 3); with the mock client it discovers 3 markets.
       const combinedExpected =
         (aaveResult?.summary.opportunityCount ?? 0) +
         (morphoResult?.summary.opportunityCount ?? 0) +
-        3;
+        (sampleMoonwellMarketsResponse.markets ?? []).length;
 
       expect(combinedResult?.summary.opportunityCount).toBe(combinedExpected);
+    }
+  });
+
+  it("excludes Moonwell static fallback from Combined when no real Moonwell source is configured", async () => {
+    const matrix = await runProviderComparisonMatrix({
+      asOf: DEFAULT_SENSITIVITY_AS_OF,
+      aaveSnapshotOptions: { env: {} },
+      morphoSnapshotOptions: { disableApi: true },
+      moonwellSnapshotOptions: { env: {} },
+    });
+
+    const combinedQuality = matrix.providerDataQuality.find(
+      (quality) => quality.providerType === "CombinedLaminarDataProvider",
+    );
+
+    expect(combinedQuality?.providerName).toBe(
+      "Combined Aave + Morpho (experimental)",
+    );
+    expect(combinedQuality?.dataSourceLabel).toContain(
+      "Moonwell: unavailable (no real data configured)",
+    );
+
+    for (const scenario of SENSITIVITY_SCENARIOS) {
+      const aaveResult = matrix.results.find(
+        (entry) =>
+          entry.scenarioName === scenario.name &&
+          entry.providerType === "AaveBaseLaminarDataProvider",
+      );
+      const morphoResult = matrix.results.find(
+        (entry) =>
+          entry.scenarioName === scenario.name &&
+          entry.providerType === "MorphoBaseLaminarDataProvider",
+      );
+      const combinedResult = matrix.results.find(
+        (entry) =>
+          entry.scenarioName === scenario.name &&
+          entry.providerType === "CombinedLaminarDataProvider",
+      );
+
+      expect(combinedResult?.summary.opportunityCount).toBe(
+        (aaveResult?.summary.opportunityCount ?? 0) +
+          (morphoResult?.summary.opportunityCount ?? 0),
+      );
     }
   });
 

@@ -61,6 +61,11 @@ async function main(): Promise<void> {
   );
 
   console.log("Notes:");
+  if (adapter.getMode() === "static-fallback") {
+    console.log(
+      "⚠ Static fallback is for adapter diagnostics/tests only and is not used in real provider recommendations.",
+    );
+  }
   console.log(
     `- API used for health check: ${health.apiChecked ? "yes" : "no"}`,
   );

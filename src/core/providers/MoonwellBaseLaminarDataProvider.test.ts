@@ -48,9 +48,10 @@ function buildApiClient(
 }
 
 describe("MoonwellBaseLaminarDataProvider", () => {
-  it("exposes opportunities from the static fallback snapshot", async () => {
+  it("exposes opportunities from static fallback only when explicitly allowed", async () => {
     const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
       disableApi: true,
+      allowStaticMarketData: true,
       now: () => asOf,
     });
 
@@ -62,6 +63,16 @@ describe("MoonwellBaseLaminarDataProvider", () => {
       providerType: "MoonwellBaseLaminarDataProvider",
       providerName: "Moonwell Base (experimental)",
     });
+  });
+
+  it("excludes static placeholder markets when requireRealData is true", async () => {
+    const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
+      disableApi: true,
+      requireRealData: true,
+      now: () => asOf,
+    });
+
+    expect(provider.discoverOpportunities()).toEqual([]);
   });
 
   it("exposes API-sourced opportunities when the API is reachable", async () => {
@@ -81,6 +92,7 @@ describe("MoonwellBaseLaminarDataProvider", () => {
   it("provides curated trust and liquidity profiles for every opportunity", async () => {
     const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
       disableApi: true,
+      allowStaticMarketData: true,
       now: () => asOf,
     });
 
@@ -97,6 +109,7 @@ describe("MoonwellBaseLaminarDataProvider", () => {
   it("exposes Moonwell trust explanation without changing the trust score", async () => {
     const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
       disableApi: true,
+      allowStaticMarketData: true,
       now: () => asOf,
     });
 
@@ -125,6 +138,7 @@ describe("MoonwellBaseLaminarDataProvider", () => {
   it("throws a consistency error for an unknown trust profile", async () => {
     const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
       disableApi: true,
+      allowStaticMarketData: true,
       now: () => asOf,
     });
 
@@ -136,6 +150,7 @@ describe("MoonwellBaseLaminarDataProvider", () => {
   it("throws a consistency error for an unknown liquidity profile", async () => {
     const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
       disableApi: true,
+      allowStaticMarketData: true,
       now: () => asOf,
     });
 

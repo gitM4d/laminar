@@ -1,6 +1,7 @@
 import { resolveAaveBaseRpcUrl } from "../adapters/aave/aaveBaseConfig.js";
 import { resolveMorphoBaseApiUrl } from "../adapters/morpho/morphoBaseConfig.js";
 import { resolveMoonwellBaseApiUrl } from "../adapters/moonwell/moonwellBaseConfig.js";
+import { resolveAllowStaticMarketData } from "../adapters/realDataEligibility.js";
 import { createLaminarRecommendation } from "../core/index.js";
 import type { LaminarDataProvider } from "../core/providers/types.js";
 import { MockLaminarDataProvider } from "../core/providers/MockLaminarDataProvider.js";
@@ -216,25 +217,52 @@ export function resolveMorphoDataQuality(
 export function resolveMoonwellDataSourceLabel(
   options: MoonwellBaseProviderSnapshotOptions = {},
 ): string {
+  const allowStatic =
+    options.allowStaticMarketData === true ||
+    resolveAllowStaticMarketData(options.env ?? process.env);
+  const requireRealData = options.requireRealData ?? false;
+
   if (options.disableApi === true) {
-    return "static-fallback (API disabled)";
+    return requireRealData && !allowStatic
+      ? "unavailable (no real data configured)"
+      : "static-fallback (API disabled)";
   }
 
   const apiUrl =
     options.apiUrl ?? resolveMoonwellBaseApiUrl(options.env ?? process.env);
 
-  return apiUrl !== undefined
-    ? "api (Moonwell data API configured)"
-    : "static-fallback (no API configured)";
+  if (apiUrl === undefined) {
+    return requireRealData && !allowStatic
+      ? "unavailable (no real data configured)"
+      : "static-fallback (no API configured)";
+  }
+
+  return "api (Moonwell data API configured)";
 }
 
 export function resolveMoonwellDataQuality(
   options: MoonwellBaseProviderSnapshotOptions = {},
 ): ProviderDataQuality {
+  const allowStatic =
+    options.allowStaticMarketData === true ||
+    resolveAllowStaticMarketData(options.env ?? process.env);
+  const requireRealData = options.requireRealData ?? false;
   const isFallback =
     options.disableApi === true ||
     (options.apiUrl ?? resolveMoonwellBaseApiUrl(options.env ?? process.env)) ===
       undefined;
+
+  if (requireRealData && !allowStatic && isFallback) {
+    return {
+      providerType: "MoonwellBaseLaminarDataProvider",
+      providerName: "Moonwell Base (experimental)",
+      apyData: "static-fallback",
+      tvlData: "static-fallback",
+      trustData: "curated",
+      liquidityData: "curated",
+      dataSourceLabel: "unavailable (no real data configured)",
+    };
+  }
 
   return {
     providerType: "MoonwellBaseLaminarDataProvider",
@@ -267,7 +295,8 @@ export function resolveCombinedDataQuality(
   const someReal = qualities.some(
     (quality) =>
       quality.apyData !== "static-fallback" &&
-      quality.tvlData !== "static-fallback",
+      quality.tvlData !== "static-fallback" &&
+      quality.dataSourceLabel !== "unavailable (no real data configured)",
   );
 
   const apyData: ProviderDataQualityLabel = someReal
@@ -594,7 +623,10 @@ export async function runProviderComparisonMatrix(
   const scenarios = options.scenarios ?? SENSITIVITY_SCENARIOS;
   const aaveSnapshotOptions = options.aaveSnapshotOptions ?? {};
   const morphoSnapshotOptions = options.morphoSnapshotOptions ?? {};
-  const moonwellSnapshotOptions = options.moonwellSnapshotOptions ?? {};
+  const moonwellSnapshotOptions = {
+    requireRealData: true,
+    ...options.moonwellSnapshotOptions,
+  };
 
   const mockProvider = new MockLaminarDataProvider();
   const aaveProvider = await createAaveBaseLaminarDataProviderSnapshot(
@@ -606,23 +638,44 @@ export async function runProviderComparisonMatrix(
   const moonwellProvider = await createMoonwellBaseLaminarDataProviderSnapshot(
     moonwellSnapshotOptions,
   );
-  // Combined V2: aggregates every real provider (Aave + Morpho + Moonwell).
-  const combinedProvider = new CombinedLaminarDataProvider([
-    aaveProvider,
-    morphoProvider,
-    moonwellProvider,
-  ]);
 
   const aaveDataQuality = resolveAaveDataQuality(aaveSnapshotOptions);
   const morphoDataQuality = resolveMorphoDataQuality(morphoSnapshotOptions);
   const moonwellDataQuality = resolveMoonwellDataQuality(
     moonwellSnapshotOptions,
   );
-  const combinedDataQuality = resolveCombinedDataQuality(
+
+  const combinedSubProviders: LaminarDataProvider[] = [
+    aaveProvider,
+    morphoProvider,
+  ];
+  const combinedQualities: ProviderDataQuality[] = [
     aaveDataQuality,
     morphoDataQuality,
-    moonwellDataQuality,
-  );
+  ];
+  let moonwellUnavailable = false;
+
+  if (moonwellProvider.discoverOpportunities().length > 0) {
+    combinedSubProviders.push(moonwellProvider);
+    combinedQualities.push(moonwellDataQuality);
+  } else {
+    moonwellUnavailable = true;
+  }
+
+  let combinedDataQuality = resolveCombinedDataQuality(...combinedQualities);
+  if (moonwellUnavailable) {
+    combinedDataQuality = {
+      ...combinedDataQuality,
+      dataSourceLabel: [
+        combinedDataQuality.dataSourceLabel,
+        "Moonwell: unavailable (no real data configured)",
+      ]
+        .filter((label): label is string => label !== undefined && label.length > 0)
+        .join("; "),
+    };
+  }
+
+  const combinedProvider = new CombinedLaminarDataProvider(combinedSubProviders);
 
   const providerDefinitions: ProviderDefinition[] = [
     {

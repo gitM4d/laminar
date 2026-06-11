@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { createLaminarRecommendation } from "../core/index.js";
 import { createMoonwellBaseLaminarDataProviderSnapshot } from "../core/providers/MoonwellBaseLaminarDataProvider.js";
+import { resolveAllowStaticMarketData } from "../adapters/realDataEligibility.js";
 import { printRejectedOpportunities } from "./printRejectedOpportunities.js";
 
 /**
@@ -17,13 +18,32 @@ async function main(): Promise<void> {
   console.log("Building Moonwell Base provider snapshot (read-only)...");
   console.log("");
 
-  const provider = await createMoonwellBaseLaminarDataProviderSnapshot();
+  const allowStaticMarketData = resolveAllowStaticMarketData();
+  const provider = await createMoonwellBaseLaminarDataProviderSnapshot({
+    requireRealData: !allowStaticMarketData,
+    allowStaticMarketData,
+  });
+
+  const opportunities = provider.discoverOpportunities();
+  if (opportunities.length === 0) {
+    console.log(
+      "Moonwell real data source is not configured; no recommendation generated.",
+    );
+    console.log("");
+    console.log("Notes:");
+    console.log("- Set MOONWELL_BASE_API_URL to a reachable Moonwell data API.");
+    console.log(
+      "- Static fallback is for adapter diagnostics/tests only (npm run adapter:moonwell:base).",
+    );
+    console.log(
+      "- Dev override: ALLOW_STATIC_MARKET_DATA=true enables static data in this probe only.",
+    );
+    return;
+  }
 
   const providerInfo = provider.getProviderInfo?.();
   console.log(`Provider type: ${providerInfo?.providerType ?? "unknown"}`);
   console.log(`Provider name: ${providerInfo?.providerName ?? "unknown"}`);
-
-  const opportunities = provider.discoverOpportunities();
   console.log(`Discovered opportunities: ${opportunities.length.toString()}`);
   for (const opp of opportunities) {
     console.log(
@@ -116,9 +136,7 @@ async function main(): Promise<void> {
   console.log("");
 
   console.log("Limitations:");
-  console.log(
-    "- APY/TVL are from the Moonwell public data API when reachable; static otherwise.",
-  );
+  console.log("- APY/TVL are from the Moonwell public data API when configured.");
   console.log("- Trust/liquidity profiles are curated/static.");
   console.log("- V1 assets only (USDC/EURC/DAI).");
   console.log("- No transactions created. Read-only adapter only.");
