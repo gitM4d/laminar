@@ -129,6 +129,29 @@ Runs typecheck, lint, tests, and API contract validation.
 npm run qa:sensitivity
 ```
 
+## Real Recommendation QA
+
+Validate Laminar recommendations against the **Combined real provider** using
+invariant checks instead of exact APY or allocation numbers. Market data changes
+over time; this suite detects unsafe or invalid recommendation behavior.
+
+```bash
+npm run qa:real
+```
+
+Optional JSON output:
+
+```bash
+npm run qa:real -- --json
+```
+
+- Uses real provider mode (`buildDefaultLaminarDataProvider({ mode: "real" })`)
+- Validates invariants (provider type, portfolio weights, execution plan v2,
+  diagnostics, non-negative APY, no transaction fields)
+- **Fails** (non-zero exit) when any invariant check fails
+- **Warnings** are informational and do not fail the process
+- Mock provider is excluded from QA
+
 ## Real Provider Mode (experimental)
 
 The HTTP API and frontend default to the **Combined real provider**

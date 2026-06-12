@@ -26,6 +26,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "qa:sensitivity": "npm run sensitivity",
+    "qa:real": "tsx src/tools/realRecommendationQaCli.ts",
     "sensitivity": "tsx src/tools/recommendationSensitivityMatrix.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
