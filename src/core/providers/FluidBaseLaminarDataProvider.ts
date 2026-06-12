@@ -14,6 +14,7 @@ import {
   UnknownProtocolTrustProfileError,
 } from "../trust/scoreOpportunityTrust.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
+import { buildCuratedProtocolTrustProfile } from "../protocols/protocolRegistry.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
 import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
 import {
@@ -21,26 +22,9 @@ import {
   type LiquidityDerivedSignals,
 } from "../liquidity/deriveLiquiditySignals.js";
 
-export const FLUID_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile = {
-  protocolId: FLUID_BASE_CONFIG.protocolId,
-  protocolName: FLUID_BASE_CONFIG.protocolName,
-  protocolAgeYears: 2,
-  tvlUsd: 12_000_000,
-  audits: [
-    {
-      auditor: "ChainSecurity",
-      tier: 1,
-      completedAt: "2024-06-01",
-    },
-    {
-      auditor: "Spearbit",
-      tier: 1,
-      completedAt: "2024-09-01",
-    },
-  ],
-  incidents: [],
-  chainAdjustment: 0,
-};
+/** @deprecated Import from protocol registry via buildCuratedProtocolTrustProfile("fluid"). */
+export const FLUID_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile =
+  buildCuratedProtocolTrustProfile(FLUID_BASE_CONFIG.protocolId);
 
 function buildCuratedLiquidityProfile(
   opportunityId: string,

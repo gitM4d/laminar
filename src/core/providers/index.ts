@@ -5,6 +5,13 @@ export type {
   TrustProfileProvider,
 } from "./types.js";
 export {
+  buildCuratedProtocolTrustProfile,
+  getProtocolMetadata,
+  listProtocolMetadata,
+  tryGetProtocolMetadata,
+} from "../protocols/protocolRegistry.js";
+export type { ProtocolMetadata } from "../protocols/types.js";
+export {
   MockLaminarDataProvider,
   UnknownOpportunityLiquidityProfileError,
   UnknownProtocolTrustProfileError,

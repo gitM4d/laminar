@@ -13,6 +13,7 @@ import {
   UnknownProtocolTrustProfileError,
 } from "../trust/scoreOpportunityTrust.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
+import { buildCuratedProtocolTrustProfile } from "../protocols/protocolRegistry.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
 import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
 import {
@@ -20,32 +21,9 @@ import {
   type LiquidityDerivedSignals,
 } from "../liquidity/deriveLiquiditySignals.js";
 
-/**
- * Curated Aave trust profile for the read-only adapter.
- *
- * NOTE: Trust metadata is curated/static — not sourced on-chain.
- * Aave is treated as a conservative, high-trust protocol.
- */
-export const AAVE_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile = {
-  protocolId: AAVE_BASE_CONFIG.protocolId,
-  protocolName: AAVE_BASE_CONFIG.protocolName,
-  protocolAgeYears: 5.5,
-  tvlUsd: 12_500_000_000,
-  audits: [
-    {
-      auditor: "OpenZeppelin",
-      tier: 1,
-      completedAt: "2021-03-15",
-    },
-    {
-      auditor: "Trail of Bits",
-      tier: 1,
-      completedAt: "2023-08-01",
-    },
-  ],
-  incidents: [],
-  chainAdjustment: 0,
-};
+/** @deprecated Import from protocol registry via buildCuratedProtocolTrustProfile("aave"). */
+export const AAVE_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile =
+  buildCuratedProtocolTrustProfile(AAVE_BASE_CONFIG.protocolId);
 
 /**
  * Curated liquidity profile for Aave Base stablecoin markets.

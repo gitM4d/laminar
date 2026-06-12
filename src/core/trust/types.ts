@@ -23,6 +23,8 @@ export type ProtocolTrustTvlSource =
   | "real-provider-markets"
   | "curated-fallback";
 
+export type ProtocolTrustMetadataSource = "protocol-registry";
+
 export type ProtocolTrustProfile = {
   protocolId: string;
   protocolName: string;
@@ -30,6 +32,8 @@ export type ProtocolTrustProfile = {
   tvlUsd: number;
   /** Indicates whether TVL input came from real provider markets or curated fallback. */
   tvlSource?: ProtocolTrustTvlSource;
+  /** Indicates curated trust facts were sourced from the protocol metadata registry. */
+  metadataSource?: ProtocolTrustMetadataSource;
   audits: readonly ProtocolAudit[];
   incidents: readonly SecurityIncident[];
   chainAdjustment: number;

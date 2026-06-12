@@ -13,6 +13,7 @@ import {
   UnknownProtocolTrustProfileError,
 } from "../trust/scoreOpportunityTrust.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
+import { buildCuratedProtocolTrustProfile } from "../protocols/protocolRegistry.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
 import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
 import {
@@ -20,32 +21,9 @@ import {
   type LiquidityDerivedSignals,
 } from "../liquidity/deriveLiquiditySignals.js";
 
-/**
- * Curated Morpho trust profile for the read-only adapter.
- *
- * NOTE: Trust metadata is curated/static — not sourced on-chain or via API.
- * Morpho is a well-audited lending protocol, slightly younger than Aave.
- */
-export const MORPHO_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile = {
-  protocolId: MORPHO_BASE_CONFIG.protocolId,
-  protocolName: MORPHO_BASE_CONFIG.protocolName,
-  protocolAgeYears: 3,
-  tvlUsd: 2_500_000_000,
-  audits: [
-    {
-      auditor: "Spearbit",
-      tier: 1,
-      completedAt: "2023-11-01",
-    },
-    {
-      auditor: "ChainSecurity",
-      tier: 1,
-      completedAt: "2024-02-15",
-    },
-  ],
-  incidents: [],
-  chainAdjustment: 0,
-};
+/** @deprecated Import from protocol registry via buildCuratedProtocolTrustProfile("morpho"). */
+export const MORPHO_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile =
+  buildCuratedProtocolTrustProfile(MORPHO_BASE_CONFIG.protocolId);
 
 /**
  * Curated liquidity profile for Morpho Base stablecoin vaults.

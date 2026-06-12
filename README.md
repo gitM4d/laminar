@@ -545,6 +545,22 @@ npm run recommendation:fluid
 - Fluid appears in `compare:providers` as its own row (0 opportunities when
   unavailable) and is included in Combined only when real V1 markets exist.
 
+## Protocol Metadata Registry
+
+Curated protocol facts used for trust scoring (protocol age, audit tier/count,
+historical incidents, chain adjustment, curated fallback TVL, and related notes)
+live in a single registry under `src/core/protocols/`.
+
+- **`protocolRegistry.ts`** — entries for `aave`, `morpho`, `fluid`, and
+  `moonwell`, plus helpers such as `getProtocolMetadata` and
+  `buildCuratedProtocolTrustProfile`.
+- Real Base providers consume this registry instead of defining trust metadata
+  inline.
+- **Real provider market TVL still overrides curated fallback TVL** when
+  eligible markets supply finite positive TVL (`tvlSource =
+  "real-provider-markets"`). Static dev-fallback market TVL is never treated as
+  real TVL.
+
 ## Combined Provider (experimental)
 
 `CombinedLaminarDataProvider` aggregates an arbitrary list of real providers into

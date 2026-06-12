@@ -17,6 +17,7 @@ import {
   UnknownProtocolTrustProfileError,
 } from "../trust/scoreOpportunityTrust.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
+import { buildCuratedProtocolTrustProfile } from "../protocols/protocolRegistry.js";
 import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
 import {
   deriveLiquiditySignalsFromMarkets,
@@ -24,56 +25,9 @@ import {
 } from "../liquidity/deriveLiquiditySignals.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
 
-/**
- * Curated Moonwell trust profile for the read-only adapter.
- *
- * NOTE: Trust metadata is curated/static — not sourced on-chain or via API.
- *
- * RATIONALE (conservative but accurate):
- * - protocolAgeYears: 4 — Moonwell has operated since 2021–2022 (Moonwell Apollo
- *   on Moonriver, Artemis on Moonbeam) and launched on Base in 2023. A 4-year
- *   figure is conservative and still below Aave (5.5y).
- * - tvlUsd: ~60M — approximate current Moonwell total TVL (order of magnitude,
- *   per public trackers). Materially smaller than Aave/Morpho, which correctly
- *   keeps Moonwell's trust below them.
- * - audits: Moonwell core is a Compound V2-style protocol with multiple public
- *   audits (Halborn) plus competitive review (Code4rena). Three tier-2 audits are
- *   modeled; no tier-1 firm is claimed (conservative).
- * - incidents: none modeled for the V1 stablecoin lending markets. No unverified
- *   incidents are fabricated.
- * - chainAdjustment: 0 (Base, same as Aave/Morpho).
- *
- * RESULTING TRUST SCORE: ≈73.7. This clears the "Yield Focused" profile
- * (minTrustScore 65) but is intentionally below "Balanced" (75) and
- * "Conservative" (85) — an honest reflection of Moonwell being a smaller,
- * younger protocol than Aave/Morpho. The recommendation probe therefore uses a
- * yield-focused intent to demonstrate real allocations.
- */
-export const MOONWELL_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile = {
-  protocolId: MOONWELL_BASE_CONFIG.protocolId,
-  protocolName: MOONWELL_BASE_CONFIG.protocolName,
-  protocolAgeYears: 4,
-  tvlUsd: 60_000_000,
-  audits: [
-    {
-      auditor: "Halborn",
-      tier: 2,
-      completedAt: "2022-09-01",
-    },
-    {
-      auditor: "Halborn",
-      tier: 2,
-      completedAt: "2023-08-01",
-    },
-    {
-      auditor: "Code4rena",
-      tier: 2,
-      completedAt: "2023-11-01",
-    },
-  ],
-  incidents: [],
-  chainAdjustment: 0,
-};
+/** @deprecated Import from protocol registry via buildCuratedProtocolTrustProfile("moonwell"). */
+export const MOONWELL_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile =
+  buildCuratedProtocolTrustProfile(MOONWELL_BASE_CONFIG.protocolId);
 
 /**
  * Curated liquidity profile for Moonwell Base stablecoin lending markets.
