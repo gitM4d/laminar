@@ -2,6 +2,10 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import {
+  createLaminarRecommendation,
+} from "../core/index.js";
+import { MockLaminarDataProvider } from "../core/providers/MockLaminarDataProvider.js";
 import { buildApiServer } from "./buildApiServer.js";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -76,8 +80,17 @@ describe("API contract artifacts", () => {
 });
 
 describe("API contract runtime behavior", () => {
+  function buildMockApiServer() {
+    const dataProvider = new MockLaminarDataProvider();
+    return buildApiServer({
+      providerMode: "mock",
+      createRecommendation: (input) =>
+        createLaminarRecommendation({ ...input, dataProvider }),
+    });
+  }
+
   it("POST /recommendation rejects wrong shape before reaching core", async () => {
-    const app = buildApiServer();
+    const app = buildMockApiServer();
     const response = await app.inject({
       method: "POST",
       url: "/recommendation",
@@ -94,7 +107,7 @@ describe("API contract runtime behavior", () => {
   });
 
   it("error responses follow ApiErrorResponse shape", async () => {
-    const app = buildApiServer();
+    const app = buildMockApiServer();
     const responses = await Promise.all([
       app.inject({
         method: "POST",
@@ -122,7 +135,7 @@ describe("API contract runtime behavior", () => {
   });
 
   it("valid request still works", async () => {
-    const app = buildApiServer();
+    const app = buildMockApiServer();
     const response = await app.inject({
       method: "POST",
       url: "/recommendation",

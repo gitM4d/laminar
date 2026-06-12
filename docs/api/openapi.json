@@ -29,7 +29,8 @@
                     "value": {
                       "status": "ok",
                       "service": "laminar-api",
-                      "version": "0.1.0"
+                      "version": "0.1.0",
+                      "providerMode": "real"
                     }
                   }
                 }
@@ -106,7 +107,7 @@
       "HealthResponse": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["status", "service", "version"],
+        "required": ["status", "service", "version", "providerMode"],
         "properties": {
           "status": {
             "type": "string",
@@ -118,6 +119,10 @@
           },
           "version": {
             "type": "string"
+          },
+          "providerMode": {
+            "type": "string",
+            "enum": ["real", "mock"]
           }
         }
       },

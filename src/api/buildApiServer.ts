@@ -6,6 +6,8 @@ import {
   RecommendationDataConsistencyError,
   type LaminarRecommendationResult,
 } from "../core/index.js";
+import { MockLaminarDataProvider } from "../core/providers/MockLaminarDataProvider.js";
+import type { ProviderMode } from "../core/providers/resolveDefaultProvider.js";
 import type {
   HealthResponse,
   RecommendationRequest,
@@ -17,14 +19,30 @@ import { recommendationRequestSchema } from "./schemas/index.js";
 import { validateRecommendationRequest } from "./validateRecommendationRequest.js";
 
 export type ApiServerDependencies = {
+  providerMode?: ProviderMode;
   createRecommendation?: typeof createLaminarRecommendation;
 };
+
+function buildDefaultCreateRecommendation(
+  providerMode: ProviderMode,
+): typeof createLaminarRecommendation {
+  if (providerMode === "mock") {
+    const dataProvider = new MockLaminarDataProvider();
+    return (input) => createLaminarRecommendation({ ...input, dataProvider });
+  }
+
+  throw new Error(
+    "Real provider mode requires an injected createRecommendation from server bootstrap",
+  );
+}
 
 export function buildApiServer(
   dependencies: ApiServerDependencies = {},
 ): FastifyInstance {
+  const providerMode = dependencies.providerMode ?? "mock";
   const createRecommendation =
-    dependencies.createRecommendation ?? createLaminarRecommendation;
+    dependencies.createRecommendation ??
+    buildDefaultCreateRecommendation(providerMode);
 
   const app = Fastify({ logger: false });
 
@@ -64,6 +82,7 @@ export function buildApiServer(
       status: "ok",
       service: "laminar-api",
       version: PACKAGE_VERSION,
+      providerMode,
     }),
   );
 

@@ -33,6 +33,22 @@ h3 {
   margin: 0 0 0.75rem;
 }
 
+.muted {
+  color: #64748b;
+}
+
+.data-source-badge {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #ecfeff;
+  border: 1px solid #99f6e4;
+  color: #115e59;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -82,10 +98,6 @@ button {
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.muted {
-  color: #64748b;
 }
 
 .notice {

@@ -76,6 +76,13 @@ export function App() {
 
       {result !== null && (
         <div className="results">
+          <p className="data-source-badge">
+            Data source:{" "}
+            {result.recommendation.diagnostics.providerType ===
+            "CombinedLaminarDataProvider"
+              ? "Real providers (experimental)"
+              : result.recommendation.diagnostics.providerName}
+          </p>
           <SnapshotView
             snapshot={result.snapshot}
             trustExplanations={result.recommendation.trustExplanations}

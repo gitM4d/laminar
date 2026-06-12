@@ -4,7 +4,7 @@ Laminar is an intent-first portfolio recommendation engine. Users express risk, 
 
 This repository contains the Laminar MVP core pipeline and a local HTTP API for development and integration testing.
 
-The core reads opportunities, trust profiles, and liquidity profiles through a **read-only data provider abstraction**. The default provider is mock-only; real protocol adapters are future work.
+The core reads opportunities, trust profiles, and liquidity profiles through a **read-only data provider abstraction**. The HTTP API and frontend use the **Combined real provider** by default; `MockLaminarDataProvider` remains available for tests, CI, and explicit dev mode.
 
 ## MVP pipeline
 
@@ -131,18 +131,37 @@ npm run qa:sensitivity
 
 ## Real Provider Mode (experimental)
 
-The Aave Base adapter can be used as an optional data provider for the full
-recommendation pipeline. The default provider (`MockLaminarDataProvider`) is
-**not changed**.
+The HTTP API and frontend default to the **Combined real provider**
+(`CombinedLaminarDataProvider` built from Aave + Morpho + Fluid, plus Moonwell
+only when real data is configured). Mock mode is dev/test only.
 
-### Mode A — default mock mode
+```bash
+# Default (real combined provider)
+npm run api
+npm run dev
+
+# Explicit mock mode for regression/dev
+LAMINAR_PROVIDER_MODE=mock npm run api
+```
+
+- **`LAMINAR_PROVIDER_MODE=real`** (default when unset): Combined real provider
+- **`LAMINAR_PROVIDER_MODE=mock`**: `MockLaminarDataProvider` (synthetic static data)
+- Real flows exclude Moonwell static fallback and never treat static placeholder
+  market TVL as real data
+- The execution plan remains mock (no on-chain execution)
+
+Individual protocol adapters can still be passed explicitly into
+`createLaminarRecommendation` for probes and integration tests.
+
+### Mode A — mock mode (dev/test)
 
 ```ts
 createLaminarRecommendation({ intent, portfolioValueUsd });
 ```
 
-Uses `MockLaminarDataProvider`. All data is static. Safe for development and
-testing with no network required.
+Uses `MockLaminarDataProvider` when no `dataProvider` is passed (core fallback).
+Safe for unit tests with no network required. The API uses mock only when
+`LAMINAR_PROVIDER_MODE=mock`.
 
 ### Mode B — Aave provider opt-in
 
@@ -172,7 +191,7 @@ npm run recommendation:aave
 - Incentives/reward emissions are not included.
 - TVL is a static placeholder.
 - Trust and liquidity profiles are curated/static, not sourced on-chain.
-- The API/frontend default provider remains `MockLaminarDataProvider`.
+- Set `LAMINAR_PROVIDER_MODE=mock` to use mock data in the API.
 - No transactions are created.
 
 ## Provider Comparison Matrix
@@ -599,8 +618,8 @@ Limitations:
   Balanced minTrustScore (75), so Moonwell opportunities are typically filtered
   and the combined allocation matches the previous Aave + Morpho behavior. This
   is an observed outcome of the risk engine — no logic was changed to force it.
-- The combined provider is **read-only and experimental**; the API/frontend
-  default remains `MockLaminarDataProvider`.
+- The combined provider is **read-only and experimental**; it is the default
+  for the HTTP API and frontend (`LAMINAR_PROVIDER_MODE=real`).
 
 ## API documentation
 

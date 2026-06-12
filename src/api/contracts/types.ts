@@ -24,6 +24,7 @@ export type HealthResponse = {
   status: "ok";
   service: "laminar-api";
   version: string;
+  providerMode: "real" | "mock";
 };
 
 export type RecommendationRequestIntent = {

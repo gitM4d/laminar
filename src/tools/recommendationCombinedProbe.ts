@@ -1,11 +1,6 @@
 import "dotenv/config";
 import { createLaminarRecommendation } from "../core/index.js";
-import { createAaveBaseLaminarDataProviderSnapshot } from "../core/providers/AaveBaseLaminarDataProvider.js";
-import { createMorphoBaseLaminarDataProviderSnapshot } from "../core/providers/MorphoBaseLaminarDataProvider.js";
-import { createMoonwellBaseLaminarDataProviderSnapshot } from "../core/providers/MoonwellBaseLaminarDataProvider.js";
-import { createFluidBaseLaminarDataProviderSnapshot } from "../core/providers/FluidBaseLaminarDataProvider.js";
-import { CombinedLaminarDataProvider } from "../core/providers/CombinedLaminarDataProvider.js";
-import type { LaminarDataProvider } from "../core/providers/types.js";
+import { createCombinedRealProvider } from "../core/providers/createCombinedRealProvider.js";
 import type { Opportunity } from "../core/opportunity/types.js";
 import { printRejectedOpportunities } from "./printRejectedOpportunities.js";
 import { printTrustSummary } from "./printTrustSummary.js";
@@ -23,6 +18,18 @@ function protocolNameForOpportunity(
   return match?.protocolName ?? "Unknown";
 }
 
+function protocolLabelsFromOpportunities(
+  opportunities: readonly Opportunity[],
+): string[] {
+  const labels: string[] = [];
+  for (const opportunity of opportunities) {
+    if (!labels.includes(opportunity.protocolName)) {
+      labels.push(opportunity.protocolName);
+    }
+  }
+  return labels;
+}
+
 async function main(): Promise<void> {
   console.log("Laminar — Combined V2 Real Provider Recommendation");
   console.log("==================================================");
@@ -31,63 +38,48 @@ async function main(): Promise<void> {
   );
   console.log("");
 
-  const [aaveProvider, morphoProvider, moonwellProvider, fluidProvider] =
-    await Promise.all([
-    createAaveBaseLaminarDataProviderSnapshot(),
-    createMorphoBaseLaminarDataProviderSnapshot(),
-    createMoonwellBaseLaminarDataProviderSnapshot({ requireRealData: true }),
-    createFluidBaseLaminarDataProviderSnapshot({
-      disableApi: process.env.FLUID_BASE_API_URL === "",
-    }),
-  ]);
+  const combined = await createCombinedRealProvider({ env: process.env });
+  const opportunities = combined.discoverOpportunities();
+  const protocolLabels = protocolLabelsFromOpportunities(opportunities);
 
-  const subProviders: { label: string; provider: LaminarDataProvider }[] = [
-    { label: "Aave", provider: aaveProvider },
-    { label: "Morpho", provider: morphoProvider },
-  ];
-
-  const moonwellOpportunityCount =
-    moonwellProvider.discoverOpportunities().length;
-  if (moonwellOpportunityCount > 0) {
-    subProviders.push({ label: "Moonwell", provider: moonwellProvider });
-  } else {
+  if (
+    process.env.MOONWELL_BASE_API_URL === undefined ||
+    process.env.MOONWELL_BASE_API_URL.trim() === ""
+  ) {
     console.log(
       "Moonwell: excluded (no real market data configured; set MOONWELL_BASE_API_URL)",
     );
     console.log("");
   }
 
-  const fluidOpportunityCount = fluidProvider.discoverOpportunities().length;
-  if (fluidOpportunityCount > 0) {
-    subProviders.push({ label: "Fluid", provider: fluidProvider });
-  } else {
+  if (process.env.FLUID_BASE_API_URL === "") {
     console.log(
       "Fluid: excluded (no real market data configured; set FLUID_BASE_API_URL or use default API)",
     );
     console.log("");
   }
 
-  const combined = new CombinedLaminarDataProvider(
-    subProviders.map((sub) => sub.provider),
-  );
-
-  const providerInfo = combined.getProviderInfo();
+  const providerInfo = combined.getProviderInfo?.() ?? {
+    providerType: "CombinedLaminarDataProvider",
+    providerName: "Combined real provider",
+  };
   console.log(`Provider: ${providerInfo.providerType}`);
   console.log(`Provider name: ${providerInfo.providerName}`);
-  console.log(`Provider count: ${subProviders.length.toString()}`);
+  console.log(`Provider count: ${protocolLabels.length.toString()}`);
   console.log("");
 
   console.log("Opportunities per protocol:");
   let total = 0;
-  for (const sub of subProviders) {
-    const count = sub.provider.discoverOpportunities().length;
+  for (const label of protocolLabels) {
+    const count = opportunities.filter(
+      (opportunity) => opportunity.protocolName === label,
+    ).length;
     total += count;
-    console.log(`  ${sub.label}: ${count.toString()}`);
+    console.log(`  ${label}: ${count.toString()}`);
   }
   console.log(`  Total: ${total.toString()}`);
   console.log("");
 
-  const opportunities = combined.discoverOpportunities();
   console.log(
     `Discovered opportunities (${opportunities.length.toString()}):`,
   );
@@ -143,13 +135,13 @@ async function main(): Promise<void> {
 
   // ── Ranked opportunities by protocol ───────────────────────────────────────
   console.log("Ranked opportunities by protocol:");
-  for (const sub of subProviders) {
+  for (const label of protocolLabels) {
     const rankedForProtocol = recommendation.opportunityRanking.ranked.filter(
       (ranked) =>
         protocolNameForOpportunity(ranked.opportunityId, opportunities) ===
-        sub.label,
+        label,
     );
-    console.log(`  ${sub.label} (${rankedForProtocol.length.toString()}):`);
+    console.log(`  ${label} (${rankedForProtocol.length.toString()}):`);
     for (const ranked of rankedForProtocol) {
       console.log(
         `    ${ranked.opportunityId} — score ${ranked.scoring.score.toFixed(4)}, APY ${(ranked.scoring.apyDecimal * 100).toFixed(3)}%`,
@@ -165,11 +157,11 @@ async function main(): Promise<void> {
   console.log(
     `Portfolio positions by protocol (${strategyPositions.length.toString()} strategy of ${snapshot.positions.length.toString()} total):`,
   );
-  for (const sub of subProviders) {
+  for (const label of protocolLabels) {
     const positionsForProtocol = strategyPositions.filter(
-      (p) => p.protocolName === sub.label,
+      (p) => p.protocolName === label,
     );
-    console.log(`  ${sub.label} (${positionsForProtocol.length.toString()}):`);
+    console.log(`  ${label} (${positionsForProtocol.length.toString()}):`);
     for (const position of positionsForProtocol) {
       console.log(
         `    ${position.label} (${position.asset}) — ${position.allocationPercent.toFixed(1)}% ($${position.allocationUsd.toFixed(2)})`,
@@ -180,11 +172,11 @@ async function main(): Promise<void> {
 
   // ── Allocation by protocol ─────────────────────────────────────────────────
   console.log("Allocation by protocol:");
-  for (const sub of subProviders) {
+  for (const label of protocolLabels) {
     const allocation = strategyPositions
-      .filter((p) => p.protocolName === sub.label)
+      .filter((p) => p.protocolName === label)
       .reduce((sum, p) => sum + p.allocationPercent, 0);
-    console.log(`  ${sub.label}: ${allocation.toFixed(1)}%`);
+    console.log(`  ${label}: ${allocation.toFixed(1)}%`);
   }
   const liquidityBufferPercent = snapshot.positions
     .filter((p) => p.type === "liquidityBuffer")
@@ -228,7 +220,7 @@ async function main(): Promise<void> {
   console.log("- Trust/liquidity profiles are curated/static for all protocols.");
   console.log("- V1 assets only (USDC/EURC/DAI).");
   console.log("- No transactions created. Read-only adapters only.");
-  console.log("- Default API/frontend provider remains MockLaminarDataProvider.");
+  console.log("- Default API/frontend provider is Combined real provider.");
 }
 
 main().catch((error: unknown) => {

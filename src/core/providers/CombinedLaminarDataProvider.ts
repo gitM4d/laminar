@@ -19,7 +19,7 @@ import type { LaminarDataProvider, ProviderInfo } from "./types.js";
  *
  * SAFETY: Read-only. No wallet, no signer, no transactions.
  *
- * This is experimental. The API/frontend default remains MockLaminarDataProvider.
+ * This is experimental. The API/frontend default uses Combined real providers.
  */
 export class CombinedLaminarDataProvider implements LaminarDataProvider {
   private readonly providers: readonly LaminarDataProvider[];
