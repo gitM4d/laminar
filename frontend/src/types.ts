@@ -126,6 +126,26 @@ export type SnapshotRejectionHighlight = {
   summary: string;
 };
 
+export type SnapshotLiquidityHighlight = {
+  protocolId: string;
+  protocolName: string;
+  tvlUsd: number | null;
+  tvlBucket: string;
+  liquidityConfidence: string;
+  source: string;
+};
+
+export type SnapshotDiversificationHighlight = {
+  uniqueAssets: number;
+  uniqueProtocols: number;
+  largestAsset: string | null;
+  largestAssetAllocationPercent: number;
+  largestProtocol: string | null;
+  largestProtocolAllocationPercent: number;
+  diversificationLevel: "low" | "medium" | "high";
+  warnings: string[];
+};
+
 export type RecommendationSnapshot = {
   profile: string;
   portfolioValueUsd: number;
@@ -134,6 +154,8 @@ export type RecommendationSnapshot = {
   metrics: SnapshotMetric[];
   trustHighlights?: SnapshotTrustHighlight[];
   rejectionHighlights?: SnapshotRejectionHighlight[];
+  liquidityHighlights?: SnapshotLiquidityHighlight[];
+  diversificationHighlights?: SnapshotDiversificationHighlight;
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
 };

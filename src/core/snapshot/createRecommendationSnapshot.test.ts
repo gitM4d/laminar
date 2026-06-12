@@ -485,4 +485,15 @@ describe("createRecommendationSnapshot", () => {
     expect(snapshot.liquidityHighlights[0]?.source).toBe("real-market-data");
     expect(snapshot.liquidityHighlights[0]?.tvlUsd).toBe(107_000_000);
   });
+
+  it("includes diversificationHighlights from strategy concentration analysis", () => {
+    const recommendation = balancedRecommendation();
+    const snapshot = createRecommendationSnapshot(recommendation);
+
+    expect(recommendation.diagnostics.concentrationExplained).toBe(true);
+    expect(snapshot.diversificationHighlights.uniqueAssets).toBeGreaterThan(0);
+    expect(snapshot.diversificationHighlights.uniqueProtocols).toBeGreaterThan(0);
+    expect(snapshot.diversificationHighlights.diversificationLevel).toBeDefined();
+    expect(snapshot.diversificationHighlights.warnings.length).toBeGreaterThan(0);
+  });
 });

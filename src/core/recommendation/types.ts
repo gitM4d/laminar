@@ -12,6 +12,7 @@ import type { ProtocolLiquidityDerivedSignals } from "../liquidity/deriveLiquidi
 import type { ProtocolTrustExplanation } from "../trust/buildTrustExplanation.js";
 import type { RejectedOpportunityExplanation } from "../explainability/buildRejectedOpportunityExplanations.js";
 import type { ScoredOpportunityTrust } from "../trust/types.js";
+import type { PortfolioConcentrationAnalysis } from "../diversification/analyzePortfolioConcentration.js";
 
 export type GeneratePortfolioRecommendationInput = {
   intent: unknown;
@@ -50,6 +51,10 @@ export type RecommendationDiagnostics = {
   liquiditySignalsAvailable: boolean;
   /** Protocol names with real-market-derived liquidity signals, when available. */
   liquiditySignalSources?: string[];
+  /** True when portfolio concentration/diversification was analyzed from strategy allocations. */
+  concentrationExplained: boolean;
+  /** Informational concentration and diversification analysis (does not affect construction). */
+  concentrationAnalysis: PortfolioConcentrationAnalysis;
 };
 
 export type PortfolioRecommendationResult = {

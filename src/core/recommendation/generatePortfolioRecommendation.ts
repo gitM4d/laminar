@@ -26,6 +26,7 @@ import {
   collectLiquidityDerivedSignals,
   resolveLiquidityDiagnostics,
 } from "../liquidity/collectLiquidityDerivedSignals.js";
+import { analyzePortfolioConcentrationFromConstruction } from "../diversification/analyzePortfolioConcentration.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type {
   GeneratePortfolioRecommendationInput,
@@ -283,6 +284,9 @@ export function generatePortfolioRecommendation(
   const liquidityDiagnostics = resolveLiquidityDiagnostics(
     liquidityDerivedSignals,
   );
+  const concentrationAnalysis = analyzePortfolioConcentrationFromConstruction(
+    portfolioConstruction.positions,
+  );
 
   if (
     portfolioConstruction.constructionSteps.some(
@@ -325,6 +329,8 @@ export function generatePortfolioRecommendation(
               liquidityDiagnostics.liquiditySignalSources,
           }
         : {}),
+      concentrationExplained: true,
+      concentrationAnalysis,
     },
   };
 }

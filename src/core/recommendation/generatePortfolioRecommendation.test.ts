@@ -167,4 +167,18 @@ describe("generatePortfolioRecommendation", () => {
       0,
     );
   });
+
+  it("includes concentration analysis diagnostics without changing allocations", () => {
+    const result = generatePortfolioRecommendation({
+      intent: { risk: 3, liquidity: 8, returnPreference: 4 },
+      portfolioValueUsd: 10_000,
+      asOf,
+    });
+
+    expect(result.diagnostics.concentrationExplained).toBe(true);
+    expect(result.diagnostics.concentrationAnalysis.uniqueAssets).toBeGreaterThan(
+      0,
+    );
+    expect(result.diagnostics.concentrationAnalysis.diversificationLevel).toBeDefined();
+  });
 });

@@ -5,6 +5,7 @@ import type { Opportunity } from "../core/opportunity/types.js";
 import { printRejectedOpportunities } from "./printRejectedOpportunities.js";
 import { printTrustSummary } from "./printTrustSummary.js";
 import { printLiquiditySummary } from "./printLiquiditySummary.js";
+import { printDiversificationSummary } from "./printDiversificationSummary.js";
 
 const DEFAULT_INTENT = { risk: 5, liquidity: 6, returnPreference: 5 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
@@ -131,6 +132,7 @@ async function main(): Promise<void> {
 
   printTrustSummary(recommendation.trustExplanations);
   printLiquiditySummary(recommendation.liquidityDerivedSignals);
+  printDiversificationSummary(recommendation.diagnostics.concentrationAnalysis);
   printRejectedOpportunities(recommendation.rejectedOpportunityExplanations);
 
   // ── Ranked opportunities by protocol ───────────────────────────────────────

@@ -8,6 +8,7 @@ import type {
   SnapshotPosition,
   SnapshotTrustHighlight,
   SnapshotWarning,
+  SnapshotDiversificationHighlight,
 } from "./types.js";
 
 function roundTo(value: number, decimals: number): number {
@@ -353,6 +354,23 @@ function buildLiquidityHighlights(
   return highlights;
 }
 
+function buildDiversificationHighlights(
+  recommendation: PortfolioRecommendationResult,
+): SnapshotDiversificationHighlight {
+  const analysis = recommendation.diagnostics.concentrationAnalysis;
+
+  return {
+    uniqueAssets: analysis.uniqueAssets,
+    uniqueProtocols: analysis.uniqueProtocols,
+    largestAsset: analysis.largestAsset,
+    largestAssetAllocationPercent: analysis.largestAssetAllocationPercent,
+    largestProtocol: analysis.largestProtocol,
+    largestProtocolAllocationPercent: analysis.largestProtocolAllocationPercent,
+    diversificationLevel: analysis.diversificationLevel,
+    warnings: analysis.warnings,
+  };
+}
+
 function buildExplanations(
   recommendation: PortfolioRecommendationResult,
 ): SnapshotExplanation[] {
@@ -400,6 +418,7 @@ export function createRecommendationSnapshot(
       recommendation.rejectedOpportunityExplanations,
     ),
     liquidityHighlights: buildLiquidityHighlights(recommendation),
+    diversificationHighlights: buildDiversificationHighlights(recommendation),
     warnings: buildWarnings(recommendation),
     explanations: buildExplanations(recommendation),
     source: {

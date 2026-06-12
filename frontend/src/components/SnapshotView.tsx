@@ -258,6 +258,85 @@ export function SnapshotView({
         </>
       )}
 
+      {snapshot.liquidityHighlights !== undefined &&
+        snapshot.liquidityHighlights.length > 0 && (
+          <>
+            <h3>Liquidity Highlights</h3>
+            <div className="trust-highlights">
+              {snapshot.liquidityHighlights.map((highlight) => (
+                <article
+                  key={highlight.protocolId}
+                  className="trust-highlight"
+                >
+                  <p>
+                    <span className="muted">Protocol:</span>{" "}
+                    {highlight.protocolName}
+                  </p>
+                  <p>
+                    <span className="muted">TVL:</span>{" "}
+                    {highlight.tvlUsd === null
+                      ? "unknown"
+                      : formatUsdCompact(highlight.tvlUsd)}{" "}
+                    ({highlight.tvlBucket})
+                  </p>
+                  <p>
+                    <span className="muted">Confidence:</span>{" "}
+                    {highlight.liquidityConfidence}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </>
+        )}
+
+      {snapshot.diversificationHighlights !== undefined && (
+        <>
+          <h3>Diversification</h3>
+          <article className="trust-highlight">
+            <p>
+              <span className="muted">Unique assets:</span>{" "}
+              {snapshot.diversificationHighlights.uniqueAssets}
+            </p>
+            <p>
+              <span className="muted">Unique protocols:</span>{" "}
+              {snapshot.diversificationHighlights.uniqueProtocols}
+            </p>
+            <p>
+              <span className="muted">Largest asset:</span>{" "}
+              {snapshot.diversificationHighlights.largestAsset ?? "—"} (
+              {snapshot.diversificationHighlights.largestAssetAllocationPercent.toFixed(
+                0,
+              )}
+              %)
+            </p>
+            <p>
+              <span className="muted">Largest protocol:</span>{" "}
+              {snapshot.diversificationHighlights.largestProtocol ?? "—"} (
+              {snapshot.diversificationHighlights.largestProtocolAllocationPercent.toFixed(
+                0,
+              )}
+              %)
+            </p>
+            <p>
+              <span className="muted">Diversification level:</span>{" "}
+              {snapshot.diversificationHighlights.diversificationLevel}
+            </p>
+            {snapshot.diversificationHighlights.warnings.length > 0 && (
+              <>
+                <h4>Warnings</h4>
+                <ul className="warning-list">
+                  {snapshot.diversificationHighlights.warnings.map(
+                    (warning) => (
+                      <li key={warning}>{warning}</li>
+                    ),
+                  )}
+                </ul>
+              </>
+            )}
+          </article>
+        </>
+      )}
+
       {snapshot.warnings.length > 0 && (
         <>
           <h3>Warnings</h3>

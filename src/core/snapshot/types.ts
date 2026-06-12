@@ -55,6 +55,17 @@ export type SnapshotLiquidityHighlight = {
   source: LiquidityDerivedSource;
 };
 
+export type SnapshotDiversificationHighlight = {
+  uniqueAssets: number;
+  uniqueProtocols: number;
+  largestAsset: string | null;
+  largestAssetAllocationPercent: number;
+  largestProtocol: string | null;
+  largestProtocolAllocationPercent: number;
+  diversificationLevel: "low" | "medium" | "high";
+  warnings: readonly string[];
+};
+
 export type RecommendationSnapshotSource = {
   recommendationId?: string;
   policyVersion: number;
@@ -70,6 +81,7 @@ export type RecommendationSnapshot = {
   trustHighlights: SnapshotTrustHighlight[];
   rejectionHighlights: SnapshotRejectionHighlight[];
   liquidityHighlights: SnapshotLiquidityHighlight[];
+  diversificationHighlights: SnapshotDiversificationHighlight;
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
   source: RecommendationSnapshotSource;
