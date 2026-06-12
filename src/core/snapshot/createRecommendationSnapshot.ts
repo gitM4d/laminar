@@ -3,6 +3,7 @@ import type { PortfolioRecommendationResult } from "../recommendation/types.js";
 import type {
   RecommendationSnapshot,
   SnapshotExplanation,
+  SnapshotLiquidityHighlight,
   SnapshotMetric,
   SnapshotPosition,
   SnapshotTrustHighlight,
@@ -323,6 +324,35 @@ function buildTrustHighlights(
   return highlights;
 }
 
+function buildLiquidityHighlights(
+  recommendation: PortfolioRecommendationResult,
+): SnapshotLiquidityHighlight[] {
+  const strategyProtocolIds = new Set<string>();
+  for (const position of recommendation.portfolioConstruction.positions) {
+    if (position.type === "strategy") {
+      strategyProtocolIds.add(position.protocolId);
+    }
+  }
+
+  const highlights: SnapshotLiquidityHighlight[] = [];
+  for (const signal of recommendation.liquidityDerivedSignals) {
+    if (!strategyProtocolIds.has(signal.protocolId)) {
+      continue;
+    }
+
+    highlights.push({
+      protocolId: signal.protocolId,
+      protocolName: signal.protocolName,
+      tvlUsd: signal.tvlUsd,
+      tvlBucket: signal.tvlBucket,
+      liquidityConfidence: signal.liquidityConfidence,
+      source: signal.source,
+    });
+  }
+
+  return highlights;
+}
+
 function buildExplanations(
   recommendation: PortfolioRecommendationResult,
 ): SnapshotExplanation[] {
@@ -369,6 +399,7 @@ export function createRecommendationSnapshot(
     rejectionHighlights: buildRejectionHighlights(
       recommendation.rejectedOpportunityExplanations,
     ),
+    liquidityHighlights: buildLiquidityHighlights(recommendation),
     warnings: buildWarnings(recommendation),
     explanations: buildExplanations(recommendation),
     source: {

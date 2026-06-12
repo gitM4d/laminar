@@ -16,6 +16,10 @@ import {
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
 import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
+import {
+  deriveLiquiditySignalsFromMarkets,
+  type LiquidityDerivedSignals,
+} from "../liquidity/deriveLiquiditySignals.js";
 
 export const FLUID_BASE_CURATED_TRUST_PROFILE: ProtocolTrustProfile = {
   protocolId: FLUID_BASE_CONFIG.protocolId,
@@ -59,15 +63,21 @@ class FluidBaseLaminarDataProvider implements LaminarDataProvider {
     string,
     OpportunityLiquidityProfile
   >;
+  private readonly liquidityDerivedSignalsByProtocol: Record<
+    string,
+    LiquidityDerivedSignals
+  >;
 
   constructor(
     opportunities: readonly Opportunity[],
     trustProfiles: Record<string, ProtocolTrustProfile>,
     liquidityProfiles: Record<string, OpportunityLiquidityProfile>,
+    liquidityDerivedSignalsByProtocol: Record<string, LiquidityDerivedSignals>,
   ) {
     this.opportunities = opportunities;
     this.trustProfiles = trustProfiles;
     this.liquidityProfiles = liquidityProfiles;
+    this.liquidityDerivedSignalsByProtocol = liquidityDerivedSignalsByProtocol;
   }
 
   discoverOpportunities(): Opportunity[] {
@@ -80,6 +90,12 @@ class FluidBaseLaminarDataProvider implements LaminarDataProvider {
 
   getLiquidityProfile(opportunityId: string): OpportunityLiquidityProfile {
     return getOpportunityLiquidityProfile(opportunityId, this.liquidityProfiles);
+  }
+
+  getLiquidityDerivedSignals(
+    protocolId: string,
+  ): LiquidityDerivedSignals | undefined {
+    return this.liquidityDerivedSignalsByProtocol[protocolId];
   }
 
   getProviderInfo(): ProviderInfo {
@@ -108,12 +124,19 @@ export async function createFluidBaseLaminarDataProviderSnapshot(
 
   const trustProfiles: Record<string, ProtocolTrustProfile> = {};
   const liquidityProfiles: Record<string, OpportunityLiquidityProfile> = {};
+  const liquidityDerivedSignalsByProtocol: Record<string, LiquidityDerivedSignals> =
+    {};
 
   if (opportunities.length > 0) {
     trustProfiles[FLUID_BASE_CONFIG.protocolId] =
       buildProtocolTrustProfileWithDerivedTvl(
         FLUID_BASE_CURATED_TRUST_PROFILE,
         eligibleMarkets,
+      );
+    liquidityDerivedSignalsByProtocol[FLUID_BASE_CONFIG.protocolId] =
+      deriveLiquiditySignalsFromMarkets(
+        eligibleMarkets,
+        FLUID_BASE_CONFIG.protocolId,
       );
     for (const opportunity of opportunities) {
       liquidityProfiles[opportunity.id] = buildCuratedLiquidityProfile(
@@ -126,6 +149,7 @@ export async function createFluidBaseLaminarDataProviderSnapshot(
     opportunities,
     trustProfiles,
     liquidityProfiles,
+    liquidityDerivedSignalsByProtocol,
   );
 }
 

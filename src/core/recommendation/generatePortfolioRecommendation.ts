@@ -22,6 +22,10 @@ import {
 } from "../trust/scoreOpportunityTrust.js";
 import { buildTrustExplanation } from "../trust/buildTrustExplanation.js";
 import { buildRejectedOpportunityExplanations } from "../explainability/buildRejectedOpportunityExplanations.js";
+import {
+  collectLiquidityDerivedSignals,
+  resolveLiquidityDiagnostics,
+} from "../liquidity/collectLiquidityDerivedSignals.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type {
   GeneratePortfolioRecommendationInput,
@@ -272,6 +276,14 @@ export function generatePortfolioRecommendation(
     liquidityScores,
   });
 
+  const liquidityDerivedSignals = collectLiquidityDerivedSignals(
+    opportunities,
+    dataProvider,
+  );
+  const liquidityDiagnostics = resolveLiquidityDiagnostics(
+    liquidityDerivedSignals,
+  );
+
   if (
     portfolioConstruction.constructionSteps.some(
       (step) => step.id === "emptyCandidateUniverse",
@@ -295,6 +307,7 @@ export function generatePortfolioRecommendation(
     riskAssessments,
     opportunityRanking,
     portfolioConstruction,
+    liquidityDerivedSignals,
     diagnostics: {
       pipelineSteps,
       warnings,
@@ -305,6 +318,13 @@ export function generatePortfolioRecommendation(
       opportunityCount: opportunities.length,
       trustExplained: true,
       rejectionsExplained: true,
+      liquiditySignalsAvailable: liquidityDiagnostics.liquiditySignalsAvailable,
+      ...(liquidityDiagnostics.liquiditySignalSources !== undefined
+        ? {
+            liquiditySignalSources:
+              liquidityDiagnostics.liquiditySignalSources,
+          }
+        : {}),
     },
   };
 }

@@ -430,4 +430,59 @@ describe("createRecommendationSnapshot", () => {
       expect(highlight).not.toHaveProperty("details");
     }
   });
+
+  it("includes empty liquidityHighlights for mock provider recommendations", () => {
+    const snapshot = createRecommendationSnapshot(balancedRecommendation());
+
+    expect(snapshot.liquidityHighlights).toEqual([]);
+  });
+
+  it("includes liquidityHighlights for strategy protocols with real derived signals", async () => {
+    const { createMorphoBaseLaminarDataProviderSnapshot } = await import(
+      "../providers/MorphoBaseLaminarDataProvider.js"
+    );
+    const sampleVaultsResponse = {
+      vaults: {
+        items: [
+          {
+            address: "0xUSDCVAULT",
+            name: "Morpho USDC Vault",
+            asset: { symbol: "USDC", decimals: 6 },
+            state: { netApy: 0.0612, totalAssetsUsd: 95_000_000 },
+          },
+          {
+            address: "0xEURCVAULT",
+            name: "Morpho EURC Vault",
+            asset: { symbol: "EURC", decimals: 6 },
+            state: { netApy: 0.0421, totalAssetsUsd: 12_000_000 },
+          },
+        ],
+      },
+    };
+
+    const provider = await createMorphoBaseLaminarDataProviderSnapshot({
+      apiUrl: "https://example.invalid/graphql",
+      client: {
+        query: async <T>() => sampleVaultsResponse as T,
+      },
+      now: () => asOf,
+    });
+
+    const recommendation = generatePortfolioRecommendation({
+      intent: { risk: 5, liquidity: 6, returnPreference: 5 },
+      portfolioValueUsd: 10_000,
+      asOf,
+      dataProvider: provider,
+    });
+    const snapshot = createRecommendationSnapshot(recommendation);
+
+    expect(recommendation.diagnostics.liquiditySignalsAvailable).toBe(true);
+    expect(recommendation.diagnostics.liquiditySignalSources).toEqual([
+      "Morpho",
+    ]);
+    expect(snapshot.liquidityHighlights.length).toBeGreaterThan(0);
+    expect(snapshot.liquidityHighlights[0]?.protocolName).toBe("Morpho");
+    expect(snapshot.liquidityHighlights[0]?.source).toBe("real-market-data");
+    expect(snapshot.liquidityHighlights[0]?.tvlUsd).toBe(107_000_000);
+  });
 });

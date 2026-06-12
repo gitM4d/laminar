@@ -15,6 +15,10 @@ import {
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
 import { buildProtocolTrustProfileWithDerivedTvl } from "./deriveProtocolTvl.js";
+import {
+  deriveLiquiditySignalsFromMarkets,
+  type LiquidityDerivedSignals,
+} from "../liquidity/deriveLiquiditySignals.js";
 
 /**
  * Curated Aave trust profile for the read-only adapter.
@@ -84,15 +88,21 @@ class AaveBaseLaminarDataProvider implements LaminarDataProvider {
     string,
     OpportunityLiquidityProfile
   >;
+  private readonly liquidityDerivedSignalsByProtocol: Record<
+    string,
+    LiquidityDerivedSignals
+  >;
 
   constructor(
     opportunities: readonly Opportunity[],
     trustProfiles: Record<string, ProtocolTrustProfile>,
     liquidityProfiles: Record<string, OpportunityLiquidityProfile>,
+    liquidityDerivedSignalsByProtocol: Record<string, LiquidityDerivedSignals>,
   ) {
     this.opportunities = opportunities;
     this.trustProfiles = trustProfiles;
     this.liquidityProfiles = liquidityProfiles;
+    this.liquidityDerivedSignalsByProtocol = liquidityDerivedSignalsByProtocol;
   }
 
   discoverOpportunities(): Opportunity[] {
@@ -105,6 +115,12 @@ class AaveBaseLaminarDataProvider implements LaminarDataProvider {
 
   getLiquidityProfile(opportunityId: string): OpportunityLiquidityProfile {
     return getOpportunityLiquidityProfile(opportunityId, this.liquidityProfiles);
+  }
+
+  getLiquidityDerivedSignals(
+    protocolId: string,
+  ): LiquidityDerivedSignals | undefined {
+    return this.liquidityDerivedSignalsByProtocol[protocolId];
   }
 
   getProviderInfo(): ProviderInfo {
@@ -168,5 +184,11 @@ export async function createAaveBaseLaminarDataProviderSnapshot(
     opportunities,
     trustProfiles,
     liquidityProfiles,
+    {
+      [AAVE_BASE_CONFIG.protocolId]: deriveLiquiditySignalsFromMarkets(
+        markets,
+        AAVE_BASE_CONFIG.protocolId,
+      ),
+    },
   );
 }

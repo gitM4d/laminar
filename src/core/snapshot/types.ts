@@ -1,5 +1,6 @@
 import type { ProfileName } from "../profile/types.js";
 import type { SnapshotRejectionHighlight } from "../explainability/buildRejectedOpportunityExplanations.js";
+import type { LiquidityDerivedSource, LiquidityConfidence, LiquidityTvlBucket } from "../liquidity/deriveLiquiditySignals.js";
 
 export type SnapshotPositionType =
   | "strategy"
@@ -45,6 +46,15 @@ export type SnapshotTrustHighlight = {
   summary: string;
 };
 
+export type SnapshotLiquidityHighlight = {
+  protocolId: string;
+  protocolName: string;
+  tvlUsd: number | null;
+  tvlBucket: LiquidityTvlBucket;
+  liquidityConfidence: LiquidityConfidence;
+  source: LiquidityDerivedSource;
+};
+
 export type RecommendationSnapshotSource = {
   recommendationId?: string;
   policyVersion: number;
@@ -59,6 +69,7 @@ export type RecommendationSnapshot = {
   metrics: SnapshotMetric[];
   trustHighlights: SnapshotTrustHighlight[];
   rejectionHighlights: SnapshotRejectionHighlight[];
+  liquidityHighlights: SnapshotLiquidityHighlight[];
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
   source: RecommendationSnapshotSource;

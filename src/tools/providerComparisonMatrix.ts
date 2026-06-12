@@ -646,6 +646,62 @@ export function formatProviderDataQualityTable(
   ].join("\n");
 }
 
+export type LiquidityDataQualityLabel =
+  | "real-market-data"
+  | "curated-fallback"
+  | "mixed-real"
+  | "mixed-fallback";
+
+export function resolveLiquidityDataQualityLabel(
+  quality: ProviderDataQuality,
+): LiquidityDataQualityLabel {
+  if (quality.providerType === "CombinedLaminarDataProvider") {
+    return quality.apyData === "mixed-real" ? "mixed-real" : "mixed-fallback";
+  }
+
+  if (
+    quality.dataSourceLabel === "unavailable (no real data configured)" ||
+    quality.trustData === "mock" ||
+    (quality.apyData === "static-fallback" && quality.tvlData === "static-fallback")
+  ) {
+    return "curated-fallback";
+  }
+
+  return "real-market-data";
+}
+
+export function formatLiquidityDataQualityTable(
+  qualities: ProviderDataQuality[],
+): string {
+  const headers = ["Provider", "Liquidity Signals"];
+
+  const rows = qualities.map((quality) => [
+    quality.dataSourceLabel !== undefined
+      ? `${quality.providerName} [${quality.dataSourceLabel}]`
+      : quality.providerName,
+    resolveLiquidityDataQualityLabel(quality),
+  ]);
+
+  const widths = headers.map((header, index) =>
+    Math.max(
+      header.length,
+      ...rows.map((row) => String(row[index]).length),
+    ),
+  );
+
+  const formatRow = (cells: string[]) =>
+    cells
+      .map((cell, index) => truncate(String(cell), widths[index] ?? cell.length))
+      .join(" | ");
+
+  return [
+    "Liquidity Data Quality:",
+    formatRow(headers),
+    widths.map((width) => "-".repeat(width)).join("-|-"),
+    ...rows.map((row) => formatRow(row)),
+  ].join("\n");
+}
+
 export function formatDifferenceSummary(
   title: string,
   differences: ProviderScenarioDifference[],

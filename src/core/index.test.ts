@@ -35,6 +35,9 @@ describe("createLaminarRecommendation", () => {
     expect(result.recommendation.selectedProfile).toBe("Balanced");
     expect(result.recommendation.diagnostics.trustExplained).toBe(true);
     expect(result.recommendation.diagnostics.rejectionsExplained).toBe(true);
+    expect(result.recommendation.diagnostics.liquiditySignalsAvailable).toBe(
+      false,
+    );
     expect(result.snapshot.profile).toBe("Balanced");
     expect(result.executionPlan.summary.numberOfDeposits).toBeGreaterThan(0);
   });
@@ -145,5 +148,24 @@ describe("public core exports", () => {
     expect(recommendation.intent).toEqual(intent);
     expect(snapshot.profile).toBe(recommendation.selectedProfile);
     expect(executionPlan.diagnostics.source).toBe("mock");
+  });
+
+  it("does not change mock recommendation outcomes when liquidity metadata is added", () => {
+    const result = createLaminarRecommendation({
+      intent: { risk: 3, liquidity: 8, returnPreference: 4 },
+      portfolioValueUsd: 10_000,
+      asOf,
+    });
+
+    expect(result.recommendation.selectedProfile).toBe("Balanced");
+    expect(result.recommendation.opportunityRanking.ranked.length).toBeGreaterThan(
+      0,
+    );
+    expect(
+      result.snapshot.positions.filter((position) => position.type === "strategy")
+        .length,
+    ).toBeGreaterThan(0);
+    expect(result.snapshot.liquidityHighlights).toEqual([]);
+    expect(result.recommendation.liquidityDerivedSignals).toEqual([]);
   });
 });

@@ -26,6 +26,7 @@ import {
   extractProviderComparisonSummary,
   formatAllDifferenceSummaries,
   formatDifferenceSummary,
+  formatLiquidityDataQualityTable,
   formatProviderComparisonTable,
   formatProviderDataQualityTable,
   formatRealProviderDifferenceSummaries,
@@ -35,6 +36,7 @@ import {
   resolveCombinedDataQuality,
   resolveFluidDataQuality,
   resolveFluidDataSourceLabel,
+  resolveLiquidityDataQualityLabel,
   resolveMoonwellDataQuality,
   resolveMoonwellDataSourceLabel,
   resolveMorphoDataQuality,
@@ -444,6 +446,43 @@ describe("providerComparisonMatrix helpers", () => {
 
     expect(quality.apyData).toBe("static-fallback");
     expect(quality.dataSourceLabel).toBe("unavailable (no real data configured)");
+  });
+
+  it("resolveLiquidityDataQualityLabel maps provider data quality to liquidity signal source", () => {
+    expect(
+      resolveLiquidityDataQualityLabel(
+        resolveAaveDataQuality({ rpcUrl: "https://example.invalid/rpc" }),
+      ),
+    ).toBe("real-market-data");
+    expect(
+      resolveLiquidityDataQualityLabel(
+        resolveMorphoDataQuality({ disableApi: true }),
+      ),
+    ).toBe("curated-fallback");
+    expect(
+      resolveLiquidityDataQualityLabel(
+        resolveCombinedDataQuality(
+          resolveAaveDataQuality({ rpcUrl: "https://example.invalid/rpc" }),
+          resolveMorphoDataQuality({
+            apiUrl: "https://example.invalid/graphql",
+          }),
+        ),
+      ),
+    ).toBe("mixed-real");
+  });
+
+  it("formatLiquidityDataQualityTable renders liquidity signal source rows", () => {
+    const table = formatLiquidityDataQualityTable([
+      resolveAaveDataQuality({ rpcUrl: "https://example.invalid/rpc" }),
+      resolveCombinedDataQuality(
+        resolveAaveDataQuality({ rpcUrl: "https://example.invalid/rpc" }),
+        resolveMorphoDataQuality({ apiUrl: "https://example.invalid/graphql" }),
+      ),
+    ]);
+
+    expect(table).toContain("Liquidity Data Quality:");
+    expect(table).toContain("real-market-data");
+    expect(table).toContain("mixed-real");
   });
 
   it("resolveCombinedDataQuality reports mixed-real when sub-providers are real (V2)", () => {

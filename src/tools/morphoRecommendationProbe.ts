@@ -3,6 +3,7 @@ import { createLaminarRecommendation } from "../core/index.js";
 import { createMorphoBaseLaminarDataProviderSnapshot } from "../core/providers/MorphoBaseLaminarDataProvider.js";
 import { printRejectedOpportunities } from "./printRejectedOpportunities.js";
 import { printTrustSummary } from "./printTrustSummary.js";
+import { printLiquiditySummary } from "./printLiquiditySummary.js";
 
 const DEFAULT_INTENT = { risk: 5, liquidity: 6, returnPreference: 5 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
@@ -68,6 +69,7 @@ async function main(): Promise<void> {
   console.log("");
 
   printTrustSummary(recommendation.trustExplanations);
+  printLiquiditySummary(recommendation.liquidityDerivedSignals);
   printRejectedOpportunities(recommendation.rejectedOpportunityExplanations);
 
   console.log(

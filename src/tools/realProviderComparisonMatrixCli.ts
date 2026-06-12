@@ -1,5 +1,6 @@
 import "dotenv/config";
 import {
+  formatLiquidityDataQualityTable,
   formatProviderComparisonTable,
   formatProviderDataQualityTable,
   formatRealProviderDifferenceSummaries,
@@ -39,6 +40,8 @@ async function main(): Promise<void> {
   );
   console.log("");
   console.log(formatProviderDataQualityTable(matrix.providerDataQuality));
+  console.log("");
+  console.log(formatLiquidityDataQualityTable(matrix.providerDataQuality));
   console.log("");
 
   if (!matrix.includeMock && "aaveVsCombined" in matrix.differences) {

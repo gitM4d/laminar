@@ -2,6 +2,7 @@ import { RecommendationDataConsistencyError } from "../recommendation/generatePo
 import type { OpportunityLiquidityProfile } from "../liquidity/types.js";
 import type { Opportunity } from "../opportunity/types.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
+import type { LiquidityDerivedSignals } from "../liquidity/deriveLiquiditySignals.js";
 import type { LaminarDataProvider, ProviderInfo } from "./types.js";
 
 /**
@@ -87,6 +88,19 @@ export class CombinedLaminarDataProvider implements LaminarDataProvider {
       `No sub-provider has a liquidity profile for opportunity "${opportunityId}". ` +
         `Ensure every opportunity in the combined universe has a curated liquidity profile.`,
     );
+  }
+
+  getLiquidityDerivedSignals(
+    protocolId: string,
+  ): LiquidityDerivedSignals | undefined {
+    for (const provider of this.providers) {
+      const signals = provider.getLiquidityDerivedSignals?.(protocolId);
+      if (signals !== undefined) {
+        return signals;
+      }
+    }
+
+    return undefined;
   }
 
   getProviderInfo(): ProviderInfo {

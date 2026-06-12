@@ -8,6 +8,7 @@ import type { ProfileName } from "../profile/types.js";
 import type { AssessedOpportunityRisk } from "../risk/types.js";
 import type { OpportunityRanking } from "../scoring/types.js";
 import type { LaminarDataProvider } from "../providers/types.js";
+import type { ProtocolLiquidityDerivedSignals } from "../liquidity/deriveLiquiditySignals.js";
 import type { ProtocolTrustExplanation } from "../trust/buildTrustExplanation.js";
 import type { RejectedOpportunityExplanation } from "../explainability/buildRejectedOpportunityExplanations.js";
 import type { ScoredOpportunityTrust } from "../trust/types.js";
@@ -45,6 +46,10 @@ export type RecommendationDiagnostics = {
   trustExplained: boolean;
   /** True when rejected opportunity explanations were built from existing evaluation outputs. */
   rejectionsExplained: boolean;
+  /** True when at least one protocol has real-market-derived liquidity signals. */
+  liquiditySignalsAvailable: boolean;
+  /** Protocol names with real-market-derived liquidity signals, when available. */
+  liquiditySignalSources?: string[];
 };
 
 export type PortfolioRecommendationResult = {
@@ -60,5 +65,7 @@ export type PortfolioRecommendationResult = {
   riskAssessments: AssessedOpportunityRisk[];
   opportunityRanking: OpportunityRanking;
   portfolioConstruction: PortfolioConstructionResult;
+  /** Informational liquidity signals derived from real market TVL (does not affect scoring). */
+  liquidityDerivedSignals: readonly ProtocolLiquidityDerivedSignals[];
   diagnostics: RecommendationDiagnostics;
 };

@@ -99,6 +99,20 @@ describe("MorphoBaseLaminarDataProvider", () => {
     expect(trust.tvlUsd).toBe(107_000_000);
   });
 
+  it("exposes derived liquidity signals from real API market TVL", async () => {
+    const provider = await createMorphoBaseLaminarDataProviderSnapshot({
+      apiUrl: "https://api.invalid/graphql",
+      client: buildApiClient(sampleVaultsResponse),
+      now: () => asOf,
+    });
+
+    const signals = provider.getLiquidityDerivedSignals?.("morpho");
+    expect(signals?.tvlUsd).toBe(107_000_000);
+    expect(signals?.tvlBucket).toBe("high");
+    expect(signals?.liquidityConfidence).toBe("high");
+    expect(signals?.source).toBe("real-market-data");
+  });
+
   it("exposes Morpho trust explanation without changing the trust score", async () => {
     const provider = await createMorphoBaseLaminarDataProviderSnapshot({
       disableApi: true,
