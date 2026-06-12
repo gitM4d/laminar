@@ -6,6 +6,7 @@ import { printTrustSummary } from "./printTrustSummary.js";
 import { printLiquiditySummary } from "./printLiquiditySummary.js";
 import { printDiversificationSummary } from "./printDiversificationSummary.js";
 import { printDiversificationTradeoff } from "./printDiversificationTradeoff.js";
+import { printExecutionPlanV2 } from "./printExecutionPlanV2.js";
 
 const DEFAULT_INTENT = { risk: 8, liquidity: 3, returnPreference: 9 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
@@ -95,6 +96,7 @@ async function main(): Promise<void> {
   printDiversificationSummary(recommendation.diagnostics.concentrationAnalysis);
   printDiversificationTradeoff(recommendation.diversificationTradeoff);
   printRejectedOpportunities(recommendation.rejectedOpportunityExplanations);
+  printExecutionPlanV2(executionPlan.stepsV2);
 
   console.log(
     `Ranked opportunities (${recommendation.opportunityRanking.ranked.length.toString()}):`,
@@ -122,10 +124,6 @@ async function main(): Promise<void> {
     );
   }
   console.log("");
-
-  console.log(
-    `Execution plan steps: ${executionPlan.steps.length.toString()}`,
-  );
 }
 
 main().catch((error: unknown) => {

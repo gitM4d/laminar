@@ -531,4 +531,12 @@ describe("createRecommendationSnapshot", () => {
       "Informational only",
     );
   });
+
+  it("includes executionSummary from strategy positions", () => {
+    const snapshot = createRecommendationSnapshot(balancedRecommendation());
+
+    expect(snapshot.executionSummary?.strategySteps).toBeGreaterThan(0);
+    expect(snapshot.executionSummary?.liquidityBufferPercent).toBeGreaterThan(0);
+    expect(snapshot.executionSummary?.gasReservePercent).toBeGreaterThan(0);
+  });
 });

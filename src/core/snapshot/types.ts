@@ -74,6 +74,12 @@ export type SnapshotDiversificationTradeoffSummary = {
   summary?: string;
 };
 
+export type SnapshotExecutionSummary = {
+  strategySteps: number;
+  liquidityBufferPercent: number;
+  gasReservePercent: number;
+};
+
 export type RecommendationSnapshotSource = {
   recommendationId?: string;
   policyVersion: number;
@@ -91,6 +97,7 @@ export type RecommendationSnapshot = {
   liquidityHighlights: SnapshotLiquidityHighlight[];
   diversificationHighlights: SnapshotDiversificationHighlight;
   diversificationTradeoffSummary?: SnapshotDiversificationTradeoffSummary;
+  executionSummary?: SnapshotExecutionSummary;
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
   source: RecommendationSnapshotSource;

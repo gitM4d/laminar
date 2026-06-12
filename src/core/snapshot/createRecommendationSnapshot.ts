@@ -1,5 +1,6 @@
 import { buildRejectionHighlights } from "../explainability/buildRejectedOpportunityExplanations.js";
 import { buildDiversificationTradeoffSummary } from "../diversification/buildDiversificationTradeoff.js";
+import { buildExecutionSummary } from "../execution/buildExecutionPlanV2.js";
 import type { PortfolioRecommendationResult } from "../recommendation/types.js";
 import type {
   RecommendationSnapshot,
@@ -429,6 +430,7 @@ export function createRecommendationSnapshot(
     ...(diversificationTradeoffSummary !== undefined
       ? { diversificationTradeoffSummary }
       : {}),
+    executionSummary: buildExecutionSummary(recommendation),
     warnings: buildWarnings(recommendation),
     explanations: buildExplanations(recommendation),
     source: {

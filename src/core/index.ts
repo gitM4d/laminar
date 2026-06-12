@@ -2,6 +2,7 @@ import { createMockExecutionPlan } from "./execution/createMockExecutionPlan.js"
 import type { LaminarDataProvider } from "./providers/types.js";
 import { generatePortfolioRecommendation } from "./recommendation/generatePortfolioRecommendation.js";
 import { createRecommendationSnapshot } from "./snapshot/createRecommendationSnapshot.js";
+import type { PortfolioRecommendationResult } from "./recommendation/types.js";
 import type {
   LaminarRecommendationInput,
   LaminarRecommendationResult,
@@ -51,11 +52,21 @@ export function createLaminarRecommendation(
   }
 
   const recommendation = generatePortfolioRecommendation(recommendationInput);
-  const snapshot = createRecommendationSnapshot(recommendation);
-  const executionPlan = createMockExecutionPlan({ recommendation, snapshot });
+  const executionPlan = createMockExecutionPlan({ recommendation });
+  const recommendationWithExecutionDiagnostics: PortfolioRecommendationResult = {
+    ...recommendation,
+    diagnostics: {
+      ...recommendation.diagnostics,
+      executionPlanVersion: "v2",
+      executionPlanRealistic: true,
+    },
+  };
+  const snapshot = createRecommendationSnapshot(
+    recommendationWithExecutionDiagnostics,
+  );
 
   return {
-    recommendation,
+    recommendation: recommendationWithExecutionDiagnostics,
     snapshot,
     executionPlan,
   };

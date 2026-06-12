@@ -165,6 +165,7 @@ export type RecommendationSnapshot = {
   liquidityHighlights?: SnapshotLiquidityHighlight[];
   diversificationHighlights?: SnapshotDiversificationHighlight;
   diversificationTradeoffSummary?: SnapshotDiversificationTradeoffSummary;
+  executionSummary?: SnapshotExecutionSummary;
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
 };
@@ -182,8 +183,32 @@ export type MockExecutionStep = {
   reason?: string;
 };
 
+export type ExecutionPlanStepV2 = {
+  id: string;
+  protocolId: string | null;
+  protocolName: string | null;
+  action:
+    | "prepareFunds"
+    | "supply"
+    | "holdLiquidityBuffer"
+    | "holdGasReserve";
+  asset: string | null;
+  allocationPercent: number;
+  amountUsd: number;
+  description: string;
+  informationalOnly: true;
+};
+
+export type SnapshotExecutionSummary = {
+  strategySteps: number;
+  liquidityBufferPercent: number;
+  gasReservePercent: number;
+};
+
 export type MockExecutionPlan = {
   steps: MockExecutionStep[];
+  stepsV2?: ExecutionPlanStepV2[];
+  executionPlanVersion?: "v1" | "v2";
   warnings: SnapshotWarning[];
   explanations: { topic: string; summary: string }[];
 };

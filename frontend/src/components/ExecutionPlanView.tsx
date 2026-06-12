@@ -21,37 +21,62 @@ function protocolLabel(step: MockExecutionPlan["steps"][number]): string {
 }
 
 export function ExecutionPlanView({ executionPlan }: ExecutionPlanViewProps) {
+  const useV2 =
+    executionPlan.executionPlanVersion === "v2" &&
+    executionPlan.stepsV2.length > 0;
+
   return (
     <section className="card">
-      <h2>Mock Execution Plan</h2>
+      <h2>Execution Plan</h2>
       <p className="notice">
-        This is a mock execution plan. No blockchain transaction is created.
+        Informational only. No wallet interaction or blockchain transaction is
+        created.
       </p>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Step</th>
-            <th>Action</th>
-            <th>Protocol</th>
-            <th>Asset</th>
-            <th>Amount USD</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {executionPlan.steps.map((step) => (
-            <tr key={step.stepId}>
-              <td>{step.stepId}</td>
-              <td>{step.type}</td>
-              <td>{protocolLabel(step)}</td>
-              <td>{step.asset}</td>
-              <td>{formatUsd(step.amountUsd)}</td>
-              <td>{step.status}</td>
-            </tr>
+      {useV2 ? (
+        <ol className="execution-plan-list">
+          {executionPlan.stepsV2.map((step) => (
+            <li key={step.id} className="execution-plan-step">
+              <p>{step.description}</p>
+              <p className="muted">
+                {step.protocolName !== null && (
+                  <>
+                    Protocol: {step.protocolName}
+                    {" · "}
+                  </>
+                )}
+                {step.asset !== null && <>Asset: {step.asset} · </>}
+                Amount: {formatUsd(step.amountUsd)}
+              </p>
+            </li>
           ))}
-        </tbody>
-      </table>
+        </ol>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Action</th>
+              <th>Protocol</th>
+              <th>Asset</th>
+              <th>Amount USD</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {executionPlan.steps.map((step) => (
+              <tr key={step.stepId}>
+                <td>{step.stepId}</td>
+                <td>{step.type}</td>
+                <td>{protocolLabel(step)}</td>
+                <td>{step.asset}</td>
+                <td>{formatUsd(step.amountUsd)}</td>
+                <td>{step.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </section>
   );
 }

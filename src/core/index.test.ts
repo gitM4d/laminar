@@ -35,6 +35,8 @@ describe("createLaminarRecommendation", () => {
     expect(result.recommendation.selectedProfile).toBe("Balanced");
     expect(result.recommendation.diagnostics.trustExplained).toBe(true);
     expect(result.recommendation.diagnostics.rejectionsExplained).toBe(true);
+    expect(result.recommendation.diagnostics.executionPlanVersion).toBe("v2");
+    expect(result.recommendation.diagnostics.executionPlanRealistic).toBe(true);
     expect(result.recommendation.diagnostics.liquiditySignalsAvailable).toBe(
       false,
     );

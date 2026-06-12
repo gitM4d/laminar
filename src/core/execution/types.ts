@@ -68,10 +68,32 @@ export type ExecutionPlanDiagnostics = {
   selectedProfile: ProfileName;
   portfolioValueUsd: number;
   source: "mock";
+  executionPlanVersion?: "v2";
+  executionPlanRealistic?: boolean;
+};
+
+export type ExecutionPlanActionV2 =
+  | "prepareFunds"
+  | "supply"
+  | "holdLiquidityBuffer"
+  | "holdGasReserve";
+
+export type ExecutionPlanStepV2 = {
+  id: string;
+  protocolId: string | null;
+  protocolName: string | null;
+  action: ExecutionPlanActionV2;
+  asset: string | null;
+  allocationPercent: number;
+  amountUsd: number;
+  description: string;
+  informationalOnly: true;
 };
 
 export type MockExecutionPlan = {
   steps: MockExecutionStep[];
+  stepsV2: ExecutionPlanStepV2[];
+  executionPlanVersion: "v1" | "v2";
   summary: ExecutionPlanSummary;
   warnings: ExecutionPlanWarning[];
   explanations: ExecutionPlanExplanation[];

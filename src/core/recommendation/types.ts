@@ -58,6 +58,10 @@ export type RecommendationDiagnostics = {
   concentrationAnalysis: PortfolioConcentrationAnalysis;
   /** True when an informational diversification tradeoff alternative was computed. */
   diversificationTradeoffAvailable: boolean;
+  /** Protocol-aware execution plan version used for informational planning. */
+  executionPlanVersion?: "v2";
+  /** True when execution plan includes protocol-aware informational steps. */
+  executionPlanRealistic?: boolean;
 };
 
 export type PortfolioRecommendationResult = {

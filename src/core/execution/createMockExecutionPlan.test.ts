@@ -261,6 +261,9 @@ describe("createMockExecutionPlan", () => {
     const plan = createMockExecutionPlan({ recommendation });
 
     expect(plan.diagnostics.source).toBe("mock");
+    expect(plan.executionPlanVersion).toBe("v2");
+    expect(plan.diagnostics.executionPlanRealistic).toBe(true);
+    expect(plan.stepsV2.length).toBeGreaterThan(plan.steps.length);
     expect(plan.diagnostics.policyVersion).toBe(
       recommendation.policy.policyVersion,
     );
