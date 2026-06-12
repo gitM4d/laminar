@@ -66,6 +66,14 @@ export type SnapshotDiversificationHighlight = {
   warnings: readonly string[];
 };
 
+export type SnapshotDiversificationTradeoffSummary = {
+  available: boolean;
+  currentLevel?: "low" | "medium" | "high";
+  alternativeLevel?: "low" | "medium" | "high";
+  apyCostPercent?: number;
+  summary?: string;
+};
+
 export type RecommendationSnapshotSource = {
   recommendationId?: string;
   policyVersion: number;
@@ -82,6 +90,7 @@ export type RecommendationSnapshot = {
   rejectionHighlights: SnapshotRejectionHighlight[];
   liquidityHighlights: SnapshotLiquidityHighlight[];
   diversificationHighlights: SnapshotDiversificationHighlight;
+  diversificationTradeoffSummary?: SnapshotDiversificationTradeoffSummary;
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
   source: RecommendationSnapshotSource;

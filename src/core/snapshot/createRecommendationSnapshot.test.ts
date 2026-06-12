@@ -496,4 +496,39 @@ describe("createRecommendationSnapshot", () => {
     expect(snapshot.diversificationHighlights.diversificationLevel).toBeDefined();
     expect(snapshot.diversificationHighlights.warnings.length).toBeGreaterThan(0);
   });
+
+  it("includes diversificationTradeoffSummary when tradeoff is available", async () => {
+    const { buildDiversificationTradeoff } = await import(
+      "../diversification/buildDiversificationTradeoff.js"
+    );
+    const recommendation = balancedRecommendation();
+    const tradeoff = buildDiversificationTradeoff({
+      concentrationAnalysis: {
+        ...recommendation.diagnostics.concentrationAnalysis,
+        diversificationLevel: "low",
+        uniqueAssets: 1,
+        largestAsset: "USDC",
+        largestAssetAllocationPercent: 100,
+      },
+      portfolioConstruction: recommendation.portfolioConstruction,
+      opportunityRanking: recommendation.opportunityRanking,
+      opportunities: recommendation.opportunities,
+    });
+
+    expect(tradeoff.available).toBe(true);
+
+    const snapshot = createRecommendationSnapshot({
+      ...recommendation,
+      diversificationTradeoff: tradeoff,
+      diagnostics: {
+        ...recommendation.diagnostics,
+        diversificationTradeoffAvailable: true,
+      },
+    });
+
+    expect(snapshot.diversificationTradeoffSummary?.available).toBe(true);
+    expect(snapshot.diversificationTradeoffSummary?.summary).toContain(
+      "Informational only",
+    );
+  });
 });

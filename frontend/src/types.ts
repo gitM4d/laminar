@@ -146,6 +146,14 @@ export type SnapshotDiversificationHighlight = {
   warnings: string[];
 };
 
+export type SnapshotDiversificationTradeoffSummary = {
+  available: boolean;
+  currentLevel?: "low" | "medium" | "high";
+  alternativeLevel?: "low" | "medium" | "high";
+  apyCostPercent?: number;
+  summary?: string;
+};
+
 export type RecommendationSnapshot = {
   profile: string;
   portfolioValueUsd: number;
@@ -156,6 +164,7 @@ export type RecommendationSnapshot = {
   rejectionHighlights?: SnapshotRejectionHighlight[];
   liquidityHighlights?: SnapshotLiquidityHighlight[];
   diversificationHighlights?: SnapshotDiversificationHighlight;
+  diversificationTradeoffSummary?: SnapshotDiversificationTradeoffSummary;
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
 };

@@ -181,4 +181,18 @@ describe("generatePortfolioRecommendation", () => {
     );
     expect(result.diagnostics.concentrationAnalysis.diversificationLevel).toBeDefined();
   });
+
+  it("includes diversification tradeoff analysis without changing construction", () => {
+    const result = generatePortfolioRecommendation({
+      intent: { risk: 3, liquidity: 8, returnPreference: 4 },
+      portfolioValueUsd: 10_000,
+      asOf,
+    });
+
+    expect(result.diversificationTradeoff).toBeDefined();
+    expect(result.diagnostics.diversificationTradeoffAvailable).toBe(
+      result.diversificationTradeoff?.available ?? false,
+    );
+    expect(result.portfolioConstruction.positions.length).toBeGreaterThan(0);
+  });
 });

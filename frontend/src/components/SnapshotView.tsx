@@ -337,6 +337,27 @@ export function SnapshotView({
         </>
       )}
 
+      {snapshot.diversificationTradeoffSummary?.available === true && (
+        <>
+          <h3>Diversification Tradeoff</h3>
+          <article className="trust-highlight">
+            <p>
+              <span className="muted">Current level:</span>{" "}
+              {snapshot.diversificationTradeoffSummary.currentLevel}
+            </p>
+            <p>
+              <span className="muted">Alternative level:</span>{" "}
+              {snapshot.diversificationTradeoffSummary.alternativeLevel}
+            </p>
+            <p>
+              <span className="muted">APY cost:</span>{" "}
+              {snapshot.diversificationTradeoffSummary.apyCostPercent?.toFixed(2)}%
+            </p>
+            <p>{snapshot.diversificationTradeoffSummary.summary}</p>
+          </article>
+        </>
+      )}
+
       {snapshot.warnings.length > 0 && (
         <>
           <h3>Warnings</h3>

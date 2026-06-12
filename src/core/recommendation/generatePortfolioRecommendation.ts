@@ -27,6 +27,7 @@ import {
   resolveLiquidityDiagnostics,
 } from "../liquidity/collectLiquidityDerivedSignals.js";
 import { analyzePortfolioConcentrationFromConstruction } from "../diversification/analyzePortfolioConcentration.js";
+import { buildDiversificationTradeoff } from "../diversification/buildDiversificationTradeoff.js";
 import type { ProtocolTrustProfile } from "../trust/types.js";
 import type {
   GeneratePortfolioRecommendationInput,
@@ -287,6 +288,12 @@ export function generatePortfolioRecommendation(
   const concentrationAnalysis = analyzePortfolioConcentrationFromConstruction(
     portfolioConstruction.positions,
   );
+  const diversificationTradeoff = buildDiversificationTradeoff({
+    concentrationAnalysis,
+    portfolioConstruction,
+    opportunityRanking,
+    opportunities,
+  });
 
   if (
     portfolioConstruction.constructionSteps.some(
@@ -312,6 +319,7 @@ export function generatePortfolioRecommendation(
     opportunityRanking,
     portfolioConstruction,
     liquidityDerivedSignals,
+    diversificationTradeoff,
     diagnostics: {
       pipelineSteps,
       warnings,
@@ -331,6 +339,7 @@ export function generatePortfolioRecommendation(
         : {}),
       concentrationExplained: true,
       concentrationAnalysis,
+      diversificationTradeoffAvailable: diversificationTradeoff.available,
     },
   };
 }

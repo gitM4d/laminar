@@ -13,6 +13,7 @@ import type { ProtocolTrustExplanation } from "../trust/buildTrustExplanation.js
 import type { RejectedOpportunityExplanation } from "../explainability/buildRejectedOpportunityExplanations.js";
 import type { ScoredOpportunityTrust } from "../trust/types.js";
 import type { PortfolioConcentrationAnalysis } from "../diversification/analyzePortfolioConcentration.js";
+import type { DiversificationTradeoff } from "../diversification/buildDiversificationTradeoff.js";
 
 export type GeneratePortfolioRecommendationInput = {
   intent: unknown;
@@ -55,6 +56,8 @@ export type RecommendationDiagnostics = {
   concentrationExplained: boolean;
   /** Informational concentration and diversification analysis (does not affect construction). */
   concentrationAnalysis: PortfolioConcentrationAnalysis;
+  /** True when an informational diversification tradeoff alternative was computed. */
+  diversificationTradeoffAvailable: boolean;
 };
 
 export type PortfolioRecommendationResult = {
@@ -72,5 +75,7 @@ export type PortfolioRecommendationResult = {
   portfolioConstruction: PortfolioConstructionResult;
   /** Informational liquidity signals derived from real market TVL (does not affect scoring). */
   liquidityDerivedSignals: readonly ProtocolLiquidityDerivedSignals[];
+  /** Informational diversification tradeoff analysis (does not affect construction). */
+  diversificationTradeoff?: DiversificationTradeoff;
   diagnostics: RecommendationDiagnostics;
 };

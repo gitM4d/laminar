@@ -1,4 +1,5 @@
 import { buildRejectionHighlights } from "../explainability/buildRejectedOpportunityExplanations.js";
+import { buildDiversificationTradeoffSummary } from "../diversification/buildDiversificationTradeoff.js";
 import type { PortfolioRecommendationResult } from "../recommendation/types.js";
 import type {
   RecommendationSnapshot,
@@ -406,6 +407,12 @@ export function createRecommendationSnapshot(
   const completedSteps = recommendation.diagnostics.pipelineSteps.filter(
     (step) => step.status === "completed",
   ).length;
+  const diversificationTradeoffSummary =
+    recommendation.diversificationTradeoff === undefined
+      ? undefined
+      : buildDiversificationTradeoffSummary(
+          recommendation.diversificationTradeoff,
+        );
 
   return {
     profile: recommendation.selectedProfile,
@@ -419,6 +426,9 @@ export function createRecommendationSnapshot(
     ),
     liquidityHighlights: buildLiquidityHighlights(recommendation),
     diversificationHighlights: buildDiversificationHighlights(recommendation),
+    ...(diversificationTradeoffSummary !== undefined
+      ? { diversificationTradeoffSummary }
+      : {}),
     warnings: buildWarnings(recommendation),
     explanations: buildExplanations(recommendation),
     source: {
