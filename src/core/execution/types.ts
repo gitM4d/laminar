@@ -98,9 +98,39 @@ export type MockExecutionPlan = {
   warnings: ExecutionPlanWarning[];
   explanations: ExecutionPlanExplanation[];
   diagnostics: ExecutionPlanDiagnostics;
+  deltaExecutionPlan?: DeltaExecutionPlan;
 };
 
 export type ExecutionPlanInput = {
   recommendation: PortfolioRecommendationResult;
   snapshot?: RecommendationSnapshot;
+};
+
+export type DeltaExecutionAction =
+  | "withdraw"
+  | "supply"
+  | "hold"
+  | "reserve"
+  | "noAction";
+
+export type DeltaExecutionStep = {
+  id: string;
+  action: DeltaExecutionAction;
+  protocolId?: string;
+  protocolName?: string;
+  opportunityId?: string;
+  asset: string;
+  amountUsd: number;
+  description: string;
+  informationalOnly: true;
+};
+
+export type DeltaExecutionPlan = {
+  available: boolean;
+  informationalOnly: true;
+  currentPortfolioValueUsd: number;
+  targetPortfolioValueUsd: number;
+  netDeltaUsd: number;
+  steps: DeltaExecutionStep[];
+  warnings: string[];
 };

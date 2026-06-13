@@ -80,6 +80,14 @@ export type SnapshotExecutionSummary = {
   gasReservePercent: number;
 };
 
+export type SnapshotDeltaExecutionSummary = {
+  available: boolean;
+  numberOfSteps: number;
+  numberOfWithdrawals: number;
+  numberOfSupplies: number;
+  netDeltaUsd: number;
+};
+
 export type RecommendationSnapshotSource = {
   recommendationId?: string;
   policyVersion: number;
@@ -98,6 +106,7 @@ export type RecommendationSnapshot = {
   diversificationHighlights: SnapshotDiversificationHighlight;
   diversificationTradeoffSummary?: SnapshotDiversificationTradeoffSummary;
   executionSummary?: SnapshotExecutionSummary;
+  deltaExecutionSummary?: SnapshotDeltaExecutionSummary;
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
   source: RecommendationSnapshotSource;

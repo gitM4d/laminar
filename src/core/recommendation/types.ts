@@ -62,6 +62,8 @@ export type RecommendationDiagnostics = {
   executionPlanVersion?: "v2";
   /** True when execution plan includes protocol-aware informational steps. */
   executionPlanRealistic?: boolean;
+  /** True when an informational delta execution plan was computed from currentPortfolio. */
+  deltaExecutionPlanAvailable?: boolean;
 };
 
 export type PortfolioRecommendationResult = {

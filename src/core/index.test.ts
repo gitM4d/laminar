@@ -37,6 +37,10 @@ describe("createLaminarRecommendation", () => {
     expect(result.recommendation.diagnostics.rejectionsExplained).toBe(true);
     expect(result.recommendation.diagnostics.executionPlanVersion).toBe("v2");
     expect(result.recommendation.diagnostics.executionPlanRealistic).toBe(true);
+    expect(result.recommendation.diagnostics.deltaExecutionPlanAvailable).toBe(
+      false,
+    );
+    expect(result.deltaExecutionPlan).toBeUndefined();
     expect(result.recommendation.diagnostics.liquiditySignalsAvailable).toBe(
       false,
     );
