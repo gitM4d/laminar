@@ -4,6 +4,7 @@ import {
   AAVE_PREVIEW_USER_ADDRESS,
 } from "../execution-adapters/aave/AaveExecutionAdapter.js";
 import type { EncodedTransactionRequest } from "../execution-adapters/types.js";
+import { validateTransactionPlan } from "../execution-adapters/safety/validateTransactionPlan.js";
 
 const DEMO_SUPPLY_INTENT: ExecutionIntent = {
   id: "intent-demo-aave-usdc",
@@ -73,6 +74,41 @@ function printGeneratedTransactions(
   });
 }
 
+function printSafetyValidation(
+  validation: ReturnType<typeof validateTransactionPlan>,
+): void {
+  console.log("Safety Validation:");
+  console.log(`  safe: ${validation.safe.toString()}`);
+  console.log(`  errors: ${validation.errors.length.toString()}`);
+  console.log(`  warnings: ${validation.warnings.length.toString()}`);
+
+  if (validation.errors.length > 0) {
+    console.log("");
+    console.log("  Error details:");
+    for (const issue of validation.errors) {
+      const index =
+        issue.transactionIndex === undefined
+          ? ""
+          : ` [tx ${(issue.transactionIndex + 1).toString()}]`;
+      console.log(`    - ${issue.code}${index}: ${issue.message}`);
+    }
+  }
+
+  if (validation.warnings.length > 0) {
+    console.log("");
+    console.log("  Warning details:");
+    for (const issue of validation.warnings) {
+      const index =
+        issue.transactionIndex === undefined
+          ? ""
+          : ` [tx ${(issue.transactionIndex + 1).toString()}]`;
+      console.log(`    - ${issue.code}${index}: ${issue.message}`);
+    }
+  }
+
+  console.log("");
+}
+
 function printEncodedTransactionPreview(
   encodedTransactions: EncodedTransactionRequest[] | undefined,
 ): void {
@@ -110,6 +146,7 @@ async function main(): Promise<void> {
 
   printGeneratedTransactions(plan.transactions);
   printEncodedTransactionPreview(plan.encodedTransactions);
+  printSafetyValidation(validateTransactionPlan(plan));
 
   console.log("Warnings:");
   for (const warning of plan.warnings) {
