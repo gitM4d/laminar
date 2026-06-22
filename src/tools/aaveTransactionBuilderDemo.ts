@@ -1,5 +1,9 @@
 import type { ExecutionIntent } from "../core/execution/types.js";
-import { aaveExecutionAdapter } from "../execution-adapters/aave/AaveExecutionAdapter.js";
+import {
+  AaveExecutionAdapter,
+  AAVE_PREVIEW_USER_ADDRESS,
+} from "../execution-adapters/aave/AaveExecutionAdapter.js";
+import type { EncodedTransactionRequest } from "../execution-adapters/types.js";
 
 const DEMO_SUPPLY_INTENT: ExecutionIntent = {
   id: "intent-demo-aave-usdc",
@@ -26,6 +30,11 @@ const DEMO_SUPPLY_INTENT: ExecutionIntent = {
   ],
 };
 
+const demoAdapter = new AaveExecutionAdapter({
+  encodeCalldata: true,
+  userAddress: AAVE_PREVIEW_USER_ADDRESS,
+});
+
 function formatUsd(value: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -47,7 +56,7 @@ function printExecutionIntent(intent: ExecutionIntent): void {
 
 function printGeneratedTransactions(
   transactions: Awaited<
-    ReturnType<typeof aaveExecutionAdapter.buildTransactions>
+    ReturnType<typeof demoAdapter.buildTransactions>
   >["transactions"],
 ): void {
   console.log("Generated Transactions");
@@ -64,16 +73,43 @@ function printGeneratedTransactions(
   });
 }
 
+function printEncodedTransactionPreview(
+  encodedTransactions: EncodedTransactionRequest[] | undefined,
+): void {
+  console.log("Encoded Transaction Preview:");
+  console.log("");
+
+  if (encodedTransactions === undefined || encodedTransactions.length === 0) {
+    console.log("  (no encoded transactions)");
+    console.log("");
+    return;
+  }
+
+  encodedTransactions.forEach((transaction, index) => {
+    console.log(`${(index + 1).toString()}. ${transaction.type}`);
+    console.log(`   to: ${transaction.to}`);
+    console.log(`   data: ${transaction.data}`);
+    console.log(`   value: ${transaction.value}`);
+    console.log(`   chainId: ${transaction.chainId.toString()}`);
+    console.log("");
+  });
+}
+
 async function main(): Promise<void> {
   console.log("Laminar — Aave Transaction Builder Demo");
   console.log("======================================");
   console.log("");
+  console.log(
+    `Preview user address: ${AAVE_PREVIEW_USER_ADDRESS} (preview-only)`,
+  );
+  console.log("");
 
   printExecutionIntent(DEMO_SUPPLY_INTENT);
 
-  const plan = await aaveExecutionAdapter.buildTransactions(DEMO_SUPPLY_INTENT);
+  const plan = await demoAdapter.buildTransactions(DEMO_SUPPLY_INTENT);
 
   printGeneratedTransactions(plan.transactions);
+  printEncodedTransactionPreview(plan.encodedTransactions);
 
   console.log("Warnings:");
   for (const warning of plan.warnings) {
@@ -83,8 +119,8 @@ async function main(): Promise<void> {
   console.log("");
   console.log("Note:");
   console.log("  Planning only.");
-  console.log("  No wallet connected.");
-  console.log("  No transaction generated.");
+  console.log("  Dummy user address used.");
+  console.log("  Do not submit this transaction as-is.");
 }
 
 main().catch((error: unknown) => {

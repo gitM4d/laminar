@@ -100,6 +100,9 @@ describe("AaveExecutionAdapter", () => {
     expect(plan.warnings.some((warning) => warning.includes("Planning only"))).toBe(
       true,
     );
+    expect(plan.warnings.some((warning) => warning.includes("encodeCalldata disabled"))).toBe(
+      true,
+    );
   });
 
   it("marks the plan informationalOnly", async () => {

@@ -18,7 +18,19 @@ export type TransactionRequestPlan = {
   intentId: string;
   informationalOnly: true;
   transactions: PlannedTransaction[];
+  encodedTransactions?: EncodedTransactionRequest[];
   warnings: string[];
+};
+
+export type EncodedTransactionRequest = {
+  to: string;
+  data: `0x${string}`;
+  value: "0";
+  chainId: 8453;
+  description: string;
+  type: PlannedTransactionType;
+  asset: string;
+  amountUsd: number;
 };
 
 export type AaveSupplyTransactionPlan = TransactionRequestPlan;
@@ -41,5 +53,32 @@ export class UnsupportedExecutionIntentError extends Error {
     this.protocolId = protocolId;
     this.intentId = intentId;
     this.reason = reason;
+  }
+}
+
+export class MissingExecutionAddressError extends Error {
+  constructor(message = "userAddress is required for calldata generation.") {
+    super(message);
+    this.name = "MissingExecutionAddressError";
+  }
+}
+
+export class UnsupportedExecutionAssetError extends Error {
+  readonly asset: string;
+
+  constructor(asset: string) {
+    super(`Unsupported execution asset "${asset}".`);
+    this.name = "UnsupportedExecutionAssetError";
+    this.asset = asset;
+  }
+}
+
+export class InvalidExecutionAmountError extends Error {
+  readonly amountUsd: number;
+
+  constructor(amountUsd: number, reason: string) {
+    super(`Invalid execution amount (${amountUsd}): ${reason}`);
+    this.name = "InvalidExecutionAmountError";
+    this.amountUsd = amountUsd;
   }
 }

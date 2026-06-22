@@ -1,21 +1,37 @@
 import type { ExecutionIntent } from "../../core/execution/types.js";
 import {
+  MissingExecutionAddressError,
   UnsupportedExecutionIntentError,
   type ExecutionAdapter,
   type PlannedTransaction,
   type TransactionRequestPlan,
 } from "../types.js";
+import { buildAaveSupplyCalldata } from "./buildAaveCalldata.js";
 import {
   AAVE_V3_BASE_EXECUTION_CONFIG,
   getAaveExecutionAssetConfig,
   isAaveExecutionSupportedAsset,
 } from "./aaveExecutionConfig.js";
 
+export type AaveExecutionAdapterOptions = {
+  encodeCalldata?: boolean;
+  userAddress?: string;
+};
+
 const BASE_PLANNING_WARNINGS = [
-  "Planning only. No transaction was generated.",
-  "No calldata or ABI encoding in this sprint.",
+  "Planning only. No transaction was submitted.",
   "No wallet connected.",
   "Amount is a USD-based estimate for stablecoins (1 USD ≈ 1 token unit).",
+] as const;
+
+const LEGACY_PLANNING_WARNING =
+  "No calldata or ABI encoding included (encodeCalldata disabled).";
+
+const ENCODED_PREVIEW_WARNINGS = [
+  "Preview only.",
+  "Dummy or preview user address used for onBehalfOf encoding.",
+  "Do not submit this transaction as-is.",
+  "No signing, gas estimation, or submission performed.",
 ] as const;
 
 function formatUsdAmount(value: number): string {
@@ -91,12 +107,42 @@ function buildSupplyTransactions(
 
 export class AaveExecutionAdapter implements ExecutionAdapter {
   readonly protocolId = AAVE_V3_BASE_EXECUTION_CONFIG.protocolId;
+  private readonly encodeCalldata: boolean;
+  private readonly userAddress: string | undefined;
+
+  constructor(options: AaveExecutionAdapterOptions = {}) {
+    this.encodeCalldata = options.encodeCalldata ?? false;
+    this.userAddress = options.userAddress;
+  }
 
   async buildTransactions(intent: ExecutionIntent): Promise<TransactionRequestPlan> {
     assertAaveSupplyIntent(intent);
 
     const asset = intent.asset as "USDC" | "EURC";
     const transactions = buildSupplyTransactions(intent, asset);
+    const warnings: string[] = [...BASE_PLANNING_WARNINGS];
+
+    if (!this.encodeCalldata) {
+      warnings.push(LEGACY_PLANNING_WARNING);
+
+      return {
+        version: "tx-plan-v1",
+        protocolId: this.protocolId,
+        intentId: intent.id,
+        informationalOnly: true,
+        transactions,
+        warnings,
+      };
+    }
+
+    if (this.userAddress === undefined || this.userAddress.trim() === "") {
+      throw new MissingExecutionAddressError();
+    }
+
+    const encodedTransactions = buildAaveSupplyCalldata({
+      intent,
+      userAddress: this.userAddress,
+    });
 
     return {
       version: "tx-plan-v1",
@@ -104,9 +150,13 @@ export class AaveExecutionAdapter implements ExecutionAdapter {
       intentId: intent.id,
       informationalOnly: true,
       transactions,
-      warnings: [...BASE_PLANNING_WARNINGS],
+      encodedTransactions,
+      warnings: [...warnings, ...ENCODED_PREVIEW_WARNINGS],
     };
   }
 }
 
 export const aaveExecutionAdapter = new AaveExecutionAdapter();
+
+export const AAVE_PREVIEW_USER_ADDRESS =
+  "0x000000000000000000000000000000000000dEaD";

@@ -7,6 +7,11 @@ export type {
 } from "../types.js";
 
 export { UnsupportedExecutionIntentError } from "../types.js";
+export {
+  InvalidExecutionAmountError,
+  MissingExecutionAddressError,
+  UnsupportedExecutionAssetError,
+} from "../types.js";
 
 export {
   AAVE_EXECUTION_SUPPORTED_ASSETS,
