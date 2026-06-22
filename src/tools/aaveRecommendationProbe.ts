@@ -7,6 +7,7 @@ import { printLiquiditySummary } from "./printLiquiditySummary.js";
 import { printDiversificationSummary } from "./printDiversificationSummary.js";
 import { printDiversificationTradeoff } from "./printDiversificationTradeoff.js";
 import { printExecutionPlanV2 } from "./printExecutionPlanV2.js";
+import { printExecutionIntents } from "./printExecutionIntents.js";
 
 const DEFAULT_INTENT = { risk: 5, liquidity: 6, returnPreference: 5 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
@@ -75,6 +76,7 @@ async function main(): Promise<void> {
   printDiversificationTradeoff(recommendation.diversificationTradeoff);
   printRejectedOpportunities(recommendation.rejectedOpportunityExplanations);
   printExecutionPlanV2(executionPlan.stepsV2);
+  printExecutionIntents(executionPlan.executionIntentPlan);
 
   console.log(`Ranked opportunities (${recommendation.opportunityRanking.ranked.length.toString()}):`);
   for (const ranked of recommendation.opportunityRanking.ranked) {

@@ -2,7 +2,8 @@ import { buildRejectionHighlights } from "../explainability/buildRejectedOpportu
 import { buildDiversificationTradeoffSummary } from "../diversification/buildDiversificationTradeoff.js";
 import { buildExecutionSummary } from "../execution/buildExecutionPlanV2.js";
 import { buildDeltaExecutionSummary } from "../execution/buildDeltaExecutionPlan.js";
-import type { DeltaExecutionPlan } from "../execution/types.js";
+import { buildSnapshotExecutionIntentSummary } from "../execution/buildExecutionIntents.js";
+import type { DeltaExecutionPlan, ExecutionIntentPlan } from "../execution/types.js";
 import type { PortfolioRecommendationResult } from "../recommendation/types.js";
 import type {
   RecommendationSnapshot,
@@ -406,7 +407,10 @@ function buildExplanations(
 
 export function createRecommendationSnapshot(
   recommendation: PortfolioRecommendationResult,
-  options?: { deltaExecutionPlan?: DeltaExecutionPlan },
+  options?: {
+    deltaExecutionPlan?: DeltaExecutionPlan;
+    executionIntentPlan?: ExecutionIntentPlan;
+  },
 ): RecommendationSnapshot {
   const completedSteps = recommendation.diagnostics.pipelineSteps.filter(
     (step) => step.status === "completed",
@@ -419,6 +423,9 @@ export function createRecommendationSnapshot(
         );
   const deltaExecutionSummary = buildDeltaExecutionSummary(
     options?.deltaExecutionPlan,
+  );
+  const executionIntentSummary = buildSnapshotExecutionIntentSummary(
+    options?.executionIntentPlan,
   );
 
   return {
@@ -439,6 +446,9 @@ export function createRecommendationSnapshot(
     executionSummary: buildExecutionSummary(recommendation),
     ...(deltaExecutionSummary !== undefined
       ? { deltaExecutionSummary }
+      : {}),
+    ...(executionIntentSummary !== undefined
+      ? { executionIntentSummary }
       : {}),
     warnings: buildWarnings(recommendation),
     explanations: buildExplanations(recommendation),

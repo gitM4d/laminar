@@ -167,6 +167,7 @@ export type RecommendationSnapshot = {
   diversificationTradeoffSummary?: SnapshotDiversificationTradeoffSummary;
   executionSummary?: SnapshotExecutionSummary;
   deltaExecutionSummary?: SnapshotDeltaExecutionSummary;
+  executionIntentSummary?: SnapshotExecutionIntentSummary;
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
 };
@@ -214,10 +215,24 @@ export type SnapshotDeltaExecutionSummary = {
   netDeltaUsd: number;
 };
 
+export type SnapshotExecutionIntentSummary = {
+  totalIntents: number;
+  executableIntents: number;
+  protocols: string[];
+  assets: string[];
+};
+
 export type MockExecutionPlan = {
   steps: MockExecutionStep[];
   stepsV2?: ExecutionPlanStepV2[];
   executionPlanVersion?: "v1" | "v2";
+  executionIntentPlan?: {
+    version: "intent-v1";
+    informationalOnly: true;
+    summary: SnapshotExecutionIntentSummary & {
+      nonExecutableIntents: number;
+    };
+  };
   warnings: SnapshotWarning[];
   explanations: { topic: string; summary: string }[];
 };

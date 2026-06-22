@@ -75,13 +75,25 @@ export function createLaminarRecommendation(
       executionPlanVersion: "v2",
       executionPlanRealistic: true,
       deltaExecutionPlanAvailable: hasCurrentPortfolio,
+      executionIntentsAvailable: true,
     },
   };
-  const snapshotOptions =
-    deltaExecutionPlan !== undefined ? { deltaExecutionPlan } : undefined;
+  const snapshotOptions: {
+    deltaExecutionPlan?: DeltaExecutionPlan;
+    executionIntentPlan?: typeof executionPlan.executionIntentPlan;
+  } = {};
+
+  if (deltaExecutionPlan !== undefined) {
+    snapshotOptions.deltaExecutionPlan = deltaExecutionPlan;
+  }
+
+  if (executionPlan.executionIntentPlan !== undefined) {
+    snapshotOptions.executionIntentPlan = executionPlan.executionIntentPlan;
+  }
+
   const snapshot = createRecommendationSnapshot(
     recommendationWithExecutionDiagnostics,
-    snapshotOptions,
+    Object.keys(snapshotOptions).length > 0 ? snapshotOptions : undefined,
   );
 
   return {

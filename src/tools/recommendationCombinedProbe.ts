@@ -8,6 +8,7 @@ import { printLiquiditySummary } from "./printLiquiditySummary.js";
 import { printDiversificationSummary } from "./printDiversificationSummary.js";
 import { printDiversificationTradeoff } from "./printDiversificationTradeoff.js";
 import { printExecutionPlanV2 } from "./printExecutionPlanV2.js";
+import { printExecutionIntents } from "./printExecutionIntents.js";
 
 const DEFAULT_INTENT = { risk: 5, liquidity: 6, returnPreference: 5 };
 const DEFAULT_PORTFOLIO_USD = 10_000;
@@ -139,6 +140,7 @@ async function main(): Promise<void> {
   printRejectedOpportunities(recommendation.rejectedOpportunityExplanations);
 
   printExecutionPlanV2(executionPlan.stepsV2);
+  printExecutionIntents(executionPlan.executionIntentPlan);
 
   // ── Ranked opportunities by protocol ───────────────────────────────────────
   console.log("Ranked opportunities by protocol:");

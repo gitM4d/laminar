@@ -40,6 +40,9 @@ describe("createLaminarRecommendation", () => {
     expect(result.recommendation.diagnostics.deltaExecutionPlanAvailable).toBe(
       false,
     );
+    expect(result.recommendation.diagnostics.executionIntentsAvailable).toBe(
+      true,
+    );
     expect(result.deltaExecutionPlan).toBeUndefined();
     expect(result.recommendation.diagnostics.liquiditySignalsAvailable).toBe(
       false,

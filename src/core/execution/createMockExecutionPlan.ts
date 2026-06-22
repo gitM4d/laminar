@@ -8,6 +8,7 @@ import type {
   MockExecutionStep,
 } from "./types.js";
 import { buildExecutionPlanV2 } from "./buildExecutionPlanV2.js";
+import { buildExecutionIntents } from "./buildExecutionIntents.js";
 
 const SMALL_DEPOSIT_THRESHOLD_USD = 10;
 
@@ -209,6 +210,10 @@ export function createMockExecutionPlan(
 
   const steps = buildSteps(positions, portfolioValueUsd);
   const stepsV2 = buildExecutionPlanV2({ recommendation });
+  const executionIntentPlan = buildExecutionIntents({
+    stepsV2,
+    recommendation,
+  });
   const summary = buildSummary(steps);
   const warnings = buildWarnings(steps, summary, portfolioValueUsd);
 
@@ -227,6 +232,8 @@ export function createMockExecutionPlan(
       source: "mock",
       executionPlanVersion: "v2",
       executionPlanRealistic: true,
+      executionIntentsAvailable: true,
     },
+    executionIntentPlan,
   };
 }

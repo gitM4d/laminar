@@ -70,6 +70,7 @@ export type ExecutionPlanDiagnostics = {
   source: "mock";
   executionPlanVersion?: "v2";
   executionPlanRealistic?: boolean;
+  executionIntentsAvailable?: boolean;
 };
 
 export type ExecutionPlanActionV2 =
@@ -90,6 +91,55 @@ export type ExecutionPlanStepV2 = {
   informationalOnly: true;
 };
 
+export type ExecutionIntentAction =
+  | "prepareFunds"
+  | "supply"
+  | "withdraw"
+  | "holdLiquidityBuffer"
+  | "holdGasReserve";
+
+export type ExecutionIntent = {
+  id: string;
+  sourceStepId: string;
+  action: ExecutionIntentAction;
+  protocolId: string | null;
+  protocolName: string | null;
+  opportunityId?: string;
+  chain: "Base";
+  asset: string | null;
+  amountUsd: number;
+  amountAssetEstimate: number | null;
+  status: "planned";
+  requiresWallet: boolean;
+  requiresApproval: boolean;
+  executionAdapterRequired: boolean;
+  informationalOnly: true;
+  preconditions: string[];
+  riskWarnings: string[];
+};
+
+export type ExecutionIntentPlanSummary = {
+  totalIntents: number;
+  executableIntents: number;
+  nonExecutableIntents: number;
+  protocols: string[];
+  assets: string[];
+};
+
+export type ExecutionIntentPlan = {
+  version: "intent-v1";
+  informationalOnly: true;
+  intents: ExecutionIntent[];
+  summary: ExecutionIntentPlanSummary;
+};
+
+export type SnapshotExecutionIntentSummary = {
+  totalIntents: number;
+  executableIntents: number;
+  protocols: string[];
+  assets: string[];
+};
+
 export type MockExecutionPlan = {
   steps: MockExecutionStep[];
   stepsV2: ExecutionPlanStepV2[];
@@ -98,6 +148,7 @@ export type MockExecutionPlan = {
   warnings: ExecutionPlanWarning[];
   explanations: ExecutionPlanExplanation[];
   diagnostics: ExecutionPlanDiagnostics;
+  executionIntentPlan?: ExecutionIntentPlan;
   deltaExecutionPlan?: DeltaExecutionPlan;
 };
 

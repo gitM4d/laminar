@@ -88,6 +88,13 @@ export type SnapshotDeltaExecutionSummary = {
   netDeltaUsd: number;
 };
 
+export type SnapshotExecutionIntentSummary = {
+  totalIntents: number;
+  executableIntents: number;
+  protocols: string[];
+  assets: string[];
+};
+
 export type RecommendationSnapshotSource = {
   recommendationId?: string;
   policyVersion: number;
@@ -107,6 +114,7 @@ export type RecommendationSnapshot = {
   diversificationTradeoffSummary?: SnapshotDiversificationTradeoffSummary;
   executionSummary?: SnapshotExecutionSummary;
   deltaExecutionSummary?: SnapshotDeltaExecutionSummary;
+  executionIntentSummary?: SnapshotExecutionIntentSummary;
   warnings: SnapshotWarning[];
   explanations: SnapshotExplanation[];
   source: RecommendationSnapshotSource;
