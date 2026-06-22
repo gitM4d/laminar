@@ -222,17 +222,49 @@ export type SnapshotExecutionIntentSummary = {
   assets: string[];
 };
 
+export type ExecutionIntentAction =
+  | "prepareFunds"
+  | "supply"
+  | "withdraw"
+  | "holdLiquidityBuffer"
+  | "holdGasReserve";
+
+export type ExecutionIntent = {
+  id: string;
+  sourceStepId: string;
+  action: ExecutionIntentAction;
+  protocolId: string | null;
+  protocolName: string | null;
+  opportunityId?: string;
+  chain: "Base";
+  asset: string | null;
+  amountUsd: number;
+  amountAssetEstimate: number | null;
+  status: "planned";
+  requiresWallet: boolean;
+  requiresApproval: boolean;
+  executionAdapterRequired: boolean;
+  informationalOnly: true;
+  preconditions: string[];
+  riskWarnings: string[];
+};
+
+export type ExecutionIntentPlanSummary = SnapshotExecutionIntentSummary & {
+  nonExecutableIntents: number;
+};
+
+export type ExecutionIntentPlan = {
+  version: "intent-v1";
+  informationalOnly: true;
+  intents: ExecutionIntent[];
+  summary: ExecutionIntentPlanSummary;
+};
+
 export type MockExecutionPlan = {
   steps: MockExecutionStep[];
   stepsV2?: ExecutionPlanStepV2[];
   executionPlanVersion?: "v1" | "v2";
-  executionIntentPlan?: {
-    version: "intent-v1";
-    informationalOnly: true;
-    summary: SnapshotExecutionIntentSummary & {
-      nonExecutableIntents: number;
-    };
-  };
+  executionIntentPlan?: ExecutionIntentPlan;
   warnings: SnapshotWarning[];
   explanations: { topic: string; summary: string }[];
 };

@@ -9,7 +9,11 @@
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "noEmit": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@laminar/*": ["../src/*"]
+    }
   },
   "include": ["src"]
 }

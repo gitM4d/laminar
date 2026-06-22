@@ -7,6 +7,11 @@ const frontendRoot = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: frontendRoot,
+  resolve: {
+    alias: {
+      "@laminar": fileURLToPath(new URL("../src", import.meta.url)),
+    },
+  },
   plugins: [react()],
   server: {
     port: 5173,

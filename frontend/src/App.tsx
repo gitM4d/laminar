@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ApiRequestError, createRecommendation } from "./api/client.js";
 import { ErrorView } from "./components/ErrorView.js";
 import { ExecutionPlanView } from "./components/ExecutionPlanView.js";
+import { WalletPreviewView } from "./components/WalletPreviewView.js";
 import { IntentForm, type IntentFormValues } from "./components/IntentForm.js";
 import { SnapshotView } from "./components/SnapshotView.js";
 import type { RecommendationResponse } from "./types.js";
@@ -91,6 +92,9 @@ export function App() {
             }
           />
           <ExecutionPlanView executionPlan={result.executionPlan} />
+          <WalletPreviewView
+            executionIntentPlan={result.executionPlan.executionIntentPlan}
+          />
         </div>
       )}
     </main>
