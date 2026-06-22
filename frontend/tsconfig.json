@@ -12,7 +12,7 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "@laminar/*": ["../src/*"]
+      "@laminar/frontend-safe": ["../src/frontend-safe/index.ts"]
     }
   },
   "include": ["src"]

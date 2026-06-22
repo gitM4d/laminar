@@ -1,15 +1,14 @@
-import { AaveExecutionAdapter } from "@laminar/execution-adapters/aave/AaveExecutionAdapter.js";
+import { AaveExecutionAdapter, validateTransactionPlan } from "@laminar/frontend-safe";
 import {
   formatAaveSupplyIntentLabel,
   selectAaveSupplyIntents,
-} from "@laminar/execution-adapters/preview/walletPreviewHelpers.js";
-import { validateTransactionPlan } from "@laminar/execution-adapters/safety/validateTransactionPlan.js";
+} from "@laminar/frontend-safe";
 import type {
   EncodedTransactionRequest,
+  ExecutionIntent,
   TransactionRequestPlan,
-} from "@laminar/execution-adapters/types.js";
-import type { ExecutionIntent } from "@laminar/core/execution/types.js";
-import type { TransactionSafetyValidation } from "@laminar/execution-adapters/safety/types.js";
+  TransactionSafetyValidation,
+} from "@laminar/frontend-safe";
 
 export type AaveWalletIntentPreview = {
   intentLabel: string;

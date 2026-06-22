@@ -10,7 +10,7 @@ import {
   isBaseChainId,
   selectAaveSupplyIntents,
   shortenAddress,
-} from "@laminar/execution-adapters/preview/walletPreviewHelpers.js";
+} from "@laminar/frontend-safe";
 import {
   buildAaveWalletPreviews,
   type AaveWalletIntentPreview,

@@ -9,7 +9,9 @@ export default defineConfig({
   root: frontendRoot,
   resolve: {
     alias: {
-      "@laminar": fileURLToPath(new URL("../src", import.meta.url)),
+      "@laminar/frontend-safe": fileURLToPath(
+        new URL("../src/frontend-safe/index.ts", import.meta.url),
+      ),
     },
   },
   plugins: [react()],

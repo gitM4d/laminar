@@ -79,6 +79,18 @@ npm run frontend
 
 Frontend URL: `http://127.0.0.1:5173`
 
+### Frontend-safe shared boundary
+
+The frontend imports shared execution preview code **only** through
+`@laminar/frontend-safe` (see `src/frontend-safe/index.ts`). That entrypoint
+re-exports browser-safe wallet preview helpers, Aave calldata preview, and
+transaction safety validation.
+
+Backend modules (providers, API server, CLI tools, env config, RPC construction)
+are **not** frontend-safe and must not be imported from `frontend/src`. A
+Vitest guard (`src/tools/frontendImportBoundary.test.ts`) scans frontend imports
+to prevent accidental bundling of server-only code.
+
 Build the frontend:
 
 ```bash
@@ -664,6 +676,7 @@ Limitations:
 
 ```text
 src/core/     Domain pipeline and public core API
+src/frontend-safe/  Browser-safe re-exports for wallet preview (frontend only)
 src/core/providers/  Read-only data provider interfaces (mock default)
 src/adapters/ Read-only protocol adapters (Aave + Morpho + Moonwell + Fluid Base spikes, experimental)
 src/api/      Local HTTP API
