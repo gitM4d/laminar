@@ -15,6 +15,7 @@ import {
   buildAaveWalletPreviews,
   type AaveWalletIntentPreview,
 } from "../preview/buildAaveWalletPreviews.js";
+import { TransactionSimulationPreview } from "./TransactionSimulationPreview.js";
 import type { ExecutionIntentPlan } from "../types.js";
 import { wagmiConfig } from "../wallet/wagmiConfig.js";
 
@@ -260,6 +261,13 @@ export function WalletPreviewView({
               </ul>
             )}
           </div>
+
+          <TransactionSimulationPreview
+            preview={preview}
+            walletAddress={address}
+            enabled={isConnected}
+            onBaseChain={onBaseChain}
+          />
         </article>
       ))}
 

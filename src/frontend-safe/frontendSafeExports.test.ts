@@ -27,6 +27,7 @@ const FORBIDDEN_SOURCE_PATH_SEGMENTS = [
 const REQUIRED_EXPORT_NAMES = [
   "AaveExecutionAdapter",
   "validateTransactionPlan",
+  "simulateTransactionPlan",
   "selectAaveSupplyIntents",
   "formatShortTxData",
   "shortenAddress",

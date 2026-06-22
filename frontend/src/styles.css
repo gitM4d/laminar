@@ -315,3 +315,22 @@ code {
 .wallet-preview-footnote {
   margin-top: 1rem;
 }
+
+.wallet-preview-simulation {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.wallet-preview-simulation-summary p {
+  margin: 0.15rem 0;
+}
+
+.wallet-preview-simulation-results {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.wallet-preview-simulation-results li {
+  margin-bottom: 0.75rem;
+}

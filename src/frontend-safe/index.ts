@@ -14,6 +14,11 @@ export type { BuildAaveSupplyCalldataInput } from "../execution-adapters/aave/bu
 export { validateTransactionPlan } from "../execution-adapters/safety/validateTransactionPlan.js";
 
 export {
+  MissingWalletAddressError,
+  simulateTransactionPlan,
+} from "../execution-adapters/simulation/simulateTransactionPlan.js";
+
+export {
   BASE_CHAIN_ID,
   formatAaveSupplyIntentLabel,
   formatShortTxData,
@@ -35,3 +40,18 @@ export type {
   TransactionSafetyIssue,
   TransactionSafetyValidation,
 } from "../execution-adapters/safety/types.js";
+
+export type {
+  SimulateTransactionPlanInput,
+  SimulatedTransactionResult,
+  SimulationPublicClient,
+  TransactionSimulationResult,
+  TransactionSimulationSummary,
+} from "../execution-adapters/simulation/types.js";
+
+export {
+  MISSING_WALLET_ADDRESS_ERROR_CODE,
+  NO_ENCODED_TRANSACTIONS_ERROR_CODE,
+  SAFETY_VALIDATION_SKIP_REASON,
+  SUPPLY_ALLOWANCE_SIMULATION_HINT,
+} from "../execution-adapters/simulation/types.js";
