@@ -101,8 +101,8 @@ export function WalletPreviewView({
     <section className="card wallet-preview">
       <h2>Wallet Preview</h2>
       <p className="notice">
-        Preview and limited approval execution only. Supply execution remains
-        disabled. Review wallet prompts carefully before confirming.
+        Preview, approval, and controlled supply execution. Review wallet prompts
+        carefully before confirming each step.
       </p>
 
       <div className="wallet-preview-controls">
@@ -198,8 +198,8 @@ export function WalletPreviewView({
 
       {previews.length > 0 && (
         <p className="muted wallet-preview-footnote">
-          Note: Only ERC20 approve can be executed in this sprint. Supply
-          execution is disabled.
+          Note: Approve and supply are separate user-triggered steps. There is no
+          Execute All button and supply never runs automatically after approve.
         </p>
       )}
     </section>

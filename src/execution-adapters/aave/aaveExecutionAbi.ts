@@ -27,3 +27,4 @@ export const AAVE_POOL_SUPPLY_ABI = [
 ] as const;
 
 export const ERC20_APPROVE_SELECTOR = "0x095ea7b3";
+export const AAVE_POOL_SUPPLY_SELECTOR = "0x617ba037";

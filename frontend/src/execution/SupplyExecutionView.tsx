@@ -11,22 +11,25 @@ import {
 } from "@laminar/frontend-safe";
 import {
   buildBaseScanTransactionUrl,
-  formatApprovalAmount,
-  getApprovalExecutionEligibility,
-  getAavePoolSpenderAddress,
 } from "./approvalExecutionGuards.js";
+import {
+  formatSupplyAmount,
+  getAavePoolAddress,
+  getSupplyExecutionEligibility,
+} from "./supplyExecutionGuards.js";
 
-type ApprovalExecutionViewProps = {
+type SupplyExecutionViewProps = {
   plan: TransactionRequestPlan;
   safetyValidation: TransactionSafetyValidation;
   simulationResult: TransactionSimulationResult | null;
   simulationLoading: boolean;
   chainId: number | undefined;
   walletConnected: boolean;
-  onApprovalConfirmed: () => void;
+  approvalConfirmed: boolean;
+  onSupplyConfirmed: () => void;
 };
 
-type ApprovalExecutionPhase =
+type SupplyExecutionPhase =
   | "idle"
   | "pending_wallet"
   | "submitted"
@@ -42,30 +45,36 @@ function resolveFailureMessage(error: unknown): string {
       normalized.includes("user denied") ||
       normalized.includes("rejected the request")
     ) {
-      return "User rejected the approval transaction.";
+      return "User rejected the supply transaction.";
+    }
+
+    if (normalized.includes("revert")) {
+      return "Supply transaction reverted.";
     }
 
     return error.message;
   }
 
-  return "Unknown wallet error during approval.";
+  return "Unknown wallet error during supply.";
 }
 
-export function ApprovalExecutionView({
+export function SupplyExecutionView({
   plan,
   safetyValidation,
   simulationResult,
   simulationLoading,
   chainId,
   walletConnected,
-  onApprovalConfirmed,
-}: ApprovalExecutionViewProps) {
-  const eligibility = getApprovalExecutionEligibility({
+  approvalConfirmed,
+  onSupplyConfirmed,
+}: SupplyExecutionViewProps) {
+  const eligibility = getSupplyExecutionEligibility({
     plan,
     safetyValidation,
     simulationResult,
     chainId,
     walletConnected,
+    approvalConfirmed,
   });
   const {
     sendTransactionAsync,
@@ -82,14 +91,14 @@ export function ApprovalExecutionView({
   } = useWaitForTransactionReceipt({
     hash: transactionHash,
   });
-  const [phase, setPhase] = useState<ApprovalExecutionPhase>("idle");
+  const [phase, setPhase] = useState<SupplyExecutionPhase>("idle");
   const [localError, setLocalError] = useState<string | null>(null);
   const [confirmedHash, setConfirmedHash] = useState<string | null>(null);
   const hasReportedConfirmation = useRef(false);
 
-  const approveTransaction =
-    eligibility.approveTransactionIndex !== undefined
-      ? plan.encodedTransactions?.[eligibility.approveTransactionIndex]
+  const supplyTransaction =
+    eligibility.supplyTransactionIndex !== undefined
+      ? plan.encodedTransactions?.[eligibility.supplyTransactionIndex]
       : undefined;
 
   useEffect(() => {
@@ -102,9 +111,9 @@ export function ApprovalExecutionView({
       hasReportedConfirmation.current = true;
       setPhase("confirmed");
       setConfirmedHash(transactionHash);
-      onApprovalConfirmed();
+      onSupplyConfirmed();
     }
-  }, [isReceiptSuccess, onApprovalConfirmed, phase, transactionHash]);
+  }, [isReceiptSuccess, onSupplyConfirmed, phase, transactionHash]);
 
   useEffect(() => {
     if (isReceiptError) {
@@ -120,8 +129,8 @@ export function ApprovalExecutionView({
     }
   }, [phase, sendError]);
 
-  async function handleApproveClick() {
-    if (!eligibility.eligible || approveTransaction === undefined) {
+  async function handleSupplyClick() {
+    if (!eligibility.eligible || supplyTransaction === undefined) {
       return;
     }
 
@@ -131,8 +140,8 @@ export function ApprovalExecutionView({
 
     try {
       await sendTransactionAsync({
-        to: approveTransaction.to as `0x${string}`,
-        data: approveTransaction.data,
+        to: supplyTransaction.to as `0x${string}`,
+        data: supplyTransaction.data,
         value: 0n,
         chainId: BASE_CHAIN_ID,
       });
@@ -146,17 +155,17 @@ export function ApprovalExecutionView({
   const activeHash = confirmedHash ?? transactionHash;
   const showReadyButton =
     eligibility.eligible &&
-    approveTransaction !== undefined &&
+    supplyTransaction !== undefined &&
     phase !== "confirmed" &&
     !isSending &&
     !isConfirming;
 
   return (
-    <div className="wallet-preview-approval">
-      <h4>Approval Execution</h4>
+    <div className="wallet-preview-supply">
+      <h4>Supply Execution</h4>
 
       {!walletConnected && (
-        <p className="muted wallet-preview-message">Connect wallet to approve.</p>
+        <p className="muted wallet-preview-message">Connect wallet to supply.</p>
       )}
 
       {walletConnected && eligibility.reasonCode === "WRONG_CHAIN" && (
@@ -165,58 +174,68 @@ export function ApprovalExecutionView({
         </p>
       )}
 
+      {walletConnected && eligibility.reasonCode === "SAFETY_FAILED" && (
+        <p className="wallet-preview-message">{eligibility.reasonMessage}</p>
+      )}
+
       {walletConnected &&
-        eligibility.reasonCode === "SAFETY_FAILED" && (
+        eligibility.reasonCode === "APPROVAL_NOT_CONFIRMED" && (
           <p className="wallet-preview-message">{eligibility.reasonMessage}</p>
         )}
 
       {walletConnected &&
-        eligibility.reasonCode === "APPROVE_SIMULATION_FAILED" &&
+        eligibility.reasonCode === "SUPPLY_SIMULATION_FAILED" &&
         !simulationLoading && (
-          <p className="wallet-preview-message">{eligibility.reasonMessage}</p>
+          <>
+            <p className="wallet-preview-message">{eligibility.reasonMessage}</p>
+            {eligibility.supplySimulationErrorMessage !== undefined && (
+              <p className="wallet-preview-error wallet-preview-message">
+                {eligibility.supplySimulationErrorMessage}
+              </p>
+            )}
+          </>
         )}
 
       {walletConnected &&
         eligibility.reasonCode !== "WRONG_CHAIN" &&
         eligibility.reasonCode !== "WALLET_NOT_CONNECTED" &&
         eligibility.reasonCode !== "SAFETY_FAILED" &&
-        eligibility.reasonCode !== "APPROVE_SIMULATION_FAILED" &&
+        eligibility.reasonCode !== "APPROVAL_NOT_CONFIRMED" &&
+        eligibility.reasonCode !== "SUPPLY_SIMULATION_FAILED" &&
         !eligibility.eligible &&
         eligibility.reasonMessage !== undefined && (
           <p className="wallet-preview-message">{eligibility.reasonMessage}</p>
         )}
 
-      {showReadyButton && approveTransaction !== undefined && (
+      {showReadyButton && supplyTransaction !== undefined && (
         <>
-          <ul className="wallet-preview-approval-details">
+          <ul className="wallet-preview-supply-details">
             <li>
-              Amount: {formatApprovalAmount(approveTransaction.amountUsd)}
+              Amount: {formatSupplyAmount(supplyTransaction.amountUsd)}
             </li>
-            <li>Token: {approveTransaction.asset}</li>
+            <li>Asset: {supplyTransaction.asset}</li>
             <li>
-              Spender: Aave Pool ({getAavePoolSpenderAddress().slice(0, 6)}...
-              {getAavePoolSpenderAddress().slice(-4)})
+              Protocol: Aave ({getAavePoolAddress().slice(0, 6)}...
+              {getAavePoolAddress().slice(-4)})
             </li>
           </ul>
 
-          <div className="wallet-preview-approval-warnings">
-            <p>This only approves token spending. It does not deposit funds.</p>
-            <p>Approval amount is limited to the previewed amount.</p>
-            <p>Review the transaction in your wallet before confirming.</p>
-            <p>
-              This approves Aave Pool to spend this exact amount. No funds are
-              deposited yet.
-            </p>
+          <div className="wallet-preview-supply-warnings">
+            <p>This transaction deposits funds into Aave.</p>
+            <p>This is a real transaction, not a simulation.</p>
+            <p>Approval was confirmed before this step.</p>
+            <p>Supply simulation succeeded before enabling this button.</p>
+            <p>Review your wallet transaction before confirming.</p>
           </div>
 
           <button
             type="button"
-            className="button wallet-preview-approve-button"
+            className="button wallet-preview-supply-button"
             onClick={() => {
-              void handleApproveClick();
+              void handleSupplyClick();
             }}
           >
-            Approve {approveTransaction.asset}
+            Supply {supplyTransaction.asset} to Aave
           </button>
         </>
       )}
@@ -228,7 +247,7 @@ export function ApprovalExecutionView({
       )}
 
       {activeHash !== undefined && activeHash !== null && phase !== "failed" && (
-        <div className="wallet-preview-approval-status">
+        <div className="wallet-preview-supply-status">
           <p>
             Transaction hash: <code>{activeHash}</code>
           </p>
@@ -249,8 +268,21 @@ export function ApprovalExecutionView({
         </div>
       )}
 
-      {phase === "confirmed" && (
-        <p className="status wallet-preview-message">Approval confirmed.</p>
+      {phase === "confirmed" && supplyTransaction !== undefined && (
+        <div className="wallet-preview-supply-completed">
+          <p className="status wallet-preview-message">
+            Supply confirmed. Deposit completed.
+          </p>
+          <ul className="wallet-preview-supply-details">
+            <li>Asset: {supplyTransaction.asset}</li>
+            <li>Amount: {formatSupplyAmount(supplyTransaction.amountUsd)}</li>
+            <li>Protocol: Aave</li>
+            <li>
+              Transaction hash: <code>{confirmedHash ?? activeHash}</code>
+            </li>
+            <li>Receipt status: confirmed</li>
+          </ul>
+        </div>
       )}
 
       {phase === "failed" && localError !== null && (

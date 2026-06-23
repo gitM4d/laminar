@@ -19,7 +19,10 @@ export {
   isAaveExecutionSupportedAsset,
 } from "../execution-adapters/aave/aaveExecutionConfig.js";
 
-export { ERC20_APPROVE_SELECTOR } from "../execution-adapters/aave/aaveExecutionAbi.js";
+export {
+  AAVE_POOL_SUPPLY_SELECTOR,
+  ERC20_APPROVE_SELECTOR,
+} from "../execution-adapters/aave/aaveExecutionAbi.js";
 
 export {
   MissingWalletAddressError,

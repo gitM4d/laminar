@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import {
   formatShortTxData,
   shortenAddress,
@@ -5,6 +6,7 @@ import {
 import type { AaveWalletIntentPreview } from "../preview/buildAaveWalletPreviews.js";
 import { useAaveTransactionSimulation } from "../preview/useAaveTransactionSimulation.js";
 import { ApprovalExecutionView } from "../execution/ApprovalExecutionView.js";
+import { SupplyExecutionView } from "../execution/SupplyExecutionView.js";
 import { TransactionSimulationPreview } from "./TransactionSimulationPreview.js";
 
 type AaveIntentPreviewPanelProps = {
@@ -26,6 +28,9 @@ export function AaveIntentPreviewPanel({
   onBaseChain,
   chainId,
 }: AaveIntentPreviewPanelProps) {
+  const [approvalConfirmed, setApprovalConfirmed] = useState(false);
+  const [supplyConfirmed, setSupplyConfirmed] = useState(false);
+
   const canSimulate =
     isConnected &&
     onBaseChain &&
@@ -44,6 +49,15 @@ export function AaveIntentPreviewPanel({
     walletAddress,
     enabled: canSimulate,
   });
+
+  const handleApprovalConfirmed = useCallback(() => {
+    setApprovalConfirmed(true);
+    rerunSimulation();
+  }, [rerunSimulation]);
+
+  const handleSupplyConfirmed = useCallback(() => {
+    setSupplyConfirmed(true);
+  }, []);
 
   return (
     <article className="wallet-preview-intent">
@@ -133,8 +147,25 @@ export function AaveIntentPreviewPanel({
         simulationLoading={simulationLoading}
         chainId={chainId}
         walletConnected={isConnected}
-        onApprovalConfirmed={rerunSimulation}
+        onApprovalConfirmed={handleApprovalConfirmed}
       />
+
+      <SupplyExecutionView
+        plan={preview.plan}
+        safetyValidation={preview.safety}
+        simulationResult={simulation}
+        simulationLoading={simulationLoading}
+        chainId={chainId}
+        walletConnected={isConnected}
+        approvalConfirmed={approvalConfirmed}
+        onSupplyConfirmed={handleSupplyConfirmed}
+      />
+
+      {supplyConfirmed && (
+        <p className="status wallet-preview-message">
+          Aave deposit flow completed for this preview.
+        </p>
+      )}
     </article>
   );
 }
