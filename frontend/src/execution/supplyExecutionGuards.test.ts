@@ -124,6 +124,7 @@ function evaluate(
     chainId: BASE_CHAIN_ID,
     walletConnected: true,
     approvalConfirmed: true,
+    allowanceSufficient: false,
     ...overrides,
   });
 }
@@ -175,10 +176,31 @@ describe("supplyExecutionGuards", () => {
     expect(result.reasonCode).toBe("MULTIPLE_SUPPLY_TRANSACTIONS");
   });
 
-  it("returns ineligible when approval is not confirmed", () => {
-    const result = evaluate({ approvalConfirmed: false });
+  it("returns ineligible when approval and allowance are both insufficient", () => {
+    const result = evaluate({
+      approvalConfirmed: false,
+      allowanceSufficient: false,
+    });
     expect(result.eligible).toBe(false);
-    expect(result.reasonCode).toBe("APPROVAL_NOT_CONFIRMED");
+    expect(result.reasonCode).toBe("ALLOWANCE_NOT_SUFFICIENT");
+  });
+
+  it("returns eligible when approval is confirmed even if allowance is insufficient", () => {
+    const result = evaluate({
+      approvalConfirmed: true,
+      allowanceSufficient: false,
+    });
+    expect(result.eligible).toBe(true);
+    expect(result.reasonCode).toBe("READY");
+  });
+
+  it("returns eligible when allowance is sufficient without approval confirmation", () => {
+    const result = evaluate({
+      approvalConfirmed: false,
+      allowanceSufficient: true,
+    });
+    expect(result.eligible).toBe(true);
+    expect(result.reasonCode).toBe("READY");
   });
 
   it("returns ineligible when supply simulation failed", () => {
@@ -261,6 +283,7 @@ describe("supplyExecutionGuards", () => {
       chainId: BASE_CHAIN_ID,
       walletConnected: true,
       approvalConfirmed: true,
+      allowanceSufficient: false,
     });
 
     expect(approveResult.approveTransactionIndex).toBe(0);

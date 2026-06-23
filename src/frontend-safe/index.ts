@@ -8,7 +8,7 @@
 export { AaveExecutionAdapter } from "../execution-adapters/aave/AaveExecutionAdapter.js";
 export type { AaveExecutionAdapterOptions } from "../execution-adapters/aave/AaveExecutionAdapter.js";
 
-export { buildAaveSupplyCalldata } from "../execution-adapters/aave/buildAaveCalldata.js";
+export { buildAaveSupplyCalldata, toStablecoinRawAmount } from "../execution-adapters/aave/buildAaveCalldata.js";
 export type { BuildAaveSupplyCalldataInput } from "../execution-adapters/aave/buildAaveCalldata.js";
 
 export { validateTransactionPlan } from "../execution-adapters/safety/validateTransactionPlan.js";
@@ -28,6 +28,9 @@ export {
   MissingWalletAddressError,
   simulateTransactionPlan,
 } from "../execution-adapters/simulation/simulateTransactionPlan.js";
+
+export { readErc20Allowance } from "../execution-adapters/allowance/readErc20Allowance.js";
+export { getAaveAllowanceStatus } from "../execution-adapters/aave/getAaveAllowanceStatus.js";
 
 export {
   BASE_CHAIN_ID,
@@ -66,3 +69,6 @@ export {
   SAFETY_VALIDATION_SKIP_REASON,
   SUPPLY_ALLOWANCE_SIMULATION_HINT,
 } from "../execution-adapters/simulation/types.js";
+
+export type { AllowanceStatus } from "../execution-adapters/allowance/types.js";
+export { formatRawTokenAmount } from "../execution-adapters/allowance/types.js";

@@ -406,3 +406,14 @@ code {
 .wallet-preview-supply-completed p {
   margin: 0.25rem 0;
 }
+
+.wallet-preview-allowance {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.wallet-preview-allowance-details {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}

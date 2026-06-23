@@ -28,6 +28,8 @@ const REQUIRED_EXPORT_NAMES = [
   "AaveExecutionAdapter",
   "validateTransactionPlan",
   "simulateTransactionPlan",
+  "getAaveAllowanceStatus",
+  "readErc20Allowance",
   "selectAaveSupplyIntents",
   "formatShortTxData",
   "shortenAddress",

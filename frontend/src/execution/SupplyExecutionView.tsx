@@ -26,6 +26,7 @@ type SupplyExecutionViewProps = {
   chainId: number | undefined;
   walletConnected: boolean;
   approvalConfirmed: boolean;
+  allowanceSufficient: boolean;
   onSupplyConfirmed: () => void;
 };
 
@@ -66,6 +67,7 @@ export function SupplyExecutionView({
   chainId,
   walletConnected,
   approvalConfirmed,
+  allowanceSufficient,
   onSupplyConfirmed,
 }: SupplyExecutionViewProps) {
   const eligibility = getSupplyExecutionEligibility({
@@ -75,6 +77,7 @@ export function SupplyExecutionView({
     chainId,
     walletConnected,
     approvalConfirmed,
+    allowanceSufficient,
   });
   const {
     sendTransactionAsync,
@@ -179,7 +182,7 @@ export function SupplyExecutionView({
       )}
 
       {walletConnected &&
-        eligibility.reasonCode === "APPROVAL_NOT_CONFIRMED" && (
+        eligibility.reasonCode === "ALLOWANCE_NOT_SUFFICIENT" && (
           <p className="wallet-preview-message">{eligibility.reasonMessage}</p>
         )}
 
@@ -200,7 +203,7 @@ export function SupplyExecutionView({
         eligibility.reasonCode !== "WRONG_CHAIN" &&
         eligibility.reasonCode !== "WALLET_NOT_CONNECTED" &&
         eligibility.reasonCode !== "SAFETY_FAILED" &&
-        eligibility.reasonCode !== "APPROVAL_NOT_CONFIRMED" &&
+        eligibility.reasonCode !== "ALLOWANCE_NOT_SUFFICIENT" &&
         eligibility.reasonCode !== "SUPPLY_SIMULATION_FAILED" &&
         !eligibility.eligible &&
         eligibility.reasonMessage !== undefined && (
@@ -223,7 +226,11 @@ export function SupplyExecutionView({
           <div className="wallet-preview-supply-warnings">
             <p>This transaction deposits funds into Aave.</p>
             <p>This is a real transaction, not a simulation.</p>
-            <p>Approval was confirmed before this step.</p>
+            <p>
+              {approvalConfirmed
+                ? "Approval was confirmed before this step."
+                : "Existing on-chain allowance is sufficient for this amount."}
+            </p>
             <p>Supply simulation succeeded before enabling this button.</p>
             <p>Review your wallet transaction before confirming.</p>
           </div>

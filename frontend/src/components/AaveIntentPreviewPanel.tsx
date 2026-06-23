@@ -1,12 +1,17 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   formatShortTxData,
   shortenAddress,
 } from "@laminar/frontend-safe";
 import type { AaveWalletIntentPreview } from "../preview/buildAaveWalletPreviews.js";
 import { useAaveTransactionSimulation } from "../preview/useAaveTransactionSimulation.js";
+import {
+  isAllowanceSufficient,
+  useAaveAllowanceStatus,
+} from "../preview/useAaveAllowanceStatus.js";
 import { ApprovalExecutionView } from "../execution/ApprovalExecutionView.js";
 import { SupplyExecutionView } from "../execution/SupplyExecutionView.js";
+import { AllowanceStatusView } from "./AllowanceStatusView.js";
 import { TransactionSimulationPreview } from "./TransactionSimulationPreview.js";
 
 type AaveIntentPreviewPanelProps = {
@@ -31,6 +36,14 @@ export function AaveIntentPreviewPanel({
   const [approvalConfirmed, setApprovalConfirmed] = useState(false);
   const [supplyConfirmed, setSupplyConfirmed] = useState(false);
 
+  const supplyTransaction = useMemo(
+    () =>
+      preview.encodedTransactions.find(
+        (transaction) => transaction.type === "aave-supply",
+      ),
+    [preview.encodedTransactions],
+  );
+
   const canSimulate =
     isConnected &&
     onBaseChain &&
@@ -50,10 +63,31 @@ export function AaveIntentPreviewPanel({
     enabled: canSimulate,
   });
 
+  const {
+    status: allowanceStatus,
+    loading: allowanceLoading,
+    error: allowanceError,
+    refetch: refetchAllowance,
+    publicClientAvailable: allowancePublicClientAvailable,
+  } = useAaveAllowanceStatus({
+    walletAddress,
+    chainId,
+    asset: supplyTransaction?.asset,
+    amountUsd: supplyTransaction?.amountUsd,
+    enabled:
+      isConnected &&
+      onBaseChain &&
+      supplyTransaction !== undefined &&
+      walletAddress !== undefined,
+  });
+
+  const allowanceSufficient = isAllowanceSufficient(allowanceStatus);
+
   const handleApprovalConfirmed = useCallback(() => {
     setApprovalConfirmed(true);
     rerunSimulation();
-  }, [rerunSimulation]);
+    refetchAllowance();
+  }, [refetchAllowance, rerunSimulation]);
 
   const handleSupplyConfirmed = useCallback(() => {
     setSupplyConfirmed(true);
@@ -140,6 +174,15 @@ export function AaveIntentPreviewPanel({
         publicClientAvailable={publicClientAvailable}
       />
 
+      <AllowanceStatusView
+        status={allowanceStatus}
+        loading={allowanceLoading}
+        error={allowanceError}
+        enabled={isConnected}
+        onBaseChain={onBaseChain}
+        publicClientAvailable={allowancePublicClientAvailable}
+      />
+
       <ApprovalExecutionView
         plan={preview.plan}
         safetyValidation={preview.safety}
@@ -147,6 +190,7 @@ export function AaveIntentPreviewPanel({
         simulationLoading={simulationLoading}
         chainId={chainId}
         walletConnected={isConnected}
+        allowanceSufficient={allowanceSufficient}
         onApprovalConfirmed={handleApprovalConfirmed}
       />
 
@@ -158,6 +202,7 @@ export function AaveIntentPreviewPanel({
         chainId={chainId}
         walletConnected={isConnected}
         approvalConfirmed={approvalConfirmed}
+        allowanceSufficient={allowanceSufficient}
         onSupplyConfirmed={handleSupplyConfirmed}
       />
 

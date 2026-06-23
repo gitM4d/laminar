@@ -23,6 +23,7 @@ type ApprovalExecutionViewProps = {
   simulationLoading: boolean;
   chainId: number | undefined;
   walletConnected: boolean;
+  allowanceSufficient: boolean;
   onApprovalConfirmed: () => void;
 };
 
@@ -58,6 +59,7 @@ export function ApprovalExecutionView({
   simulationLoading,
   chainId,
   walletConnected,
+  allowanceSufficient,
   onApprovalConfirmed,
 }: ApprovalExecutionViewProps) {
   const eligibility = getApprovalExecutionEligibility({
@@ -147,6 +149,7 @@ export function ApprovalExecutionView({
   const showReadyButton =
     eligibility.eligible &&
     approveTransaction !== undefined &&
+    !allowanceSufficient &&
     phase !== "confirmed" &&
     !isSending &&
     !isConfirming;
@@ -184,6 +187,14 @@ export function ApprovalExecutionView({
         !eligibility.eligible &&
         eligibility.reasonMessage !== undefined && (
           <p className="wallet-preview-message">{eligibility.reasonMessage}</p>
+        )}
+
+      {walletConnected &&
+        allowanceSufficient &&
+        phase !== "confirmed" && (
+          <p className="status wallet-preview-message">
+            Approval already sufficient.
+          </p>
         )}
 
       {showReadyButton && approveTransaction !== undefined && (

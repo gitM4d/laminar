@@ -17,7 +17,7 @@ export type SupplyExecutionReasonCode =
   | "SAFETY_FAILED"
   | "NO_SUPPLY_TRANSACTION"
   | "MULTIPLE_SUPPLY_TRANSACTIONS"
-  | "APPROVAL_NOT_CONFIRMED"
+  | "ALLOWANCE_NOT_SUFFICIENT"
   | "SUPPLY_SIMULATION_FAILED"
   | "INVALID_SUPPLY_TRANSACTION"
   | "READY";
@@ -37,6 +37,7 @@ export type SupplyExecutionEligibilityInput = {
   chainId: number | undefined;
   walletConnected: boolean;
   approvalConfirmed: boolean;
+  allowanceSufficient: boolean;
 };
 
 const FORBIDDEN_EXECUTION_FIELDS = [
@@ -113,6 +114,7 @@ export function getSupplyExecutionEligibility(
     chainId,
     walletConnected,
     approvalConfirmed,
+    allowanceSufficient,
   } = input;
 
   if (!walletConnected) {
@@ -149,11 +151,12 @@ export function getSupplyExecutionEligibility(
     };
   }
 
-  if (!approvalConfirmed) {
+  if (!approvalConfirmed && !allowanceSufficient) {
     return {
       eligible: false,
-      reasonCode: "APPROVAL_NOT_CONFIRMED",
-      reasonMessage: "Supply disabled until approval is confirmed.",
+      reasonCode: "ALLOWANCE_NOT_SUFFICIENT",
+      reasonMessage:
+        "Supply requires a confirmed approval or sufficient existing allowance.",
     };
   }
 
