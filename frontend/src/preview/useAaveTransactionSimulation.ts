@@ -10,6 +10,7 @@ type UseAaveTransactionSimulationOptions = {
   plan: TransactionRequestPlan | undefined;
   walletAddress: string | undefined;
   enabled: boolean;
+  refreshKey?: number;
 };
 
 type UseAaveTransactionSimulationResult = {
@@ -17,12 +18,14 @@ type UseAaveTransactionSimulationResult = {
   loading: boolean;
   error: string | null;
   publicClientAvailable: boolean;
+  rerunSimulation: () => void;
 };
 
 export function useAaveTransactionSimulation({
   plan,
   walletAddress,
   enabled,
+  refreshKey = 0,
 }: UseAaveTransactionSimulationOptions): UseAaveTransactionSimulationResult {
   const publicClient = usePublicClient();
   const [simulation, setSimulation] = useState<TransactionSimulationResult | null>(
@@ -30,6 +33,7 @@ export function useAaveTransactionSimulation({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [internalRefreshKey, setInternalRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!enabled || plan === undefined || walletAddress === undefined) {
@@ -83,12 +87,22 @@ export function useAaveTransactionSimulation({
     return () => {
       cancelled = true;
     };
-  }, [enabled, plan, publicClient, walletAddress]);
+  }, [
+    enabled,
+    internalRefreshKey,
+    plan,
+    publicClient,
+    refreshKey,
+    walletAddress,
+  ]);
 
   return {
     simulation,
     loading,
     error,
     publicClientAvailable: publicClient !== undefined,
+    rerunSimulation: () => {
+      setInternalRefreshKey((current) => current + 1);
+    },
   };
 }

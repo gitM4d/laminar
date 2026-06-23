@@ -334,3 +334,38 @@ code {
 .wallet-preview-simulation-results li {
   margin-bottom: 0.75rem;
 }
+
+.wallet-preview-approval {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.wallet-preview-approval-details {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.wallet-preview-approval-warnings {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.wallet-preview-approval-warnings p {
+  margin: 0.2rem 0;
+}
+
+.wallet-preview-approve-button {
+  margin-top: 0.75rem;
+}
+
+.wallet-preview-approval-status {
+  margin-top: 0.75rem;
+}
+
+.wallet-preview-approval-status p {
+  margin: 0.25rem 0;
+}

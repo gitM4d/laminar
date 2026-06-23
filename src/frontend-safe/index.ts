@@ -14,6 +14,14 @@ export type { BuildAaveSupplyCalldataInput } from "../execution-adapters/aave/bu
 export { validateTransactionPlan } from "../execution-adapters/safety/validateTransactionPlan.js";
 
 export {
+  AAVE_V3_BASE_EXECUTION_CONFIG,
+  getAaveExecutionAssetConfig,
+  isAaveExecutionSupportedAsset,
+} from "../execution-adapters/aave/aaveExecutionConfig.js";
+
+export { ERC20_APPROVE_SELECTOR } from "../execution-adapters/aave/aaveExecutionAbi.js";
+
+export {
   MissingWalletAddressError,
   simulateTransactionPlan,
 } from "../execution-adapters/simulation/simulateTransactionPlan.js";

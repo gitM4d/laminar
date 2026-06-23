@@ -4,14 +4,16 @@ import {
   type TransactionSafetyValidation,
   type TransactionSimulationResult,
 } from "@laminar/frontend-safe";
-import { useAaveTransactionSimulation } from "../preview/useAaveTransactionSimulation.js";
 import type { AaveWalletIntentPreview } from "../preview/buildAaveWalletPreviews.js";
 
 type TransactionSimulationPreviewProps = {
   preview: AaveWalletIntentPreview;
-  walletAddress: string | undefined;
   enabled: boolean;
   onBaseChain: boolean;
+  simulation: TransactionSimulationResult | null;
+  simulationLoading: boolean;
+  simulationError: string | null;
+  publicClientAvailable: boolean;
 };
 
 function renderSimulationMessage(
@@ -41,23 +43,19 @@ function renderSimulationMessage(
 
 export function TransactionSimulationPreview({
   preview,
-  walletAddress,
   enabled,
   onBaseChain,
+  simulation,
+  simulationLoading,
+  simulationError,
+  publicClientAvailable,
 }: TransactionSimulationPreviewProps) {
   const canSimulate =
     enabled &&
     onBaseChain &&
-    walletAddress !== undefined &&
     preview.safety.safe &&
-    preview.encodedTransactions.length > 0;
-
-  const { simulation, loading, error, publicClientAvailable } =
-    useAaveTransactionSimulation({
-      plan: preview.plan,
-      walletAddress,
-      enabled: canSimulate,
-    });
+    preview.encodedTransactions.length > 0 &&
+    publicClientAvailable;
 
   const blockedMessage = enabled
     ? renderSimulationMessage(
@@ -80,17 +78,19 @@ export function TransactionSimulationPreview({
         <p className="wallet-preview-message">{blockedMessage}</p>
       )}
 
-      {enabled && canSimulate && loading && (
+      {enabled && canSimulate && simulationLoading && (
         <p className="status wallet-preview-message">
           Simulating transactions...
         </p>
       )}
 
-      {enabled && canSimulate && error !== null && (
-        <p className="wallet-preview-error wallet-preview-message">{error}</p>
+      {enabled && canSimulate && simulationError !== null && (
+        <p className="wallet-preview-error wallet-preview-message">
+          {simulationError}
+        </p>
       )}
 
-      {enabled && canSimulate && simulation !== null && (
+      {enabled && canSimulate && simulation !== null && !simulationLoading && (
         <>
           <div className="wallet-preview-simulation-summary">
             <p>

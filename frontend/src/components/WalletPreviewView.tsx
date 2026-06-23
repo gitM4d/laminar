@@ -6,26 +6,19 @@ import {
   useDisconnect,
 } from "wagmi";
 import {
-  formatShortTxData,
   isBaseChainId,
   selectAaveSupplyIntents,
-  shortenAddress,
 } from "@laminar/frontend-safe";
 import {
   buildAaveWalletPreviews,
-  type AaveWalletIntentPreview,
 } from "../preview/buildAaveWalletPreviews.js";
-import { TransactionSimulationPreview } from "./TransactionSimulationPreview.js";
+import { AaveIntentPreviewPanel } from "./AaveIntentPreviewPanel.js";
 import type { ExecutionIntentPlan } from "../types.js";
 import { wagmiConfig } from "../wallet/wagmiConfig.js";
 
 type WalletPreviewViewProps = {
   executionIntentPlan: ExecutionIntentPlan | undefined;
 };
-
-function formatSafetyCount(value: number): string {
-  return String(value);
-}
 
 function injectedConnector() {
   const connector = wagmiConfig.connectors[0];
@@ -43,7 +36,7 @@ export function WalletPreviewView({
   const { connect, isPending: isConnecting, error: connectError } =
     useConnect();
   const { disconnect } = useDisconnect();
-  const [previews, setPreviews] = useState<AaveWalletIntentPreview[]>([]);
+  const [previews, setPreviews] = useState<Awaited<ReturnType<typeof buildAaveWalletPreviews>>>([]);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
 
@@ -108,7 +101,8 @@ export function WalletPreviewView({
     <section className="card wallet-preview">
       <h2>Wallet Preview</h2>
       <p className="notice">
-        Preview only. No signing, sending, or transaction submission.
+        Preview and limited approval execution only. Supply execution remains
+        disabled. Review wallet prompts carefully before confirming.
       </p>
 
       <div className="wallet-preview-controls">
@@ -192,88 +186,20 @@ export function WalletPreviewView({
       )}
 
       {previews.map((preview) => (
-        <article key={preview.intent.id} className="wallet-preview-intent">
-          <h3>Aave Transaction Preview</h3>
-          <p>
-            <strong>Intent:</strong> {preview.intentLabel}
-          </p>
-
-          <h4>Transactions</h4>
-          <ol className="wallet-preview-transactions">
-            {preview.encodedTransactions.map((transaction, index) => (
-              <li key={`${preview.intent.id}-${index}`}>
-                <p>
-                  {index + 1}. {transaction.description}
-                </p>
-                <ul className="wallet-preview-tx-details">
-                  <li>
-                    <span>to:</span>{" "}
-                    <code>{shortenAddress(transaction.to)}</code>
-                  </li>
-                  <li>
-                    <span>data:</span>{" "}
-                    <code title={transaction.data}>
-                      {formatShortTxData(transaction.data)}
-                    </code>
-                  </li>
-                  <li>
-                    <span>value:</span> <code>{transaction.value}</code>
-                  </li>
-                  <li>
-                    <span>chainId:</span> <code>{transaction.chainId}</code>
-                  </li>
-                </ul>
-              </li>
-            ))}
-          </ol>
-
-          <div className="wallet-preview-safety">
-            <h4>Safety</h4>
-            <p>
-              safe: <code>{String(preview.safety.safe)}</code>
-            </p>
-            <p>
-              errors:{" "}
-              <code>{formatSafetyCount(preview.safety.errors.length)}</code>
-            </p>
-            <p>
-              warnings:{" "}
-              <code>{formatSafetyCount(preview.safety.warnings.length)}</code>
-            </p>
-
-            {preview.safety.errors.length > 0 && (
-              <ul className="wallet-preview-issues">
-                {preview.safety.errors.map((issue, index) => (
-                  <li key={`error-${preview.intent.id}-${index}`}>
-                    {issue.message}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {preview.safety.warnings.length > 0 && (
-              <ul className="wallet-preview-issues wallet-preview-warnings">
-                {preview.safety.warnings.map((issue, index) => (
-                  <li key={`warning-${preview.intent.id}-${index}`}>
-                    {issue.message}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <TransactionSimulationPreview
-            preview={preview}
-            walletAddress={address}
-            enabled={isConnected}
-            onBaseChain={onBaseChain}
-          />
-        </article>
+        <AaveIntentPreviewPanel
+          key={preview.intent.id}
+          preview={preview}
+          walletAddress={address}
+          isConnected={isConnected}
+          onBaseChain={onBaseChain}
+          chainId={chainId}
+        />
       ))}
 
       {previews.length > 0 && (
         <p className="muted wallet-preview-footnote">
-          Note: Preview only. No transaction was sent.
+          Note: Only ERC20 approve can be executed in this sprint. Supply
+          execution is disabled.
         </p>
       )}
     </section>
