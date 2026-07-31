@@ -672,6 +672,15 @@ Limitations:
 - No rebalancing or deployment infrastructure
 - Frontend is a local UX prototype only (no wallet, auth, or persistence)
 
+## Solidity architecture
+
+Laminar includes a Foundry Solidity foundation under `contracts/` for a non-custodial intent execution layer. `LaminarRouter` validates supply intents, pulls tokens from the user, and delegates to allowlisted protocol adapters. `AaveV3Adapter` supplies into an Aave V3-like pool with exact approvals only. Contracts are local-only today — not deployed and not wired to the TypeScript frontend/API.
+
+```bash
+npm run contracts:build
+npm run contracts:test
+```
+
 ## Project structure
 
 ```text
@@ -682,6 +691,7 @@ src/adapters/ Read-only protocol adapters (Aave + Morpho + Moonwell + Fluid Base
 src/api/      Local HTTP API
 src/demo/     CLI demo
 frontend/     Minimal React prototype UI
+contracts/    Foundry Solidity router + adapter foundation (not deployed)
 docs/api/     HTTP contract and examples
 docs/qa/      Manual sensitivity QA guide and fixtures
 ```

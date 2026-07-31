@@ -2,3 +2,6 @@ node_modules
 dist
 package-lock.json
 frontend/dist
+contracts/lib
+contracts/out
+contracts/cache

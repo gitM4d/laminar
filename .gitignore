@@ -5,3 +5,8 @@ dist/
 .env
 .env.local
 .env.*
+
+# Foundry
+contracts/cache/
+contracts/out/
+contracts/broadcast/

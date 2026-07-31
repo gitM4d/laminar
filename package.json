@@ -31,7 +31,9 @@
     "qa:real": "tsx src/tools/realRecommendationQaCli.ts",
     "sensitivity": "tsx src/tools/recommendationSensitivityMatrix.ts",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "contracts:build": "forge build --root contracts",
+    "contracts:test": "forge test --root contracts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
