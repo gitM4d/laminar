@@ -9,6 +9,7 @@ library LaminarErrors {
     error InvalidRecipient();
     error UnauthorizedIntentCaller(address caller, address user);
     error AdapterNotAllowed(address adapter);
+    error AdapterNotContract(address adapter);
     error ProtocolAdapterMismatch(bytes32 protocolId, address expected, address provided);
     error ProtocolAdapterNotRegistered(bytes32 protocolId);
     error OnlyRouter();

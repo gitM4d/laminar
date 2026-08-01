@@ -16,10 +16,12 @@ import {SupplyIntent} from "./libraries/LaminarTypes.sol";
 /// @notice Non-custodial intent execution router that validates supply intents and
 ///         delegates protocol-specific execution to registered adapters.
 /// @dev Asset flow (v1):
-///      1) Pull tokens from `intent.user` to this router via transferFrom.
-///      2) Transfer exact amount to the allowed adapter.
-///      3) Call adapter.executeSupply(...).
+///      1) Require msg.sender == intent.user.
+///      2) Pull tokens from user to this router via transferFrom.
+///      3) Transfer exact amount to the allowed adapter.
+///      4) Call adapter.executeSupply(...).
 ///      The router never holds user balances across transactions and does not mint shares.
+///      There is no arbitrary target/calldata executor.
 contract LaminarRouter is ILaminarRouter, Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -28,10 +30,12 @@ contract LaminarRouter is ILaminarRouter, Ownable, Pausable, ReentrancyGuard {
 
     constructor(address initialOwner) Ownable(initialOwner) {}
 
-    /// @notice Register an adapter for a protocol id and allowlist it.
+    /// @notice Register `adapter` for `protocolId` and allowlist it.
+    /// @dev Replaces any previous adapter for the same protocolId. Adapter must be a contract.
     function registerAdapter(bytes32 protocolId, address adapter) external onlyOwner {
         if (adapter == address(0)) revert LaminarErrors.ZeroAddress();
         if (protocolId == bytes32(0)) revert LaminarErrors.InvalidProtocolId();
+        if (adapter.code.length == 0) revert LaminarErrors.AdapterNotContract(adapter);
 
         protocolAdapters[protocolId] = adapter;
         allowedAdapters[adapter] = true;
@@ -47,17 +51,17 @@ contract LaminarRouter is ILaminarRouter, Ownable, Pausable, ReentrancyGuard {
         emit AdapterStatusChanged(adapter, allowed);
     }
 
+    /// @notice Pause supply execution. Owner only.
     function pause() external onlyOwner {
         _pause();
     }
 
+    /// @notice Unpause supply execution. Owner only.
     function unpause() external onlyOwner {
         _unpause();
     }
 
-    /// @notice Validate and execute a supply intent through a registered adapter.
-    /// @dev v1 requires `msg.sender == intent.user`. Caller must have approved this
-    ///      router for `intent.amount` of `intent.asset`. No signed/delegated intents.
+    /// @inheritdoc ILaminarRouter
     function executeSupply(SupplyIntent calldata intent)
         external
         whenNotPaused
@@ -85,9 +89,6 @@ contract LaminarRouter is ILaminarRouter, Ownable, Pausable, ReentrancyGuard {
     }
 
     function _validateIntent(SupplyIntent calldata intent) internal view {
-        if (intent.user != msg.sender) {
-            revert LaminarErrors.UnauthorizedIntentCaller(msg.sender, intent.user);
-        }
         if (intent.user == address(0) || intent.asset == address(0) || intent.adapter == address(0))
         {
             revert LaminarErrors.ZeroAddress();
@@ -95,6 +96,11 @@ contract LaminarRouter is ILaminarRouter, Ownable, Pausable, ReentrancyGuard {
         if (intent.recipient == address(0)) revert LaminarErrors.InvalidRecipient();
         if (intent.amount == 0) revert LaminarErrors.ZeroAmount();
         if (intent.protocolId == bytes32(0)) revert LaminarErrors.InvalidProtocolId();
+
+        // v1: no signed or delegated intents — only the intent user may execute.
+        if (intent.user != msg.sender) {
+            revert LaminarErrors.UnauthorizedIntentCaller(msg.sender, intent.user);
+        }
 
         address registered = protocolAdapters[intent.protocolId];
         if (registered == address(0)) {

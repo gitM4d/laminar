@@ -2,7 +2,8 @@
 pragma solidity ^0.8.24;
 
 /// @notice Compact non-custodial supply intent passed to LaminarRouter.
-/// @dev Tokens are pulled from `user`, supplied via `adapter`, and credited to `recipient`.
+/// @dev Tokens are pulled from `user` (must equal msg.sender in v1), supplied via
+///      `adapter`, and credited to `recipient`. No vault shares are minted.
 struct SupplyIntent {
     address user;
     address asset;

@@ -20,6 +20,9 @@ contract MockAavePool is IAaveLikePool {
     uint16 public lastReferralCode;
     uint256 public supplyCount;
 
+    mapping(address asset => uint256 amount) public totalSuppliedByAsset;
+    mapping(address recipient => mapping(address asset => uint256 amount)) public suppliedBalance;
+
     function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)
         external
         override
@@ -31,6 +34,9 @@ contract MockAavePool is IAaveLikePool {
         lastOnBehalfOf = onBehalfOf;
         lastReferralCode = referralCode;
         supplyCount += 1;
+
+        totalSuppliedByAsset[asset] += amount;
+        suppliedBalance[onBehalfOf][asset] += amount;
 
         emit MockSupply(asset, amount, onBehalfOf, referralCode);
     }

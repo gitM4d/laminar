@@ -39,6 +39,34 @@ contract AaveV3AdapterTest is Test {
         new AaveV3Adapter(address(0), address(pool));
     }
 
+    function test_nonRouterCannotExecute() public {
+        usdc.mint(address(adapter), 100e6);
+
+        vm.prank(stranger);
+        vm.expectRevert(LaminarErrors.OnlyRouter.selector);
+        adapter.executeSupply(address(usdc), 100e6, recipient, PROTOCOL_AAVE);
+    }
+
+    function test_rejectsZeroAsset() public {
+        vm.prank(router);
+        vm.expectRevert(LaminarErrors.ZeroAddress.selector);
+        adapter.executeSupply(address(0), 100e6, recipient, PROTOCOL_AAVE);
+    }
+
+    function test_rejectsZeroRecipient() public {
+        usdc.mint(address(adapter), 100e6);
+
+        vm.prank(router);
+        vm.expectRevert(LaminarErrors.InvalidRecipient.selector);
+        adapter.executeSupply(address(usdc), 100e6, address(0), PROTOCOL_AAVE);
+    }
+
+    function test_rejectsZeroAmount() public {
+        vm.prank(router);
+        vm.expectRevert(LaminarErrors.ZeroAmount.selector);
+        adapter.executeSupply(address(usdc), 0, recipient, PROTOCOL_AAVE);
+    }
+
     function test_executeSupplyCallsPoolWithExpectedArgs() public {
         uint256 amount = 250e6;
         usdc.mint(address(adapter), amount);
@@ -53,20 +81,40 @@ contract AaveV3AdapterTest is Test {
         assertEq(pool.lastOnBehalfOf(), recipient);
         assertEq(pool.lastReferralCode(), 0);
         assertEq(usdc.balanceOf(address(pool)), amount);
+        assertEq(pool.suppliedBalance(recipient, address(usdc)), amount);
+        assertEq(pool.totalSuppliedByAsset(address(usdc)), amount);
+    }
+
+    function test_successfulSupplyClearsAllowance() public {
+        uint256 amount = 75e6;
+        usdc.mint(address(adapter), amount);
+
+        vm.prank(router);
+        adapter.executeSupply(address(usdc), amount, recipient, PROTOCOL_AAVE);
+
         assertEq(usdc.allowance(address(adapter), address(pool)), 0);
     }
 
-    function test_nonRouterCannotExecute() public {
-        usdc.mint(address(adapter), 100e6);
+    function test_successfulSupplyLeavesAdapterBalanceZero() public {
+        uint256 amount = 90e6;
+        usdc.mint(address(adapter), amount);
 
-        vm.prank(stranger);
-        vm.expectRevert(LaminarErrors.OnlyRouter.selector);
-        adapter.executeSupply(address(usdc), 100e6, recipient, PROTOCOL_AAVE);
+        vm.prank(router);
+        adapter.executeSupply(address(usdc), amount, recipient, PROTOCOL_AAVE);
+
+        assertEq(usdc.balanceOf(address(adapter)), 0);
     }
 
-    function test_rejectsZeroAmount() public {
+    function testFuzz_successfulSupplyLeavesNoResidualFunds(uint256 amount) public {
+        amount = bound(amount, 1, 1e30);
+        usdc.mint(address(adapter), amount);
+
         vm.prank(router);
-        vm.expectRevert(LaminarErrors.ZeroAmount.selector);
-        adapter.executeSupply(address(usdc), 0, recipient, PROTOCOL_AAVE);
+        adapter.executeSupply(address(usdc), amount, recipient, PROTOCOL_AAVE);
+
+        assertEq(usdc.balanceOf(address(adapter)), 0);
+        assertEq(usdc.allowance(address(adapter), address(pool)), 0);
+        assertEq(pool.lastAmount(), amount);
+        assertEq(pool.suppliedBalance(recipient, address(usdc)), amount);
     }
 }

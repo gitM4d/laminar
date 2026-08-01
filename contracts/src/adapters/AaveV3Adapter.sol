@@ -12,6 +12,7 @@ import {ILaminarAdapter} from "../interfaces/ILaminarAdapter.sol";
 /// @notice Supplies ERC20 assets into an Aave V3-like pool on behalf of a recipient.
 /// @dev Asset flow: Router transfers tokens to this adapter, then calls executeSupply.
 ///      The adapter approves the pool for the exact amount, supplies, then clears approval.
+///      No share accounting and no residual custody after success.
 contract AaveV3Adapter is ILaminarAdapter {
     using SafeERC20 for IERC20;
 
@@ -38,6 +39,8 @@ contract AaveV3Adapter is ILaminarAdapter {
     }
 
     /// @inheritdoc ILaminarAdapter
+    /// @dev Only callable by ROUTER. Uses exact approval (never MaxUint256) and resets
+    ///      allowance to zero after the pool call.
     function executeSupply(address asset, uint256 amount, address recipient, bytes32 protocolId)
         external
         onlyRouter
