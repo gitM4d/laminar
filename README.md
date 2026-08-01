@@ -674,11 +674,12 @@ Limitations:
 
 ## Solidity architecture
 
-Laminar includes a Foundry Solidity foundation under `contracts/` for a non-custodial intent execution layer. `LaminarRouter` validates supply intents, pulls tokens from the user, and delegates to allowlisted protocol adapters. `AaveV3Adapter` supplies into an Aave V3-like pool with exact approvals only. Contracts are local-only today — not deployed and not wired to the TypeScript frontend/API.
+Laminar includes a Foundry Solidity foundation under `contracts/` for a non-custodial intent execution layer. `LaminarRouter` validates supply intents, pulls tokens from the user, and delegates to allowlisted protocol adapters. `AaveV3Adapter` supplies into an Aave V3-like pool with exact approvals only. Contracts are local-only today — not deployed and not wired to the TypeScript frontend/API. Base Sepolia deploy readiness lives in `contracts/script/DeployLaminar.s.sol` (dry-run only by default; see `contracts/README.md`).
 
 ```bash
 npm run contracts:build
 npm run contracts:test
+npm run contracts:deploy:base-sepolia:dry-run   # requires Base Sepolia env vars
 ```
 
 ## Project structure

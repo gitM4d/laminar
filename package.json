@@ -33,7 +33,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "contracts:build": "forge build --root contracts",
-    "contracts:test": "forge test --root contracts"
+    "contracts:test": "forge test --root contracts",
+    "contracts:deploy:base-sepolia:dry-run": "forge script script/DeployLaminar.s.sol --root contracts --rpc-url $BASE_SEPOLIA_RPC_URL"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

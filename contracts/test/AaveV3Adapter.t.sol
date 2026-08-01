@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 
 import {AaveV3Adapter} from "../src/adapters/AaveV3Adapter.sol";
 import {LaminarErrors} from "../src/errors/LaminarErrors.sol";
+import {LaminarConstants} from "../src/libraries/LaminarConstants.sol";
 import {MockAavePool} from "./mocks/MockAavePool.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 
@@ -13,7 +14,7 @@ contract AaveV3AdapterTest is Test {
         address indexed asset, address indexed recipient, uint256 amount, bytes32 protocolId
     );
 
-    bytes32 internal constant PROTOCOL_AAVE = keccak256("aave");
+    bytes32 internal constant PROTOCOL_AAVE = LaminarConstants.AAVE_V3_PROTOCOL_ID;
 
     AaveV3Adapter internal adapter;
     MockAavePool internal pool;

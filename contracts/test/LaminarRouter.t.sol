@@ -8,6 +8,7 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {AaveV3Adapter} from "../src/adapters/AaveV3Adapter.sol";
 import {LaminarErrors} from "../src/errors/LaminarErrors.sol";
 import {LaminarRouter} from "../src/LaminarRouter.sol";
+import {LaminarConstants} from "../src/libraries/LaminarConstants.sol";
 import {SupplyIntent} from "../src/libraries/LaminarTypes.sol";
 import {MockAavePool} from "./mocks/MockAavePool.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
@@ -23,7 +24,7 @@ contract LaminarRouterTest is Test {
         uint256 amount
     );
 
-    bytes32 internal constant PROTOCOL_AAVE = keccak256("aave");
+    bytes32 internal constant PROTOCOL_AAVE = LaminarConstants.AAVE_V3_PROTOCOL_ID;
 
     LaminarRouter internal router;
     AaveV3Adapter internal adapter;
